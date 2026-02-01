@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { IoClose, IoPlayCircle, IoTimeOutline } from 'react-icons/io5';
@@ -16,29 +16,53 @@ export function BoostModal({ onClose }: BoostModalProps) {
     const [isWatchingAd, setIsWatchingAd] = useState(false);
     const [adProgress, setAdProgress] = useState(0);
 
+    const intervalRef = useRef<number | null>(null);
+    const timeoutRef = useRef<number | null>(null);
+    const isMountedRef = useRef(true);
+
     const DURATION_SECONDS = 180; // 3분
+
+    // Cleanup on unmount
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
 
     const handleWatchAd = (type: BoostType) => {
         setIsWatchingAd(true);
         setAdProgress(0);
 
         // 광고 시뮬레이션 (3초)
-        const interval = setInterval(() => {
+        intervalRef.current = window.setInterval(() => {
+            if (!isMountedRef.current) return;
             setAdProgress(prev => {
                 if (prev >= 100) {
-                    clearInterval(interval);
+                    if (intervalRef.current) clearInterval(intervalRef.current);
                     return 100;
                 }
                 return prev + 2;
             });
         }, 50);
 
-        setTimeout(() => {
-            clearInterval(interval);
+        timeoutRef.current = window.setTimeout(() => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+
+            // Activate boost first, then close modal
             activateBoost(type, DURATION_SECONDS);
-            setIsWatchingAd(false);
+
             if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-            onClose();
+
+            // Use requestAnimationFrame to ensure state is settled before closing
+            requestAnimationFrame(() => {
+                if (isMountedRef.current) {
+                    setIsWatchingAd(false);
+                    onClose();
+                }
+            });
         }, 3000); // 3초 광고
     };
 
