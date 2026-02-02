@@ -37,7 +37,7 @@ export function Board() {
 
             if (isAutoSpawnActive) {
                 state.spawnCoin();
-                timeoutId = setTimeout(loop, Math.max(200, state.spawnCooldown));
+                timeoutId = setTimeout(loop, 500); // 0.5초마다 자동 생산
             } else {
                 timeoutId = setTimeout(loop, 1000);
             }

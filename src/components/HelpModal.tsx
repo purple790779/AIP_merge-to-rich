@@ -29,11 +29,10 @@ export function HelpModal({ onClose }: HelpModalProps) {
             description: '지금까지 모은 화폐들을 도감에서 확인하세요.'
         },
         {
-            icon: '\u267B\uFE0F',
-            title: '\uB808\uBCA8 \uC5C5\uADF8\uB808\uC774\uB4DC \uD658\uC6D0',
-            description: '\uC2DC\uC791 \uB808\uBCA8\uC744 \uC62C\uB9AC\uBA74 \uADF8\uBCF4\uB2E4 \uB0AE\uC740 \uCF54\uC778\uC740 \uC790\uB3D9\uC73C\uB85C \uC0AC\uB77C\uC9C0\uACE0 \uCD1D\uC790\uC0B0\uC73C\uB85C \uD658\uC6D0\uB429\uB2C8\uB2E4.'
+            icon: '♻️',
+            title: '레벨 업그레이드 환원',
+            description: '시작 레벨을 올리면 그보다 낮은 코인은 자동으로 사라지고 총자산으로 환원됩니다.'
         },
-
     ];
 
     return (
@@ -84,7 +83,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
                             <li>보드가 꽉 차면 더 이상 코인을 생산할 수 없어요</li>
                             <li>높은 레벨 코인일수록 더 많은 수익을 얻을 수 있어요</li>
                             <li>업그레이드는 장기적으로 큰 도움이 됩니다</li>
-                            <li>\uC2DC\uC791 \uB808\uBCA8 \uC5C5\uADF8\uB808\uC774\uB4DC \uC2DC \uD558\uC704 \uCF54\uC778\uC740 \uC790\uB3D9 \uD658\uC6D0\uB429\uB2C8\uB2E4.</li>
+                            <li>시작 레벨 업그레이드 시 하위 코인은 자동 환원됩니다</li>
                         </ul>
                     </div>
                 </div>

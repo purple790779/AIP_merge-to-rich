@@ -20,7 +20,7 @@ export function BoostModal({ onClose }: BoostModalProps) {
     const timeoutRef = useRef<number | null>(null);
     const isMountedRef = useRef(true);
 
-    const DURATION_SECONDS = 180; // 3분
+    const DURATION_SECONDS = 300; // 5분
 
     // Cleanup on unmount
     useEffect(() => {
