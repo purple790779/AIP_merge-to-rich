@@ -15,7 +15,7 @@ import {
 } from './components';
 import { useGameStore } from './store/useGameStore';
 import type { BoostType } from './types/game';
-import { MAX_MONEY, ACHIEVEMENTS } from './types/game';
+import { MAX_MONEY, ACHIEVEMENTS, COIN_LEVELS } from './types/game';
 import { FaBolt, FaCoins, FaRobot, FaQuestion, FaTrophy } from 'react-icons/fa';
 import { IoSettingsSharp } from 'react-icons/io5';
 import { AnimatePresence, motion } from 'framer-motion';
