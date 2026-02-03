@@ -35,7 +35,6 @@ function App() {
   const unlockedAchievements = useGameStore(state => state.unlockedAchievements);
   const totalMoney = useGameStore(state => state.totalMoney);
   const lastDiscoveredLevel = useGameStore(state => state.lastDiscoveredLevel);
-  const clearLastDiscoveredLevel = useGameStore(state => state.clearLastDiscoveredLevel);
   const [now, setNow] = useState(() => Date.now());
   const [showAchievementBadge, setShowAchievementBadge] = useState(false);
   const [celebrationText, setCelebrationText] = useState<string | null>(null);
@@ -53,11 +52,12 @@ function App() {
       const coinInfo = COIN_LEVELS[lastDiscoveredLevel];
       if (coinInfo) {
         setDiscoveryText(`✨ ${coinInfo.emoji} ${coinInfo.name} 첫 병합 성공!`);
-        clearLastDiscoveredLevel();
+        // 즉시 클리어 - store에서 직접 호출
+        useGameStore.getState().clearLastDiscoveredLevel();
         setTimeout(() => setDiscoveryText(null), 2500);
       }
     }
-  }, [lastDiscoveredLevel, clearLastDiscoveredLevel]);
+  }, [lastDiscoveredLevel]);
 
   // 주기적으로 업적 체크 (5초마다)
   useEffect(() => {
