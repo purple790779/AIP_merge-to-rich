@@ -1537,8 +1537,10 @@ body {
 .celebration-toast {
   position: fixed;
   top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
   z-index: 9999;
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   color: #1a1a2e;
@@ -1555,8 +1557,10 @@ body {
 .discovery-toast {
   position: fixed;
   top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
   z-index: 9998;
   background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
   color: #ffffff;
