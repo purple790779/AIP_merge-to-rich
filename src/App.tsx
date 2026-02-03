@@ -10,15 +10,16 @@ import {
   HelpModal,
   SettingsModal,
   AdButton,
-  BoostModal
+  BoostModal,
+  AchievementModal
 } from './components';
 import { useGameStore } from './store/useGameStore';
 import type { BoostType } from './types/game';
-import { FaBolt, FaCoins, FaRobot, FaQuestion } from 'react-icons/fa';
+import { FaBolt, FaCoins, FaRobot, FaQuestion, FaTrophy } from 'react-icons/fa';
 import { IoSettingsSharp } from 'react-icons/io5';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
-type ModalType = 'store' | 'collection' | 'help' | 'settings' | 'boost' | null;
+type ModalType = 'store' | 'collection' | 'help' | 'settings' | 'boost' | 'achievement' | null;
 
 const BOOST_META: Record<BoostType, { label: string; className: string; icon: ReactNode }> = {
   AUTO_MERGE: { label: '자동 병합', className: 'auto-merge', icon: <FaRobot /> },
@@ -29,12 +30,27 @@ const BOOST_META: Record<BoostType, { label: string; className: string; icon: Re
 function App() {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const activeBoosts = useGameStore(state => state.activeBoosts);
+  const checkAchievements = useGameStore(state => state.checkAchievements);
+  const unlockedAchievements = useGameStore(state => state.unlockedAchievements);
   const [now, setNow] = useState(() => Date.now());
+  const [showAchievementBadge, setShowAchievementBadge] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // 주기적으로 업적 체크 (5초마다)
+  useEffect(() => {
+    const checkTimer = setInterval(() => {
+      const newAchievements = checkAchievements();
+      if (newAchievements.length > 0) {
+        setShowAchievementBadge(true);
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      }
+    }, 5000);
+    return () => clearInterval(checkTimer);
+  }, [checkAchievements]);
 
   const runningBoosts = activeBoosts.filter(boost => boost.endTime > now);
 
@@ -42,6 +58,11 @@ function App() {
     const remainingSec = Math.max(0, Math.ceil((endTime - now) / 1000));
     if (remainingSec >= 60) return `${Math.ceil(remainingSec / 60)}분`;
     return `${remainingSec}초`;
+  };
+
+  const handleOpenAchievement = () => {
+    setShowAchievementBadge(false);
+    setActiveModal('achievement');
   };
 
   return (
@@ -53,6 +74,17 @@ function App() {
           <span>머지 머니 타이쿤</span>
         </h1>
         <div className="title-actions">
+          <button className="title-icon-btn achievement-btn" onClick={handleOpenAchievement}>
+            <FaTrophy />
+            {showAchievementBadge && (
+              <motion.span
+                className="achievement-badge"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 500 }}
+              />
+            )}
+          </button>
           <button className="title-icon-btn" onClick={() => setActiveModal('help')}>
             <FaQuestion />
           </button>
@@ -112,9 +144,13 @@ function App() {
         {activeModal === 'boost' && (
           <BoostModal onClose={() => setActiveModal(null)} />
         )}
+        {activeModal === 'achievement' && (
+          <AchievementModal onClose={() => setActiveModal(null)} />
+        )}
       </AnimatePresence>
     </div>
   );
 }
 
 export default App;
+

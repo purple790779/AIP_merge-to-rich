@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Coin, GameState, BoostType } from '../types/game';
-import { TOTAL_CELLS, COIN_PPS, COIN_LEVELS } from '../types/game';
+import { TOTAL_CELLS, COIN_PPS, COIN_LEVELS, ACHIEVEMENTS } from '../types/game';
 
 // 유틸리티: 고유 ID 생성
 const generateId = () => `coin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -55,6 +55,9 @@ interface GameStore extends GameState {
     resetGame: () => void;
     clearLastMergedId: () => void;
     isBoardFull: () => boolean;
+
+    // 업적
+    checkAchievements: () => string[]; // 새로 해금된 업적 ID 반환
 }
 
 const initialState: GameState = {
@@ -70,6 +73,10 @@ const initialState: GameState = {
     autoSpawnEnabled: false,
     lastMergedId: null,
     activeBoosts: [],
+    // 업적 시스템
+    unlockedAchievements: [],
+    totalMergeCount: 0,
+    totalEarnedMoney: 0,
 };
 
 export const useGameStore = create<GameStore>()(
@@ -158,6 +165,7 @@ export const useGameStore = create<GameStore>()(
                         pps: calculateTotalPPS(newCoins),
                         lastMergedId: mergedCoin.id,
                         bitcoinDiscovered: state.bitcoinDiscovered || bitcoinFound,
+                        totalMergeCount: state.totalMergeCount + 1,
                     }));
 
                     if (navigator.vibrate) navigator.vibrate(50);
@@ -319,6 +327,36 @@ export const useGameStore = create<GameStore>()(
                 return false;
             },
 
+            checkAchievements: () => {
+                const state = get();
+                const newlyUnlocked: string[] = [];
+
+                ACHIEVEMENTS.forEach(achievement => {
+                    // 이미 해금된 업적은 스킵
+                    if (state.unlockedAchievements.includes(achievement.id)) return;
+
+                    // 조건 체크
+                    if (achievement.condition(state)) {
+                        newlyUnlocked.push(achievement.id);
+                    }
+                });
+
+                if (newlyUnlocked.length > 0) {
+                    // 보상 계산
+                    const totalReward = newlyUnlocked.reduce((sum, id) => {
+                        const achievement = ACHIEVEMENTS.find(a => a.id === id);
+                        return sum + (achievement?.reward || 0);
+                    }, 0);
+
+                    set(state => ({
+                        unlockedAchievements: [...state.unlockedAchievements, ...newlyUnlocked],
+                        totalMoney: state.totalMoney + totalReward,
+                    }));
+                }
+
+                return newlyUnlocked;
+            },
+
             resetGame: () => {
                 set(initialState);
             },
@@ -333,7 +371,7 @@ export const useGameStore = create<GameStore>()(
             },
         }),
         {
-            name: 'merge-money-tycoon-v2',
+            name: 'merge-money-tycoon-v3', // 버전 업데이트
             partialize: (state) => ({
                 coins: state.coins,
                 totalMoney: state.totalMoney,
@@ -344,6 +382,10 @@ export const useGameStore = create<GameStore>()(
                 gemSystemUnlocked: state.gemSystemUnlocked,
                 bitcoinDiscovered: state.bitcoinDiscovered,
                 activeBoosts: state.activeBoosts,
+                // 업적 관련 추가
+                unlockedAchievements: state.unlockedAchievements,
+                totalMergeCount: state.totalMergeCount,
+                totalEarnedMoney: state.totalEarnedMoney,
             }),
             onRehydrateStorage: () => (state) => {
                 if (!state) return;
