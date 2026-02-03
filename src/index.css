@@ -138,6 +138,12 @@ body {
   border-radius: 16px;
   padding: 14px 20px;
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pps-info {
+  display: flex;
   align-items: center;
   justify-content: space-between;
 }
@@ -151,6 +157,22 @@ body {
   font-size: 16px;
   font-weight: 600;
   color: var(--success);
+}
+
+/* 수익 프로그레스바 */
+.income-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.income-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--toss-blue) 0%, var(--success) 100%);
+  border-radius: 3px;
+  transition: width 0.05s linear;
 }
 
 /* ===== 보드 ===== */

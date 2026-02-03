@@ -49,7 +49,7 @@ export function Board() {
         return () => clearTimeout(timeoutId);
     }, []);
 
-    // 특정 좌표가 어떤 셀에 해당하는지 계산 (elementFromPoint 사용으로 정확도 향상)
+    // 특정 좌표가 어떤 셀에 해당하는지 계산 (중심점 + 주변 포인트 확인)
     const getCellIndexFromPoint = useCallback((x: number, y: number): number | null => {
         // 해당 좌표에 있는 모든 요소를 가져옴
         const elements = document.elementsFromPoint(x, y);
@@ -71,9 +71,57 @@ export function Board() {
         setDragOverCell(cellIndex);
     }, [getCellIndexFromPoint]);
 
+    // 주변 셀들 중 병합 가능한 코인 찾기 (50% 겹침 허용)
+    const findMergeableCoinNearby = useCallback((coinId: string, x: number, y: number): number | null => {
+        const currentCoin = coins.find(c => c.id === coinId);
+        if (!currentCoin) return null;
+
+        // 중심점과 25px 거리의 4방향 포인트 확인 (코인 크기의 약 50%)
+        const offsets = [
+            { dx: 0, dy: 0 },      // 중심
+            { dx: -25, dy: 0 },    // 왼쪽
+            { dx: 25, dy: 0 },     // 오른쪽
+            { dx: 0, dy: -25 },    // 위
+            { dx: 0, dy: 25 },     // 아래
+        ];
+
+        for (const offset of offsets) {
+            const checkX = x + offset.dx;
+            const checkY = y + offset.dy;
+            const cellIndex = getCellIndexFromPoint(checkX, checkY);
+
+            if (cellIndex !== null && cellIndex !== currentCoin.gridIndex) {
+                // 해당 셀에 같은 레벨의 코인이 있는지 확인
+                const targetCoin = coins.find(c => c.gridIndex === cellIndex && c.id !== coinId);
+                if (targetCoin && targetCoin.level === currentCoin.level) {
+                    return cellIndex;
+                }
+            }
+        }
+
+        return null;
+    }, [coins, getCellIndexFromPoint]);
+
     // 코인 드래그 종료 핸들러
     const handleDragEnd = useCallback((coinId: string, info: { point: { x: number; y: number } }) => {
         setDragOverCell(null);
+
+        // 현재 코인 찾기
+        const currentCoin = coins.find(c => c.id === coinId);
+        if (!currentCoin) return;
+
+        // 먼저 주변에서 병합 가능한 코인 찾기 (50% 겹침 허용)
+        const mergeableIndex = findMergeableCoinNearby(coinId, info.point.x, info.point.y);
+
+        if (mergeableIndex !== null) {
+            const merged = tryMerge(coinId, mergeableIndex);
+            if (merged) {
+                soundManager.playMerge();
+                return;
+            }
+        }
+
+        // 병합 대상이 없으면 정확한 드롭 위치로 이동 시도
         const targetIndex = getCellIndexFromPoint(info.point.x, info.point.y);
 
         if (targetIndex === null) {
@@ -81,24 +129,19 @@ export function Board() {
             return;
         }
 
-        // 현재 코인 찾기
-        const currentCoin = coins.find(c => c.id === coinId);
-        if (!currentCoin) return;
-
         // 같은 위치면 무시
         if (currentCoin.gridIndex === targetIndex) return;
 
-        // 머지 시도
+        // 해당 위치에 코인이 있으면 머지 시도 (같은 레벨)
         const merged = tryMerge(coinId, targetIndex);
 
         if (merged) {
-            // 머지 성공 시 사운드
             soundManager.playMerge();
         } else {
             // 머지 실패 시 이동 시도
             moveCoin(coinId, targetIndex);
         }
-    }, [getCellIndexFromPoint, tryMerge, moveCoin, coins]);
+    }, [getCellIndexFromPoint, tryMerge, moveCoin, coins, findMergeableCoinNearby]);
 
     // 셀에 코인이 있는지 확인
     const getCoinAtCell = (index: number) => {

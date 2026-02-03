@@ -36,9 +36,9 @@ export function StoreModal({ onClose }: StoreModalProps) {
     const incomeCost = 300 * Math.pow(incomeLevel, 1.3);
     const isMaxIncome = incomeInterval <= 1000;
 
-    // 머지 보너스
+    // 머지 보너스 (0.5% 단위, 최대 60레벨 = 30%)
     const mergeBonusCost = 200 * Math.pow(mergeBonusLevel + 1, 1.4);
-    const isMaxMergeBonus = mergeBonusLevel >= 50;
+    const isMaxMergeBonus = mergeBonusLevel >= 60;
 
     // 보석 시스템 해금
     const gemCost = 100000000; // 1억원
@@ -157,25 +157,25 @@ export function StoreModal({ onClose }: StoreModalProps) {
                         </button>
                     </div>
 
-                    {/* 생산 속도 업그레이드 */}
+                    {/* 머지 보너스 업그레이드 */}
                     <div className="upgrade-card">
                         <div className="upgrade-header">
-                            <div className="upgrade-icon speed">
-                                <FaBolt />
+                            <div className="upgrade-icon merge">
+                                <FaPercentage />
                             </div>
                             <div className="upgrade-info">
-                                <div className="upgrade-title">자동 생산 속도</div>
-                                <div className="upgrade-desc">부스트 시 쿨타임: {(spawnCooldown / 1000).toFixed(1)}초</div>
+                                <div className="upgrade-title">머지 보너스</div>
+                                <div className="upgrade-desc">10% 확률로 {(mergeBonusLevel * 0.5).toFixed(1)}% 보너스</div>
                             </div>
-                            <div className="upgrade-level">Lv.{speedLevel}</div>
+                            <div className="upgrade-level">Lv.{mergeBonusLevel}</div>
                         </div>
 
                         <button
-                            onClick={handleBuySpeed}
-                            disabled={totalMoney < speedCost || isMaxSpeed}
-                            className={`toss-button ${totalMoney >= speedCost && !isMaxSpeed ? 'secondary' : 'disabled'}`}
+                            onClick={handleBuyMergeBonus}
+                            disabled={totalMoney < mergeBonusCost || isMaxMergeBonus}
+                            className={`toss-button ${totalMoney >= mergeBonusCost && !isMaxMergeBonus ? 'gold' : 'disabled'}`}
                         >
-                            {isMaxSpeed ? '최대 속도' : `${formatMoney(Math.floor(speedCost))}원`}
+                            {isMaxMergeBonus ? '최대 보너스' : `${formatMoney(Math.floor(mergeBonusCost))}원`}
                         </button>
                     </div>
 
@@ -201,25 +201,25 @@ export function StoreModal({ onClose }: StoreModalProps) {
                         </button>
                     </div>
 
-                    {/* 머지 보너스 업그레이드 */}
+                    {/* 자동 생산 속도 업그레이드 */}
                     <div className="upgrade-card">
                         <div className="upgrade-header">
-                            <div className="upgrade-icon merge">
-                                <FaPercentage />
+                            <div className="upgrade-icon speed">
+                                <FaBolt />
                             </div>
                             <div className="upgrade-info">
-                                <div className="upgrade-title">머지 보너스</div>
-                                <div className="upgrade-desc">합성 시 {mergeBonusLevel}% 보너스</div>
+                                <div className="upgrade-title">자동 생산 속도</div>
+                                <div className="upgrade-desc">부스트 시 쿨타임: {(spawnCooldown / 1000).toFixed(1)}초</div>
                             </div>
-                            <div className="upgrade-level">Lv.{mergeBonusLevel}</div>
+                            <div className="upgrade-level">Lv.{speedLevel}</div>
                         </div>
 
                         <button
-                            onClick={handleBuyMergeBonus}
-                            disabled={totalMoney < mergeBonusCost || isMaxMergeBonus}
-                            className={`toss-button ${totalMoney >= mergeBonusCost && !isMaxMergeBonus ? 'gold' : 'disabled'}`}
+                            onClick={handleBuySpeed}
+                            disabled={totalMoney < speedCost || isMaxSpeed}
+                            className={`toss-button ${totalMoney >= speedCost && !isMaxSpeed ? 'secondary' : 'disabled'}`}
                         >
-                            {isMaxMergeBonus ? '최대 보너스' : `${formatMoney(Math.floor(mergeBonusCost))}원`}
+                            {isMaxSpeed ? '최대 속도' : `${formatMoney(Math.floor(speedCost))}원`}
                         </button>
                     </div>
 

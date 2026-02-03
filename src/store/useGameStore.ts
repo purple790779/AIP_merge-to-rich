@@ -150,8 +150,10 @@ export const useGameStore = create<GameStore>()(
                     };
 
                     const newCoinValue = COIN_LEVELS[newLevel]?.value || 0;
-                    const bonusPercent = mergeBonusLevel / 100;
-                    const mergeBonus = Math.floor(newCoinValue * bonusPercent);
+                    // 머지 보너스: 10% 확률로 발동, 0.5% 단위 (mergeBonusLevel * 0.5%)
+                    const bonusChance = Math.random() < 0.1; // 10% 확률
+                    const bonusPercent = (mergeBonusLevel * 0.5) / 100;
+                    const mergeBonus = bonusChance ? Math.floor(newCoinValue * bonusPercent) : 0;
 
                     const newCoins = coins
                         .filter(c => c.id !== coinId && c.id !== targetCoin.id)
@@ -299,7 +301,8 @@ export const useGameStore = create<GameStore>()(
 
             upgradeMergeBonus: () => {
                 const { mergeBonusLevel, totalMoney } = get();
-                if (mergeBonusLevel >= 50) return false;
+                // 최대 60레벨 = 30% (0.5% * 60)
+                if (mergeBonusLevel >= 60) return false;
 
                 const cost = 200 * Math.pow(mergeBonusLevel + 1, 1.4);
 
