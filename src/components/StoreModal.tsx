@@ -164,8 +164,8 @@ export function StoreModal({ onClose }: StoreModalProps) {
                                 <FaBolt />
                             </div>
                             <div className="upgrade-info">
-                                <div className="upgrade-title">생산 속도</div>
-                                <div className="upgrade-desc">현재 쿨타임: {(spawnCooldown / 1000).toFixed(1)}초</div>
+                                <div className="upgrade-title">자동 생산 속도</div>
+                                <div className="upgrade-desc">부스트 시 쿨타임: {(spawnCooldown / 1000).toFixed(1)}초</div>
                             </div>
                             <div className="upgrade-level">Lv.{speedLevel}</div>
                         </div>

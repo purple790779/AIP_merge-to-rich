@@ -37,8 +37,11 @@ export function Board() {
 
             if (isAutoSpawnActive) {
                 state.spawnCoin();
-                timeoutId = setTimeout(loop, 500); // 0.5초마다 자동 생산
+                // 업그레이드된 쿨타임 적용 (최소 200ms)
+                const cooldown = Math.max(200, state.spawnCooldown);
+                timeoutId = setTimeout(loop, cooldown);
             } else {
+                // 부스트가 꺼져있을 때는 체크 주기만 유지
                 timeoutId = setTimeout(loop, 1000);
             }
         };
