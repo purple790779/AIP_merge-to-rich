@@ -135,7 +135,11 @@ export const useGameStore = create<GameStore>()(
             },
 
             tryMerge: (coinId: string, targetIndex: number) => {
-                const { coins, mergeBonusLevel, gemSystemUnlocked, discoveredLevels } = get();
+                const state = get();
+                const { coins, mergeBonusLevel, gemSystemUnlocked } = state;
+                // 방어 코드: 기존 저장 데이터에 discoveredLevels가 없을 수 있음
+                const discoveredLevels = state.discoveredLevels || [1];
+
                 const movingCoin = coins.find(c => c.id === coinId);
                 if (!movingCoin) return false;
 
@@ -413,7 +417,12 @@ export const useGameStore = create<GameStore>()(
             }),
             onRehydrateStorage: () => (state) => {
                 if (!state) return;
-                set({ pps: calculateTotalPPS(state.coins) });
+                set({
+                    pps: calculateTotalPPS(state.coins),
+                    // 기존 저장 데이터 마이그레이션
+                    discoveredLevels: state.discoveredLevels || [1],
+                    lastDiscoveredLevel: null,
+                });
             },
         }
     )
