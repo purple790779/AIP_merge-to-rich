@@ -93,6 +93,7 @@ export interface GameState {
     unlockedAchievements: string[]; // 해금된 업적 ID 목록
     totalMergeCount: number; // 총 합성 횟수
     totalEarnedMoney: number; // 총 획득 금액 (누적)
+    discoveredLevels: number[]; // 첫 발견한 코인 레벨 목록
 }
 
 // 업적 타입 정의
@@ -132,7 +133,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     // 특별 업적
     { id: 'gem_unlock', title: '보석 사냥꾼', description: '보석 시스템 해금', icon: '💠', condition: (s) => s.gemSystemUnlocked, reward: 10000000 },
     { id: 'bitcoin', title: '전설의 비트코인', description: '비트코인 발견', icon: '₿', condition: (s) => s.bitcoinDiscovered, reward: 1000000000 },
-    { id: 'full_board', title: '보드 정복자', description: '보드를 코인으로 가득 채우기', icon: '🎯', condition: (s) => s.coins.length >= 25, reward: 10000 },
+    { id: 'full_board', title: '보드 정복자', description: '보드를 코인으로 가득 채우기', icon: '🎯', condition: (s) => s.coins.length >= 25, reward: 1000 },
     { id: 'spawn_level_5', title: '고급 생산자', description: '시작 레벨 5 달성', icon: '⬆️', condition: (s) => s.spawnLevel >= 5, reward: 10000 },
     { id: 'spawn_level_10', title: '최고급 생산자', description: '시작 레벨 10 달성', icon: '🚀', condition: (s) => s.spawnLevel >= 10, reward: 500000 },
 

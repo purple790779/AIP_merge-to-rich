@@ -34,15 +34,30 @@ function App() {
   const checkAchievements = useGameStore(state => state.checkAchievements);
   const unlockedAchievements = useGameStore(state => state.unlockedAchievements);
   const totalMoney = useGameStore(state => state.totalMoney);
+  const lastDiscoveredLevel = useGameStore(state => state.lastDiscoveredLevel);
+  const clearLastDiscoveredLevel = useGameStore(state => state.clearLastDiscoveredLevel);
   const [now, setNow] = useState(() => Date.now());
   const [showAchievementBadge, setShowAchievementBadge] = useState(false);
   const [celebrationText, setCelebrationText] = useState<string | null>(null);
+  const [discoveryText, setDiscoveryText] = useState<string | null>(null);
   const [hasSeenEnding, setHasSeenEnding] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // 새 코인 발견 알림
+  useEffect(() => {
+    if (lastDiscoveredLevel !== null && lastDiscoveredLevel >= 2) {
+      const coinInfo = COIN_LEVELS[lastDiscoveredLevel];
+      if (coinInfo) {
+        setDiscoveryText(`✨ ${coinInfo.emoji} ${coinInfo.name} 첫 병합 성공!`);
+        clearLastDiscoveredLevel();
+        setTimeout(() => setDiscoveryText(null), 2500);
+      }
+    }
+  }, [lastDiscoveredLevel, clearLastDiscoveredLevel]);
 
   // 주기적으로 업적 체크 (5초마다)
   useEffect(() => {
@@ -125,6 +140,21 @@ function App() {
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           >
             {celebrationText}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 새 코인 발견 토스트 */}
+      <AnimatePresence>
+        {discoveryText && (
+          <motion.div
+            className="discovery-toast"
+            initial={{ y: -100, opacity: 0, scale: 0.8 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: -100, opacity: 0, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          >
+            {discoveryText}
           </motion.div>
         )}
       </AnimatePresence>

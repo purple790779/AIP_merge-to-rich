@@ -1542,12 +1542,31 @@ body {
   z-index: 9999;
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   color: #1a1a2e;
-  padding: 14px 28px;
-  border-radius: 50px;
-  font-size: 16px;
+  padding: 14px 24px;
+  border-radius: 16px;
+  font-size: 15px;
   font-weight: 700;
   box-shadow: 0 8px 32px rgba(251, 191, 36, 0.4);
-  white-space: nowrap;
+  max-width: 90%;
+  text-align: center;
+}
+
+/* ===== 새 코인 발견 토스트 ===== */
+.discovery-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9998;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
+  max-width: 90%;
+  text-align: center;
 }
 
 /* ===== 엔딩 모달 ===== */

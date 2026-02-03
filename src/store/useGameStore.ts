@@ -54,13 +54,17 @@ interface GameStore extends GameState {
     // 기타
     resetGame: () => void;
     clearLastMergedId: () => void;
+    clearLastDiscoveredLevel: () => void;
     isBoardFull: () => boolean;
 
     // 업적
     checkAchievements: () => string[]; // 새로 해금된 업적 ID 반환
+
+    // 새 레벨 발견 상태
+    lastDiscoveredLevel: number | null;
 }
 
-const initialState: GameState = {
+const initialState: GameState & { lastDiscoveredLevel: number | null } = {
     coins: [],
     totalMoney: 50,
     pps: 0,
@@ -77,6 +81,8 @@ const initialState: GameState = {
     unlockedAchievements: [],
     totalMergeCount: 0,
     totalEarnedMoney: 0,
+    discoveredLevels: [1], // 레벨 1은 기본으로 발견
+    lastDiscoveredLevel: null,
 };
 
 export const useGameStore = create<GameStore>()(
@@ -129,7 +135,7 @@ export const useGameStore = create<GameStore>()(
             },
 
             tryMerge: (coinId: string, targetIndex: number) => {
-                const { coins, mergeBonusLevel, gemSystemUnlocked } = get();
+                const { coins, mergeBonusLevel, gemSystemUnlocked, discoveredLevels } = get();
                 const movingCoin = coins.find(c => c.id === coinId);
                 if (!movingCoin) return false;
 
@@ -161,6 +167,12 @@ export const useGameStore = create<GameStore>()(
 
                     const bitcoinFound = newLevel === 18;
 
+                    // 첫 발견 체크 (레벨 2 이상만)
+                    const isFirstDiscovery = newLevel >= 2 && !discoveredLevels.includes(newLevel);
+                    const updatedDiscoveredLevels = isFirstDiscovery
+                        ? [...discoveredLevels, newLevel]
+                        : discoveredLevels;
+
                     set(state => ({
                         coins: newCoins,
                         totalMoney: state.totalMoney + mergeBonus,
@@ -168,6 +180,8 @@ export const useGameStore = create<GameStore>()(
                         lastMergedId: mergedCoin.id,
                         bitcoinDiscovered: state.bitcoinDiscovered || bitcoinFound,
                         totalMergeCount: state.totalMergeCount + 1,
+                        discoveredLevels: updatedDiscoveredLevels,
+                        lastDiscoveredLevel: isFirstDiscovery ? newLevel : state.lastDiscoveredLevel,
                     }));
 
                     if (navigator.vibrate) navigator.vibrate(50);
@@ -370,13 +384,17 @@ export const useGameStore = create<GameStore>()(
                 set({ lastMergedId: null });
             },
 
+            clearLastDiscoveredLevel: () => {
+                set({ lastDiscoveredLevel: null });
+            },
+
             isBoardFull: () => {
                 const { coins } = get();
                 return coins.length >= TOTAL_CELLS;
             },
         }),
         {
-            name: 'merge-money-tycoon-v3', // 버전 업데이트
+            name: 'merge-money-tycoon-v4', // 버전 업데이트
             partialize: (state) => ({
                 coins: state.coins,
                 totalMoney: state.totalMoney,
@@ -391,6 +409,7 @@ export const useGameStore = create<GameStore>()(
                 unlockedAchievements: state.unlockedAchievements,
                 totalMergeCount: state.totalMergeCount,
                 totalEarnedMoney: state.totalEarnedMoney,
+                discoveredLevels: state.discoveredLevels,
             }),
             onRehydrateStorage: () => (state) => {
                 if (!state) return;
