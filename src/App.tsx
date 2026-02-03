@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import './index.css';
 import {
@@ -15,11 +15,12 @@ import {
 } from './components';
 import { useGameStore } from './store/useGameStore';
 import type { BoostType } from './types/game';
+import { MAX_MONEY, ACHIEVEMENTS } from './types/game';
 import { FaBolt, FaCoins, FaRobot, FaQuestion, FaTrophy } from 'react-icons/fa';
 import { IoSettingsSharp } from 'react-icons/io5';
 import { AnimatePresence, motion } from 'framer-motion';
 
-type ModalType = 'store' | 'collection' | 'help' | 'settings' | 'boost' | 'achievement' | null;
+type ModalType = 'store' | 'collection' | 'help' | 'settings' | 'boost' | 'achievement' | 'ending' | null;
 
 const BOOST_META: Record<BoostType, { label: string; className: string; icon: ReactNode }> = {
   AUTO_MERGE: { label: '자동 병합', className: 'auto-merge', icon: <FaRobot /> },
@@ -32,8 +33,11 @@ function App() {
   const activeBoosts = useGameStore(state => state.activeBoosts);
   const checkAchievements = useGameStore(state => state.checkAchievements);
   const unlockedAchievements = useGameStore(state => state.unlockedAchievements);
+  const totalMoney = useGameStore(state => state.totalMoney);
   const [now, setNow] = useState(() => Date.now());
   const [showAchievementBadge, setShowAchievementBadge] = useState(false);
+  const [celebrationText, setCelebrationText] = useState<string | null>(null);
+  const [hasSeenEnding, setHasSeenEnding] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -47,10 +51,25 @@ function App() {
       if (newAchievements.length > 0) {
         setShowAchievementBadge(true);
         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+        // 새 업적 축하 문구 표시
+        const achievement = ACHIEVEMENTS.find(a => a.id === newAchievements[0]);
+        if (achievement) {
+          setCelebrationText(`🎉 "${achievement.title}" 업적 달성!`);
+          setTimeout(() => setCelebrationText(null), 3000);
+        }
       }
     }, 5000);
     return () => clearInterval(checkTimer);
   }, [checkAchievements]);
+
+  // 엔딩 체크 (9999조 도달)
+  useEffect(() => {
+    if (totalMoney >= MAX_MONEY && !hasSeenEnding) {
+      setHasSeenEnding(true);
+      setActiveModal('ending');
+    }
+  }, [totalMoney, hasSeenEnding]);
 
   const runningBoosts = activeBoosts.filter(boost => boost.endTime > now);
 
@@ -65,8 +84,51 @@ function App() {
     setActiveModal('achievement');
   };
 
+  // 게임 리셋 (최대자산 업적은 유지)
+  const handleReset = useCallback(() => {
+    const store = useGameStore.getState();
+    const hasMaxMoneyAchievement = store.unlockedAchievements.includes('max_money');
+
+    // 초기 상태로 리셋하되, max_money 업적은 유지
+    useGameStore.setState({
+      coins: [],
+      totalMoney: 100,
+      pps: 0,
+      spawnLevel: 1,
+      spawnCooldown: 5000,
+      incomeInterval: 10000,
+      mergeBonusLevel: 0,
+      gemSystemUnlocked: false,
+      bitcoinDiscovered: false,
+      autoSpawnEnabled: false,
+      lastMergedId: null,
+      activeBoosts: [],
+      unlockedAchievements: hasMaxMoneyAchievement ? ['max_money'] : [],
+      totalMergeCount: 0,
+      totalEarnedMoney: 0,
+    });
+
+    setActiveModal(null);
+    setHasSeenEnding(false);
+  }, []);
+
   return (
     <div className="game-container">
+      {/* 업적 축하 토스트 */}
+      <AnimatePresence>
+        {celebrationText && (
+          <motion.div
+            className="celebration-toast"
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -100, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          >
+            {celebrationText}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 게임 타이틀 + 헤더 아이콘 */}
       <div className="title-row">
         <h1 className="game-title">
@@ -147,10 +209,49 @@ function App() {
         {activeModal === 'achievement' && (
           <AchievementModal onClose={() => setActiveModal(null)} />
         )}
+        {activeModal === 'ending' && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="modal-container ending-modal"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+            >
+              <div className="ending-content">
+                <div className="ending-trophy">🏆</div>
+                <h2 className="ending-title">축하합니다!</h2>
+                <p className="ending-subtitle">최대 자산 업적을 달성하였습니다!</p>
+                <p className="ending-amount">9,999조원</p>
+                <p className="ending-message">
+                  당신은 전설의 부자가 되었습니다!<br />
+                  이 업적은 영원히 기록됩니다.
+                </p>
+                <div className="ending-buttons">
+                  <button
+                    className="toss-button primary"
+                    onClick={() => setActiveModal(null)}
+                  >
+                    계속 플레이
+                  </button>
+                  <button
+                    className="toss-button secondary"
+                    onClick={handleReset}
+                  >
+                    처음부터 다시하기
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
 }
 
 export default App;
-

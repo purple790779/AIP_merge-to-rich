@@ -10,8 +10,13 @@ function formatMoney(amount: number): string {
     const capped = Math.min(rounded, maxValue);
 
     if (capped >= 1000000000000) {
-        // 조 단위 (1조 이상)
-        return `${(capped / 1000000000000).toFixed(1)}조`;
+        // 조 단위 (1조 이상) - 억 단위도 함께 표시
+        const jo = Math.floor(capped / 1000000000000);
+        const eok = Math.floor((capped % 1000000000000) / 100000000);
+        if (eok > 0) {
+            return `${jo.toLocaleString()}조 ${eok}억`;
+        }
+        return `${jo.toLocaleString()}조`;
     }
     if (capped >= 100000000) {
         // 억 단위 (1억 이상)
@@ -37,6 +42,7 @@ export function Header() {
 
     // 수익 프로그레스바 상태
     const [incomeProgress, setIncomeProgress] = useState(0);
+    const startTimeRef = useRef(Date.now());
 
     useEffect(() => {
         prevMoneyRef.current = totalMoney;
@@ -54,27 +60,25 @@ export function Header() {
     // 수익 프로그레스바 애니메이션
     useEffect(() => {
         let animationId: number;
-        let lastTime = Date.now();
+        startTimeRef.current = Date.now();
 
         const animate = () => {
             const now = Date.now();
-            const elapsed = now - lastTime;
+            const elapsed = now - startTimeRef.current;
+            const progress = (elapsed / incomeInterval) * 100;
 
-            setIncomeProgress(prev => {
-                const newProgress = prev + (elapsed / incomeInterval) * 100;
-                if (newProgress >= 100) {
-                    // 수익 지급
-                    const currentPps = ppsRef.current;
-                    if (currentPps > 0) {
-                        addMoneyRef.current(currentPps);
-                    }
-                    lastTime = now;
-                    return 0;
+            if (progress >= 100) {
+                // 수익 지급
+                const currentPps = ppsRef.current;
+                if (currentPps > 0) {
+                    addMoneyRef.current(currentPps);
                 }
-                return newProgress;
-            });
+                startTimeRef.current = now;
+                setIncomeProgress(0);
+            } else {
+                setIncomeProgress(progress);
+            }
 
-            lastTime = now;
             animationId = requestAnimationFrame(animate);
         };
 

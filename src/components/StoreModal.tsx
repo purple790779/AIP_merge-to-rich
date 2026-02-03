@@ -25,15 +25,15 @@ export function StoreModal({ onClose }: StoreModalProps) {
     // 비용 계산
     const levelCost = 1000 * Math.pow(spawnLevel, 2);
 
-    // 생산 속도 레벨 (1~10)
+    // 생산 속도 레벨 (1~10) - 비용 증가
     const speedLevel = Math.floor((5000 - spawnCooldown) / 500) + 1;
-    const speedCost = 500 * Math.pow(speedLevel, 1.5);
+    const speedCost = 1000 * Math.pow(speedLevel, 1.8);
     const isMaxSpeed = spawnCooldown <= 200;
     const isMaxLevel = spawnLevel >= 11;
 
-    // 수익 속도 레벨 (1~90)
+    // 수익 속도 레벨 (1~90) - 비용 대폭 증가
     const incomeLevel = Math.floor((10000 - incomeInterval) / 100) + 1;
-    const incomeCost = 300 * Math.pow(incomeLevel, 1.3);
+    const incomeCost = 1000 * Math.pow(incomeLevel, 2.0);
     const isMaxIncome = incomeInterval <= 1000;
 
     // 머지 보너스 (0.5% 단위, 최대 60레벨 = 30%)
@@ -132,8 +132,8 @@ export function StoreModal({ onClose }: StoreModalProps) {
                     {/* 레벨 업그레이드 */}
                     <div className="upgrade-card">
                         <div className="upgrade-header">
-                            <div className="upgrade-icon level">
-                                <FaCoins />
+                            <div className="upgrade-icon level emoji-icon">
+                                <span>{COIN_LEVELS[spawnLevel]?.emoji || '🪙'}</span>
                             </div>
                             <div className="upgrade-info">
                                 <div className="upgrade-title">시작 레벨</div>

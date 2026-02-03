@@ -135,4 +135,10 @@ export const ACHIEVEMENTS: Achievement[] = [
     { id: 'full_board', title: '보드 정복자', description: '보드를 코인으로 가득 채우기', icon: '🎯', condition: (s) => s.coins.length >= 25, reward: 10000 },
     { id: 'spawn_level_5', title: '고급 생산자', description: '시작 레벨 5 달성', icon: '⬆️', condition: (s) => s.spawnLevel >= 5, reward: 10000 },
     { id: 'spawn_level_10', title: '최고급 생산자', description: '시작 레벨 10 달성', icon: '🚀', condition: (s) => s.spawnLevel >= 10, reward: 500000 },
+
+    // 최종 업적 (엔딩)
+    { id: 'max_money', title: '🏆 전설의 부자', description: '최대 자산 9999조원 달성! 게임 클리어!', icon: '🏆', condition: (s) => s.totalMoney >= 9999 * 1000000000000, reward: 0 },
 ];
+
+// 최대 자산 값 (9999조)
+export const MAX_MONEY = 9999 * 1000000000000;

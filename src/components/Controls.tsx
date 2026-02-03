@@ -4,6 +4,18 @@ import { COIN_LEVELS } from '../types/game';
 import { FaCoins, FaShoppingBag, FaBook } from 'react-icons/fa';
 import { soundManager } from '../utils/soundManager';
 
+// 억 단위 포맷팅
+function formatMoney(amount: number): string {
+    const rounded = Math.floor(amount);
+    if (rounded >= 100000000) {
+        return `${Math.floor(rounded / 100000000).toLocaleString()}억`;
+    }
+    if (rounded >= 10000) {
+        return `${(rounded / 10000).toFixed(1)}만`;
+    }
+    return rounded.toLocaleString();
+}
+
 interface ControlsProps {
     onOpenStore: () => void;
     onOpenCollection: () => void;
@@ -34,8 +46,8 @@ export function Controls({ onOpenStore, onOpenCollection }: ControlsProps) {
     // 버튼 텍스트 결정
     const getButtonText = () => {
         if (boardFull) return '보드가 가득 찼어요!';
-        if (!canAfford) return `자산이 부족해요! (${spawnCost}원 필요)`;
-        return `${coinInfo.name} 생산하기 (-${spawnCost}원)`;
+        if (!canAfford) return `자산이 부족해요! (${formatMoney(spawnCost)}원 필요)`;
+        return `${coinInfo.name} 생산하기 (-${formatMoney(spawnCost)}원)`;
     };
 
     return (

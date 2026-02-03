@@ -270,7 +270,8 @@ export const useGameStore = create<GameStore>()(
                 if (spawnCooldown <= 200) return false;
 
                 const level = Math.floor((5000 - spawnCooldown) / 500) + 1;
-                const cost = 500 * Math.pow(level, 1.5);
+                // 비용 증가: 1000 * level^1.8
+                const cost = 1000 * Math.pow(level, 1.8);
 
                 if (totalMoney >= cost) {
                     set(state => ({
@@ -287,7 +288,8 @@ export const useGameStore = create<GameStore>()(
                 if (incomeInterval <= 1000) return false;
 
                 const level = Math.floor((10000 - incomeInterval) / 100) + 1;
-                const cost = 300 * Math.pow(level, 1.3);
+                // 비용 대폭 증가: 1000 * level^2.0 (기존 300 * level^1.3)
+                const cost = 1000 * Math.pow(level, 2.0);
 
                 if (totalMoney >= cost) {
                     set(state => ({
