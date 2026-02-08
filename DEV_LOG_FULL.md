@@ -12,8 +12,8 @@
 | **플랫폼** | Apps in Toss (토스앱 내 미니게임) |
 | **장르** | 하이퍼캐주얼 / 머지(Merge) / 방치형(Idle) |
 | **핵심 재미** | 코인을 합쳐 자산을 증식시키는 쾌감, 시원한 타격감의 UI |
-| **개발 기간** | 2026.01.28 ~ 2026.02.03 |
-| **현재 버전** | `v1.3.0` (Updated: 2026-02-03) |
+| **개발 기간** | 2026.01.28 ~ 2026.02.08 |
+| **현재 버전** | `v1.3.0` (Updated: 2026-02-08) |
 | **기술 스택** | React 18, Vite, TypeScript, Zustand, Framer Motion, TailwindCSS |
 
 ---
@@ -56,15 +56,11 @@
   - ₿ **비트코인**: Lv.18 (최종 히든 코인)
 - **UX 개선**: 드래그 애니메이션 부드럽게 개선 (Framer Motion LayoutProjection)
 
-### v1.3.0: 엔딩 & 밸런싱 (Current)
-- **엔딩 시스템**: 9999조 도달 시 축하 모달 및 리셋 (업적 보존)
-- **알림 강화**: 업적 달성/첫 코인 발견 시 화려한 토스트 메시지
-- **밸런스 대개편**:
-  - 업그레이드 비용 대폭 상향 (지루함 방지)
-  - 보드 가득채우기 보상 하향 (어뷰징 방지)
-- **디테일**:
-  - `3조 5000억` 등 한국형 큰 숫자 표기법 적용
-  - 상점 아이콘을 실제 게임 내 이모지로 동기화
+### v1.3.0: 업그레이드 확장 & 완벽주의자 (Current)
+- **수익 배율**: 1.0x~9.0x 영구 업그레이드 (모든 수익에 적용)
+- **자동 병합 속도**: 5초~0.2초 영구 업그레이드 (부스트 시 간격 적용)
+- **완벽주의자 업적**: 모든 업그레이드 max 시 10억원
+- **저장소 버전**: v5로 업그레이드 (마이그레이션 지원)
 
 ---
 
@@ -78,9 +74,11 @@ interface GameStore {
   totalMoney: number;
   
   // Upgrades
-  spawnLevel: number;      // 생성되는 코인의 레벨
-  spawnCooldown: number;   // 자동 생산 속도
-  incomeInterval: number;  // 수익 지급 주기
+  spawnLevel: number;           // 생성되는 코인의 레벨
+  spawnCooldown: number;        // 자동 생산 속도
+  incomeInterval: number;       // 수익 지급 주기
+  incomeMultiplierLevel: number; // 수익 배율 레벨 (v1.3.0+)
+  autoMergeInterval: number;    // 자동 병합 간격 (v1.3.0+)
   
   // Systems
   pps: number;             // Profit Per Second (캐싱됨)
