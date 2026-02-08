@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { COIN_LEVELS } from '../types/game';
 import { IoClose } from 'react-icons/io5';
-import { FaArrowUp, FaShoppingBag, FaChartLine, FaGem, FaPercentage } from 'react-icons/fa';
+import { FaArrowUp, FaShoppingBag, FaChartLine, FaGem, FaPercentage, FaTimes, FaRobot } from 'react-icons/fa';
 import { FaCoins, FaBolt } from 'react-icons/fa';
 
 interface StoreModalProps {
@@ -16,11 +16,16 @@ export function StoreModal({ onClose }: StoreModalProps) {
     const incomeInterval = useGameStore(state => state.incomeInterval);
     const mergeBonusLevel = useGameStore(state => state.mergeBonusLevel);
     const gemSystemUnlocked = useGameStore(state => state.gemSystemUnlocked);
+    const incomeMultiplierLevel = useGameStore(state => state.incomeMultiplierLevel) ?? 0;
+    const autoMergeInterval = useGameStore(state => state.autoMergeInterval) ?? 5000;
+
     const upgradeSpawnLevel = useGameStore(state => state.upgradeSpawnLevel);
     const upgradeSpeed = useGameStore(state => state.upgradeSpeed);
     const upgradeIncomeSpeed = useGameStore(state => state.upgradeIncomeSpeed);
     const upgradeMergeBonus = useGameStore(state => state.upgradeMergeBonus);
     const unlockGemSystem = useGameStore(state => state.unlockGemSystem);
+    const upgradeIncomeMultiplier = useGameStore(state => state.upgradeIncomeMultiplier);
+    const upgradeAutoMergeSpeed = useGameStore(state => state.upgradeAutoMergeSpeed);
 
     // 비용 계산
     const levelCost = 1000 * Math.pow(spawnLevel, 2);
@@ -42,6 +47,16 @@ export function StoreModal({ onClose }: StoreModalProps) {
 
     // 보석 시스템 해금
     const gemCost = 100000000; // 1억원
+
+    // 신규: 수익 배율
+    const incomeMultiplierCost = Math.floor(5000 * Math.pow(incomeMultiplierLevel + 1, 1.6));
+    const isMaxIncomeMultiplier = incomeMultiplierLevel >= 80;
+    const currentMultiplier = (1.0 + incomeMultiplierLevel * 0.1).toFixed(1);
+
+    // 신규: 자동 병합 속도
+    const autoMergeLevel = Math.floor((5000 - autoMergeInterval) / 200) + 1;
+    const autoMergeCost = Math.floor(10000 * Math.pow(autoMergeLevel, 1.8));
+    const isMaxAutoMerge = autoMergeInterval <= 200;
 
     const handleBuyLevel = () => {
         if (upgradeSpawnLevel()) {
@@ -78,6 +93,22 @@ export function StoreModal({ onClose }: StoreModalProps) {
     const handleBuyGem = () => {
         if (unlockGemSystem()) {
             if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100]);
+        } else {
+            if (navigator.vibrate) navigator.vibrate(200);
+        }
+    };
+
+    const handleBuyIncomeMultiplier = () => {
+        if (upgradeIncomeMultiplier()) {
+            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+        } else {
+            if (navigator.vibrate) navigator.vibrate(200);
+        }
+    };
+
+    const handleBuyAutoMergeSpeed = () => {
+        if (upgradeAutoMergeSpeed()) {
+            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
         } else {
             if (navigator.vibrate) navigator.vibrate(200);
         }
@@ -246,6 +277,50 @@ export function StoreModal({ onClose }: StoreModalProps) {
                             className={`toss-button ${gemSystemUnlocked ? 'unlocked' : (totalMoney >= gemCost ? 'rainbow' : 'disabled')}`}
                         >
                             {gemSystemUnlocked ? '해금 완료!' : `${formatMoney(gemCost)}원`}
+                        </button>
+                    </div>
+
+                    {/* 수익 배율 업그레이드 */}
+                    <div className="upgrade-card">
+                        <div className="upgrade-header">
+                            <div className="upgrade-icon" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+                                <FaTimes />
+                            </div>
+                            <div className="upgrade-info">
+                                <div className="upgrade-title">수익 배율</div>
+                                <div className="upgrade-desc">현재: {currentMultiplier}x 배율</div>
+                            </div>
+                            <div className="upgrade-level">Lv.{incomeMultiplierLevel}</div>
+                        </div>
+
+                        <button
+                            onClick={handleBuyIncomeMultiplier}
+                            disabled={totalMoney < incomeMultiplierCost || isMaxIncomeMultiplier}
+                            className={`toss-button ${totalMoney >= incomeMultiplierCost && !isMaxIncomeMultiplier ? 'primary' : 'disabled'}`}
+                        >
+                            {isMaxIncomeMultiplier ? '최대 배율 (9.0x)' : `${formatMoney(incomeMultiplierCost)}원`}
+                        </button>
+                    </div>
+
+                    {/* 자동 병합 속도 업그레이드 */}
+                    <div className="upgrade-card">
+                        <div className="upgrade-header">
+                            <div className="upgrade-icon" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
+                                <FaRobot />
+                            </div>
+                            <div className="upgrade-info">
+                                <div className="upgrade-title">자동 병합 속도</div>
+                                <div className="upgrade-desc">부스트 시 간격: {(autoMergeInterval / 1000).toFixed(1)}초</div>
+                            </div>
+                            <div className="upgrade-level">Lv.{autoMergeLevel}</div>
+                        </div>
+
+                        <button
+                            onClick={handleBuyAutoMergeSpeed}
+                            disabled={totalMoney < autoMergeCost || isMaxAutoMerge}
+                            className={`toss-button ${totalMoney >= autoMergeCost && !isMaxAutoMerge ? 'secondary' : 'disabled'}`}
+                        >
+                            {isMaxAutoMerge ? '최대 속도 (0.2초)' : `${formatMoney(autoMergeCost)}원`}
                         </button>
                     </div>
                 </div>

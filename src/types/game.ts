@@ -94,6 +94,9 @@ export interface GameState {
     totalMergeCount: number; // 총 합성 횟수
     totalEarnedMoney: number; // 총 획득 금액 (누적)
     discoveredLevels: number[]; // 첫 발견한 코인 레벨 목록
+    // 신규 업그레이드
+    incomeMultiplierLevel: number; // 수익 배율 레벨 (1.0 + level * 0.1)
+    autoMergeInterval: number; // 자동 병합 간격 (ms), 기본 5000ms
 }
 
 // 업적 타입 정의
@@ -136,6 +139,17 @@ export const ACHIEVEMENTS: Achievement[] = [
     { id: 'full_board', title: '보드 정복자', description: '보드를 코인으로 가득 채우기', icon: '🎯', condition: (s) => s.coins.length >= 25, reward: 1000 },
     { id: 'spawn_level_5', title: '고급 생산자', description: '시작 레벨 5 달성', icon: '⬆️', condition: (s) => s.spawnLevel >= 5, reward: 10000 },
     { id: 'spawn_level_10', title: '최고급 생산자', description: '시작 레벨 10 달성', icon: '🚀', condition: (s) => s.spawnLevel >= 10, reward: 500000 },
+    {
+        id: 'all_upgrades_max', title: '🏅 완벽주의자', description: '모든 업그레이드 최대 달성', icon: '🏅', condition: (s) =>
+            s.spawnLevel >= 11 &&
+            s.spawnCooldown <= 200 &&
+            s.incomeInterval <= 1000 &&
+            s.mergeBonusLevel >= 60 &&
+            s.gemSystemUnlocked &&
+            s.incomeMultiplierLevel >= 80 &&
+            s.autoMergeInterval <= 200,
+        reward: 1000000000
+    },
 
     // 최종 업적 (엔딩)
     { id: 'max_money', title: '🏆 전설의 부자', description: '최대 자산 9999조원 달성! 게임 클리어!', icon: '🏆', condition: (s) => s.totalMoney >= 9999 * 1000000000000, reward: 0 },

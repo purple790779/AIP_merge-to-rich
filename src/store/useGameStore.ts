@@ -60,6 +60,10 @@ interface GameStore extends GameState {
     // 업적
     checkAchievements: () => string[]; // 새로 해금된 업적 ID 반환
 
+    // 신규 업그레이드
+    upgradeIncomeMultiplier: () => boolean;
+    upgradeAutoMergeSpeed: () => boolean;
+
     // 새 레벨 발견 상태
     lastDiscoveredLevel: number | null;
 }
@@ -83,6 +87,9 @@ const initialState: GameState & { lastDiscoveredLevel: number | null } = {
     totalEarnedMoney: 0,
     discoveredLevels: [1], // 레벨 1은 기본으로 발견
     lastDiscoveredLevel: null,
+    // 신규 업그레이드
+    incomeMultiplierLevel: 0, // 1.0x부터 시작 (0레벨 = 1.0x)
+    autoMergeInterval: 5000, // 5초부터 시작
 };
 
 export const useGameStore = create<GameStore>()(
@@ -253,9 +260,12 @@ export const useGameStore = create<GameStore>()(
             },
 
             addMoney: (amount: number) => {
-                const { activeBoosts } = get();
+                const state = get();
+                const { activeBoosts, incomeMultiplierLevel } = state;
+                const incomeMultiplier = incomeMultiplierLevel != null ? (1.0 + incomeMultiplierLevel * 0.1) : 1.0;
                 const isDoubleIncome = activeBoosts.some(b => b.type === 'DOUBLE_INCOME' && b.endTime > Date.now());
-                const finalAmount = isDoubleIncome ? amount * 2 : amount;
+                const boostMultiplier = isDoubleIncome ? 2 : 1;
+                const finalAmount = Math.floor(amount * incomeMultiplier * boostMultiplier);
 
                 set(state => ({
                     totalMoney: state.totalMoney + finalAmount,
@@ -380,6 +390,39 @@ export const useGameStore = create<GameStore>()(
                 return newlyUnlocked;
             },
 
+            upgradeIncomeMultiplier: () => {
+                const { incomeMultiplierLevel, totalMoney } = get();
+                const currentLevel = incomeMultiplierLevel ?? 0;
+                const cost = Math.floor(5000 * Math.pow(currentLevel + 1, 1.6));
+                const maxLevel = 80;
+
+                if (totalMoney >= cost && currentLevel < maxLevel) {
+                    set(state => ({
+                        totalMoney: state.totalMoney - cost,
+                        incomeMultiplierLevel: currentLevel + 1,
+                    }));
+                    return true;
+                }
+                return false;
+            },
+
+            upgradeAutoMergeSpeed: () => {
+                const { autoMergeInterval, totalMoney } = get();
+                const currentInterval = autoMergeInterval ?? 5000;
+                const currentLevel = Math.floor((5000 - currentInterval) / 200) + 1;
+                const cost = Math.floor(10000 * Math.pow(currentLevel, 1.8));
+                const minInterval = 200; // 최소 0.2초
+
+                if (totalMoney >= cost && currentInterval > minInterval) {
+                    set(state => ({
+                        totalMoney: state.totalMoney - cost,
+                        autoMergeInterval: Math.max(minInterval, currentInterval - 200),
+                    }));
+                    return true;
+                }
+                return false;
+            },
+
             resetGame: () => {
                 set(initialState);
             },
@@ -398,7 +441,7 @@ export const useGameStore = create<GameStore>()(
             },
         }),
         {
-            name: 'merge-money-tycoon-v4', // 버전 업데이트
+            name: 'merge-money-tycoon-v5', // 버전 업데이트
             partialize: (state) => ({
                 coins: state.coins,
                 totalMoney: state.totalMoney,
@@ -414,6 +457,9 @@ export const useGameStore = create<GameStore>()(
                 totalMergeCount: state.totalMergeCount,
                 totalEarnedMoney: state.totalEarnedMoney,
                 discoveredLevels: state.discoveredLevels,
+                // 신규 업그레이드
+                incomeMultiplierLevel: state.incomeMultiplierLevel,
+                autoMergeInterval: state.autoMergeInterval,
             }),
             onRehydrateStorage: () => (state) => {
                 if (!state) return;
@@ -422,6 +468,8 @@ export const useGameStore = create<GameStore>()(
                     // 기존 저장 데이터 마이그레이션
                     discoveredLevels: state.discoveredLevels || [1],
                     lastDiscoveredLevel: null,
+                    incomeMultiplierLevel: state.incomeMultiplierLevel ?? 0,
+                    autoMergeInterval: state.autoMergeInterval ?? 5000,
                 });
             },
         }

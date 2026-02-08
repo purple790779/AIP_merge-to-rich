@@ -13,18 +13,26 @@ export function Board() {
     const moveCoin = useGameStore(state => state.moveCoin);
     const tryMerge = useGameStore(state => state.tryMerge);
 
-    // 자동 병합 (부스트)
+    // 자동 병합 (부스트) - 업그레이드된 간격 적용
     useEffect(() => {
-        const interval = setInterval(() => {
+        let timeoutId: ReturnType<typeof setTimeout>;
+        const loop = () => {
             const state = useGameStore.getState();
             const activeBoosts = state.activeBoosts || [];
             const isAutoMergeActive = activeBoosts.some(b => b.type === 'AUTO_MERGE' && b.endTime > Date.now());
 
             if (isAutoMergeActive) {
                 state.triggerAutoMerge();
+                // 업그레이드된 간격 적용 (기본 5초, 최소 0.2초)
+                const interval = Math.max(200, state.autoMergeInterval ?? 5000);
+                timeoutId = setTimeout(loop, interval);
+            } else {
+                // 부스트가 꺼져있을 때는 체크 주기만 유지
+                timeoutId = setTimeout(loop, 1000);
             }
-        }, 1000);
-        return () => clearInterval(interval);
+        };
+        loop();
+        return () => clearTimeout(timeoutId);
     }, []);
 
     // 자동 생산 (부스트)

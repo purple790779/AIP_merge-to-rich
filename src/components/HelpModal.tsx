@@ -21,7 +21,17 @@ export function HelpModal({ onClose }: HelpModalProps) {
         {
             icon: '⬆️',
             title: '업그레이드',
-            description: '상점에서 시작 레벨과 생산 속도를 업그레이드할 수 있어요.'
+            description: '상점에서 시작 레벨, 생산 속도, 수익 배율 등을 업그레이드할 수 있어요.'
+        },
+        {
+            icon: '✖️',
+            title: '수익 배율',
+            description: '상점에서 수익 배율을 올리면 모든 수입에 배율이 영구적으로 적용됩니다. (최대 9.0x)'
+        },
+        {
+            icon: '🤖',
+            title: '자동 병합 속도',
+            description: '자동 병합 부스트 활성화 시 더 빠른 간격으로 병합됩니다. (최소 0.2초)'
         },
         {
             icon: '📖',
