@@ -160,7 +160,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
 
                 {/* 컨텐츠 */}
                 <div className="modal-content scrollable">
-                    {/* 레벨 업그레이드 */}
+                    {/* 1. 시작 레벨 업그레이드 */}
                     <div className="upgrade-card">
                         <div className="upgrade-header">
                             <div className="upgrade-icon level emoji-icon">
@@ -188,14 +188,102 @@ export function StoreModal({ onClose }: StoreModalProps) {
                         </button>
                     </div>
 
-                    {/* 머지 보너스 업그레이드 */}
+                    {/* 2. 자동 병합 속도 (부스트: AUTO_MERGE) */}
+                    <div className="upgrade-card">
+                        <div className="upgrade-header">
+                            <div className="upgrade-icon" style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)' }}>
+                                <FaRobot />
+                            </div>
+                            <div className="upgrade-info">
+                                <div className="upgrade-title">🤖 자동 병합 속도</div>
+                                <div className="upgrade-desc">부스트 시 간격: {(autoMergeInterval / 1000).toFixed(1)}초</div>
+                            </div>
+                            <div className="upgrade-level">Lv.{autoMergeLevel}</div>
+                        </div>
+
+                        <button
+                            onClick={handleBuyAutoMergeSpeed}
+                            disabled={totalMoney < autoMergeCost || isMaxAutoMerge}
+                            className={`toss-button ${totalMoney >= autoMergeCost && !isMaxAutoMerge ? 'gold' : 'disabled'}`}
+                        >
+                            {isMaxAutoMerge ? '최대 속도 (0.2초)' : `${formatMoney(autoMergeCost)}원`}
+                        </button>
+                    </div>
+
+                    {/* 3. 수익 배율 (부스트: DOUBLE_INCOME 연관) */}
+                    <div className="upgrade-card">
+                        <div className="upgrade-header">
+                            <div className="upgrade-icon income">
+                                <FaTimes />
+                            </div>
+                            <div className="upgrade-info">
+                                <div className="upgrade-title">💰 수익 배율</div>
+                                <div className="upgrade-desc">현재: {currentMultiplier}x 배율 (모든 수익에 적용)</div>
+                            </div>
+                            <div className="upgrade-level">Lv.{incomeMultiplierLevel}</div>
+                        </div>
+
+                        <button
+                            onClick={handleBuyIncomeMultiplier}
+                            disabled={totalMoney < incomeMultiplierCost || isMaxIncomeMultiplier}
+                            className={`toss-button ${totalMoney >= incomeMultiplierCost && !isMaxIncomeMultiplier ? 'tertiary' : 'disabled'}`}
+                        >
+                            {isMaxIncomeMultiplier ? '최대 배율 (9.0x)' : `${formatMoney(incomeMultiplierCost)}원`}
+                        </button>
+                    </div>
+
+                    {/* 4. 수익 속도 */}
+                    <div className="upgrade-card">
+                        <div className="upgrade-header">
+                            <div className="upgrade-icon" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
+                                <FaChartLine />
+                            </div>
+                            <div className="upgrade-info">
+                                <div className="upgrade-title">📈 수익 속도</div>
+                                <div className="upgrade-desc">현재 간격: {(incomeInterval / 1000).toFixed(1)}초</div>
+                            </div>
+                            <div className="upgrade-level">Lv.{incomeLevel}</div>
+                        </div>
+
+                        <button
+                            onClick={handleBuyIncome}
+                            disabled={totalMoney < incomeCost || isMaxIncome}
+                            className={`toss-button ${totalMoney >= incomeCost && !isMaxIncome ? 'secondary' : 'disabled'}`}
+                        >
+                            {isMaxIncome ? '최대 속도' : `${formatMoney(Math.floor(incomeCost))}원`}
+                        </button>
+                    </div>
+
+                    {/* 5. 자동 생산 속도 (부스트: AUTO_SPAWN) */}
+                    <div className="upgrade-card">
+                        <div className="upgrade-header">
+                            <div className="upgrade-icon speed">
+                                <FaBolt />
+                            </div>
+                            <div className="upgrade-info">
+                                <div className="upgrade-title">⚡ 자동 생산 속도</div>
+                                <div className="upgrade-desc">부스트 시 쿨타임: {(spawnCooldown / 1000).toFixed(1)}초</div>
+                            </div>
+                            <div className="upgrade-level">Lv.{speedLevel}</div>
+                        </div>
+
+                        <button
+                            onClick={handleBuySpeed}
+                            disabled={totalMoney < speedCost || isMaxSpeed}
+                            className={`toss-button ${totalMoney >= speedCost && !isMaxSpeed ? 'primary' : 'disabled'}`}
+                        >
+                            {isMaxSpeed ? '최대 속도' : `${formatMoney(Math.floor(speedCost))}원`}
+                        </button>
+                    </div>
+
+                    {/* 6. 머지 보너스 */}
                     <div className="upgrade-card">
                         <div className="upgrade-header">
                             <div className="upgrade-icon merge">
                                 <FaPercentage />
                             </div>
                             <div className="upgrade-info">
-                                <div className="upgrade-title">머지 보너스</div>
+                                <div className="upgrade-title">🎯 머지 보너스</div>
                                 <div className="upgrade-desc">10% 확률로 {(mergeBonusLevel * 0.5).toFixed(1)}% 보너스</div>
                             </div>
                             <div className="upgrade-level">Lv.{mergeBonusLevel}</div>
@@ -210,51 +298,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
                         </button>
                     </div>
 
-                    {/* 수익 속도 업그레이드 */}
-                    <div className="upgrade-card">
-                        <div className="upgrade-header">
-                            <div className="upgrade-icon income">
-                                <FaChartLine />
-                            </div>
-                            <div className="upgrade-info">
-                                <div className="upgrade-title">수익 속도</div>
-                                <div className="upgrade-desc">현재 간격: {(incomeInterval / 1000).toFixed(1)}초</div>
-                            </div>
-                            <div className="upgrade-level">Lv.{incomeLevel}</div>
-                        </div>
-
-                        <button
-                            onClick={handleBuyIncome}
-                            disabled={totalMoney < incomeCost || isMaxIncome}
-                            className={`toss-button ${totalMoney >= incomeCost && !isMaxIncome ? 'tertiary' : 'disabled'}`}
-                        >
-                            {isMaxIncome ? '최대 속도' : `${formatMoney(Math.floor(incomeCost))}원`}
-                        </button>
-                    </div>
-
-                    {/* 자동 생산 속도 업그레이드 */}
-                    <div className="upgrade-card">
-                        <div className="upgrade-header">
-                            <div className="upgrade-icon speed">
-                                <FaBolt />
-                            </div>
-                            <div className="upgrade-info">
-                                <div className="upgrade-title">자동 생산 속도</div>
-                                <div className="upgrade-desc">부스트 시 쿨타임: {(spawnCooldown / 1000).toFixed(1)}초</div>
-                            </div>
-                            <div className="upgrade-level">Lv.{speedLevel}</div>
-                        </div>
-
-                        <button
-                            onClick={handleBuySpeed}
-                            disabled={totalMoney < speedCost || isMaxSpeed}
-                            className={`toss-button ${totalMoney >= speedCost && !isMaxSpeed ? 'secondary' : 'disabled'}`}
-                        >
-                            {isMaxSpeed ? '최대 속도' : `${formatMoney(Math.floor(speedCost))}원`}
-                        </button>
-                    </div>
-
-                    {/* 보석 시스템 해금 */}
+                    {/* 7. 보석 시스템 해금 (항상 맨 밑) */}
                     <div className="upgrade-card special">
                         <div className="upgrade-header">
                             <div className="upgrade-icon gem">
@@ -277,50 +321,6 @@ export function StoreModal({ onClose }: StoreModalProps) {
                             className={`toss-button ${gemSystemUnlocked ? 'unlocked' : (totalMoney >= gemCost ? 'rainbow' : 'disabled')}`}
                         >
                             {gemSystemUnlocked ? '해금 완료!' : `${formatMoney(gemCost)}원`}
-                        </button>
-                    </div>
-
-                    {/* 수익 배율 업그레이드 */}
-                    <div className="upgrade-card">
-                        <div className="upgrade-header">
-                            <div className="upgrade-icon" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-                                <FaTimes />
-                            </div>
-                            <div className="upgrade-info">
-                                <div className="upgrade-title">수익 배율</div>
-                                <div className="upgrade-desc">현재: {currentMultiplier}x 배율</div>
-                            </div>
-                            <div className="upgrade-level">Lv.{incomeMultiplierLevel}</div>
-                        </div>
-
-                        <button
-                            onClick={handleBuyIncomeMultiplier}
-                            disabled={totalMoney < incomeMultiplierCost || isMaxIncomeMultiplier}
-                            className={`toss-button ${totalMoney >= incomeMultiplierCost && !isMaxIncomeMultiplier ? 'primary' : 'disabled'}`}
-                        >
-                            {isMaxIncomeMultiplier ? '최대 배율 (9.0x)' : `${formatMoney(incomeMultiplierCost)}원`}
-                        </button>
-                    </div>
-
-                    {/* 자동 병합 속도 업그레이드 */}
-                    <div className="upgrade-card">
-                        <div className="upgrade-header">
-                            <div className="upgrade-icon" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
-                                <FaRobot />
-                            </div>
-                            <div className="upgrade-info">
-                                <div className="upgrade-title">자동 병합 속도</div>
-                                <div className="upgrade-desc">부스트 시 간격: {(autoMergeInterval / 1000).toFixed(1)}초</div>
-                            </div>
-                            <div className="upgrade-level">Lv.{autoMergeLevel}</div>
-                        </div>
-
-                        <button
-                            onClick={handleBuyAutoMergeSpeed}
-                            disabled={totalMoney < autoMergeCost || isMaxAutoMerge}
-                            className={`toss-button ${totalMoney >= autoMergeCost && !isMaxAutoMerge ? 'secondary' : 'disabled'}`}
-                        >
-                            {isMaxAutoMerge ? '최대 속도 (0.2초)' : `${formatMoney(autoMergeCost)}원`}
                         </button>
                     </div>
                 </div>
