@@ -38,13 +38,14 @@ export function Header() {
     const prevMoneyRef = useRef(totalMoney);
     const ppsRef = useRef(pps);
     const addMoneyRef = useRef(addMoney);
-    const isIncreasing = totalMoney > prevMoneyRef.current;
+    const [isIncreasing, setIsIncreasing] = useState(false);
 
     // 수익 프로그레스바 상태
     const [incomeProgress, setIncomeProgress] = useState(0);
-    const startTimeRef = useRef(Date.now());
+    const startTimeRef = useRef(0);
 
     useEffect(() => {
+        setIsIncreasing(totalMoney > prevMoneyRef.current);
         prevMoneyRef.current = totalMoney;
     }, [totalMoney]);
 

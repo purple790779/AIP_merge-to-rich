@@ -22,6 +22,21 @@ const calculateTotalPPS = (coins: Coin[]): number => {
     return coins.reduce((sum, coin) => sum + (COIN_PPS[coin.level] || 0), 0);
 };
 
+// 수익/보너스 공통 배율 적용
+const applyIncomeMultipliers = (
+    amount: number,
+    activeBoosts: GameState['activeBoosts'],
+    incomeMultiplierLevel: number
+): number => {
+    if (amount <= 0) return 0;
+    const incomeMultiplier = 1.0 + incomeMultiplierLevel * 0.1;
+    const isDoubleIncome = activeBoosts.some(
+        b => b.type === 'DOUBLE_INCOME' && b.endTime > Date.now()
+    );
+    const boostMultiplier = isDoubleIncome ? 2 : 1;
+    return Math.floor(amount * incomeMultiplier * boostMultiplier);
+};
+
 interface GameStore extends GameState {
     // 코인 생성
     spawnCoin: () => boolean;
@@ -123,6 +138,8 @@ export const useGameStore = create<GameStore>()(
                     pps: calculateTotalPPS([...state.coins, newCoin]),
                 }));
 
+                get().checkAchievements();
+
                 return true;
             },
 
@@ -184,16 +201,27 @@ export const useGameStore = create<GameStore>()(
                         ? [...discoveredLevels, newLevel]
                         : discoveredLevels;
 
-                    set(state => ({
-                        coins: newCoins,
-                        totalMoney: state.totalMoney + mergeBonus,
-                        pps: calculateTotalPPS(newCoins),
-                        lastMergedId: mergedCoin.id,
-                        bitcoinDiscovered: state.bitcoinDiscovered || bitcoinFound,
-                        totalMergeCount: state.totalMergeCount + 1,
-                        discoveredLevels: updatedDiscoveredLevels,
-                        lastDiscoveredLevel: isFirstDiscovery ? newLevel : state.lastDiscoveredLevel,
-                    }));
+                    set(state => {
+                        const finalMergeBonus = applyIncomeMultipliers(
+                            mergeBonus,
+                            state.activeBoosts,
+                            state.incomeMultiplierLevel ?? 0
+                        );
+
+                        return {
+                            coins: newCoins,
+                            totalMoney: state.totalMoney + finalMergeBonus,
+                            pps: calculateTotalPPS(newCoins),
+                            lastMergedId: mergedCoin.id,
+                            bitcoinDiscovered: state.bitcoinDiscovered || bitcoinFound,
+                            totalMergeCount: state.totalMergeCount + 1,
+                            totalEarnedMoney: state.totalEarnedMoney + finalMergeBonus,
+                            discoveredLevels: updatedDiscoveredLevels,
+                            lastDiscoveredLevel: isFirstDiscovery ? newLevel : state.lastDiscoveredLevel,
+                        };
+                    });
+
+                    get().checkAchievements();
 
                     if (navigator.vibrate) navigator.vibrate(50);
                     return true;
@@ -260,16 +288,23 @@ export const useGameStore = create<GameStore>()(
             },
 
             addMoney: (amount: number) => {
-                const state = get();
-                const { activeBoosts, incomeMultiplierLevel } = state;
-                const incomeMultiplier = incomeMultiplierLevel != null ? (1.0 + incomeMultiplierLevel * 0.1) : 1.0;
-                const isDoubleIncome = activeBoosts.some(b => b.type === 'DOUBLE_INCOME' && b.endTime > Date.now());
-                const boostMultiplier = isDoubleIncome ? 2 : 1;
-                const finalAmount = Math.floor(amount * incomeMultiplier * boostMultiplier);
+                const baseAmount = Math.max(0, Math.floor(amount));
+                if (baseAmount <= 0) return;
 
-                set(state => ({
-                    totalMoney: state.totalMoney + finalAmount,
-                }));
+                set(state => {
+                    const finalAmount = applyIncomeMultipliers(
+                        baseAmount,
+                        state.activeBoosts,
+                        state.incomeMultiplierLevel ?? 0
+                    );
+
+                    return {
+                        totalMoney: state.totalMoney + finalAmount,
+                        totalEarnedMoney: state.totalEarnedMoney + finalAmount,
+                    };
+                });
+
+                get().checkAchievements();
             },
 
             upgradeSpawnLevel: () => {
@@ -288,6 +323,7 @@ export const useGameStore = create<GameStore>()(
                         totalMoney: state.totalMoney - cost + refund,
                         pps: calculateTotalPPS(remainingCoins),
                     }));
+                    get().checkAchievements();
                     return true;
                 }
                 return false;
@@ -306,6 +342,7 @@ export const useGameStore = create<GameStore>()(
                         spawnCooldown: Math.max(200, state.spawnCooldown - 500),
                         totalMoney: state.totalMoney - cost
                     }));
+                    get().checkAchievements();
                     return true;
                 }
                 return false;
@@ -324,6 +361,7 @@ export const useGameStore = create<GameStore>()(
                         incomeInterval: Math.max(1000, state.incomeInterval - 100),
                         totalMoney: state.totalMoney - cost
                     }));
+                    get().checkAchievements();
                     return true;
                 }
                 return false;
@@ -341,6 +379,7 @@ export const useGameStore = create<GameStore>()(
                         mergeBonusLevel: state.mergeBonusLevel + 1,
                         totalMoney: state.totalMoney - cost
                     }));
+                    get().checkAchievements();
                     return true;
                 }
                 return false;
@@ -355,6 +394,7 @@ export const useGameStore = create<GameStore>()(
                         gemSystemUnlocked: true,
                         totalMoney: state.totalMoney - cost
                     }));
+                    get().checkAchievements();
                     return true;
                 }
                 return false;
@@ -401,6 +441,7 @@ export const useGameStore = create<GameStore>()(
                         totalMoney: state.totalMoney - cost,
                         incomeMultiplierLevel: currentLevel + 1,
                     }));
+                    get().checkAchievements();
                     return true;
                 }
                 return false;
@@ -418,6 +459,7 @@ export const useGameStore = create<GameStore>()(
                         totalMoney: state.totalMoney - cost,
                         autoMergeInterval: Math.max(minInterval, currentInterval - 200),
                     }));
+                    get().checkAchievements();
                     return true;
                 }
                 return false;
@@ -463,14 +505,13 @@ export const useGameStore = create<GameStore>()(
             }),
             onRehydrateStorage: () => (state) => {
                 if (!state) return;
-                set({
-                    pps: calculateTotalPPS(state.coins),
-                    // 기존 저장 데이터 마이그레이션
-                    discoveredLevels: state.discoveredLevels || [1],
-                    lastDiscoveredLevel: null,
-                    incomeMultiplierLevel: state.incomeMultiplierLevel ?? 0,
-                    autoMergeInterval: state.autoMergeInterval ?? 5000,
-                });
+                state.pps = calculateTotalPPS(state.coins);
+                // 기존 저장 데이터 마이그레이션
+                state.discoveredLevels = state.discoveredLevels || [1];
+                state.lastDiscoveredLevel = null;
+                state.incomeMultiplierLevel = state.incomeMultiplierLevel ?? 0;
+                state.autoMergeInterval = state.autoMergeInterval ?? 5000;
+                state.totalEarnedMoney = state.totalEarnedMoney ?? 0;
             },
         }
     )

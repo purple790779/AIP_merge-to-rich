@@ -17,10 +17,14 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
     // 모달 열릴 때 업적 체크
     useEffect(() => {
         const newAchievements = checkAchievements();
-        if (newAchievements.length > 0) {
+        if (newAchievements.length === 0) return;
+
+        const timer = window.setTimeout(() => {
             setNewlyUnlocked(newAchievements);
             if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100]);
-        }
+        }, 0);
+
+        return () => window.clearTimeout(timer);
     }, [checkAchievements]);
 
     const formatReward = (reward: number) => {

@@ -11,37 +11,47 @@ export function HelpModal({ onClose }: HelpModalProps) {
         {
             icon: '🎮',
             title: '기본 조작',
-            description: '코인을 드래그하여 이동하세요. 같은 레벨의 코인을 합치면 레벨업!'
+            description: '코인을 드래그하여 이동하세요. 같은 레벨의 코인을 합치면 다음 레벨로 진화합니다!'
+        },
+        {
+            icon: '🆙',
+            title: '시작 레벨',
+            description: '코인이 생성될 때의 기본 레벨을 올립니다. (하위 코인은 자동 환원) [Max Lv.11]'
+        },
+        {
+            icon: '🎯',
+            title: '머지 보너스',
+            description: '코인 합칠 때 10% 확률로 보너스 수익 획득. [Max Lv.60 → 30% 보너스]'
+        },
+        {
+            icon: '📈',
+            title: '수익 속도',
+            description: '모든 코인의 수익 생산 주기가 빨라집니다. [Max Lv.90 → 1.0초 간격]'
         },
         {
             icon: '💰',
-            title: '수익 창출',
-            description: '코인은 자동으로 초당 수익을 생성합니다. 레벨이 높을수록 수익도 높아요.'
-        },
-        {
-            icon: '⬆️',
-            title: '업그레이드',
-            description: '상점에서 시작 레벨, 생산 속도, 수익 배율 등을 업그레이드할 수 있어요.'
-        },
-        {
-            icon: '✖️',
             title: '수익 배율',
-            description: '상점에서 수익 배율을 올리면 모든 수입에 배율이 영구적으로 적용됩니다. (최대 9.0x)'
+            description: '수익 2배 부스트 시 추가 배율 적용. [Max Lv.80 → 9.0배]'
         },
         {
             icon: '🤖',
             title: '자동 병합 속도',
-            description: '자동 병합 부스트 활성화 시 더 빠른 간격으로 병합됩니다. (최소 0.2초)'
+            description: '자동 병합 부스트 시 병합 속도가 빨라집니다. [Max Lv.24 → 0.2초 간격]'
         },
         {
-            icon: '📖',
-            title: '도감',
-            description: '지금까지 모은 화폐들을 도감에서 확인하세요.'
+            icon: '⚡',
+            title: '자동 생산 속도',
+            description: '자동 생산 부스트 시 코인 생성 속도가 빨라집니다. [Max Lv.10 → 0.2초 쿨타임]'
         },
         {
-            icon: '♻️',
-            title: '레벨 업그레이드 환원',
-            description: '시작 레벨을 올리면 그보다 낮은 코인은 자동으로 사라지고 총자산으로 환원됩니다.'
+            icon: '💎',
+            title: '보석 시스템',
+            description: '토스 빌딩(Lv.15) 달성 후 해금되는 특수 재화입니다. [1억원으로 해금]'
+        },
+        {
+            icon: '💾',
+            title: '데이터 저장',
+            description: '게임 데이터는 기기에 자동 저장됩니다. 브라우저 캐시 삭제 시 데이터가 날아갈 수 있으니 주의하세요!'
         },
     ];
 

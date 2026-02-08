@@ -30,23 +30,22 @@ const getLevelIcon = (level: number) => {
 };
 
 export function CollectionModal({ onClose }: CollectionModalProps) {
-    const coins = useGameStore(state => state.coins);
-    const spawnLevel = useGameStore(state => state.spawnLevel);
+    const discoveredLevels = useGameStore(state => state.discoveredLevels);
     const gemSystemUnlocked = useGameStore(state => state.gemSystemUnlocked);
     const bitcoinDiscovered = useGameStore(state => state.bitcoinDiscovered);
 
     const [showBitcoinHint, setShowBitcoinHint] = useState(false);
 
-    // 해금된 레벨: 현재 보드 최고 레벨 또는 스폰 레벨 중 큰 값
-    const currentMax = Math.max(...coins.map(c => c.level), 1);
-    const unlockedLevel = Math.max(currentMax, spawnLevel);
+    // 기존 저장 데이터 호환: 발견 레벨이 없으면 레벨 1 기본 해금
+    const normalizedDiscoveredLevels = discoveredLevels.length > 0 ? discoveredLevels : [1];
+    const discoveredLevelSet = new Set(normalizedDiscoveredLevels);
 
     // 보석 시스템 해금 여부에 따른 최대 레벨
     const maxVisibleLevel = gemSystemUnlocked ? 17 : 12;
 
     // 수집 통계 (비트코인 제외)
     const totalLevels = maxVisibleLevel;
-    const unlockedCount = Math.min(unlockedLevel, totalLevels);
+    const unlockedCount = normalizedDiscoveredLevels.filter(level => level <= totalLevels).length;
 
     const handleBitcoinClick = () => {
         if (!bitcoinDiscovered) {
@@ -102,7 +101,7 @@ export function CollectionModal({ onClose }: CollectionModalProps) {
                             })
                             .map(([lvlStr, info]) => {
                                 const level = parseInt(lvlStr);
-                                const isUnlocked = level <= unlockedLevel;
+                                const isUnlocked = discoveredLevelSet.has(level);
                                 const pps = COIN_PPS[level] || 0;
                                 const isBitcoin = level === 18;
 

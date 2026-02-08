@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import './index.css';
 import {
@@ -31,15 +31,18 @@ const BOOST_META: Record<BoostType, { label: string; className: string; icon: Re
 function App() {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const activeBoosts = useGameStore(state => state.activeBoosts);
-  const checkAchievements = useGameStore(state => state.checkAchievements);
   const unlockedAchievements = useGameStore(state => state.unlockedAchievements);
+  const resetGame = useGameStore(state => state.resetGame);
   const totalMoney = useGameStore(state => state.totalMoney);
   const lastDiscoveredLevel = useGameStore(state => state.lastDiscoveredLevel);
   const [now, setNow] = useState(() => Date.now());
   const [showAchievementBadge, setShowAchievementBadge] = useState(false);
   const [celebrationText, setCelebrationText] = useState<string | null>(null);
   const [discoveryText, setDiscoveryText] = useState<string | null>(null);
-  const [hasSeenEnding, setHasSeenEnding] = useState(false);
+  const hasSeenEndingRef = useRef(false);
+  const prevUnlockedAchievementsRef = useRef<string[]>(unlockedAchievements);
+  const discoveryShowTimerRef = useRef<number | null>(null);
+  const discoveryHideTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -48,43 +51,73 @@ function App() {
 
   // 새 코인 발견 알림
   useEffect(() => {
-    if (lastDiscoveredLevel !== null && lastDiscoveredLevel >= 2) {
-      const coinInfo = COIN_LEVELS[lastDiscoveredLevel];
-      if (coinInfo) {
-        setDiscoveryText(`✨ ${coinInfo.emoji} ${coinInfo.name} 첫 병합 성공!`);
-        // 즉시 클리어 - store에서 직접 호출
-        useGameStore.getState().clearLastDiscoveredLevel();
-        setTimeout(() => setDiscoveryText(null), 2500);
-      }
-    }
+    if (lastDiscoveredLevel === null || lastDiscoveredLevel < 2) return;
+    const coinInfo = COIN_LEVELS[lastDiscoveredLevel];
+    if (!coinInfo) return;
+
+    if (discoveryShowTimerRef.current) window.clearTimeout(discoveryShowTimerRef.current);
+    if (discoveryHideTimerRef.current) window.clearTimeout(discoveryHideTimerRef.current);
+
+    discoveryShowTimerRef.current = window.setTimeout(() => {
+      setDiscoveryText(`✨ ${coinInfo.emoji} ${coinInfo.name} 첫 병합 성공!`);
+      useGameStore.getState().clearLastDiscoveredLevel();
+      discoveryShowTimerRef.current = null;
+    }, 0);
+
+    discoveryHideTimerRef.current = window.setTimeout(() => {
+      setDiscoveryText(null);
+      discoveryHideTimerRef.current = null;
+    }, 2500);
   }, [lastDiscoveredLevel]);
 
-  // 주기적으로 업적 체크 (5초마다)
   useEffect(() => {
-    const checkTimer = setInterval(() => {
-      const newAchievements = checkAchievements();
-      if (newAchievements.length > 0) {
-        setShowAchievementBadge(true);
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    return () => {
+      if (discoveryShowTimerRef.current) window.clearTimeout(discoveryShowTimerRef.current);
+      if (discoveryHideTimerRef.current) window.clearTimeout(discoveryHideTimerRef.current);
+    };
+  }, []);
 
-        // 새 업적 축하 문구 표시
-        const achievement = ACHIEVEMENTS.find(a => a.id === newAchievements[0]);
-        if (achievement) {
-          setCelebrationText(`🎉 "${achievement.title}" 업적 달성!`);
-          setTimeout(() => setCelebrationText(null), 3000);
-        }
+  useEffect(() => {
+    const previous = prevUnlockedAchievementsRef.current;
+    const newlyUnlocked = unlockedAchievements.filter(id => !previous.includes(id));
+
+    prevUnlockedAchievementsRef.current = unlockedAchievements;
+    if (newlyUnlocked.length === 0) return;
+
+    let hideTimer: number | undefined;
+    const showTimer = window.setTimeout(() => {
+      setShowAchievementBadge(true);
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+      const achievement = ACHIEVEMENTS.find(a => a.id === newlyUnlocked[0]);
+      if (achievement) {
+        setCelebrationText(`🎉 "${achievement.title}" 업적 달성!`);
+        hideTimer = window.setTimeout(() => setCelebrationText(null), 3000);
       }
-    }, 5000);
-    return () => clearInterval(checkTimer);
-  }, [checkAchievements]);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(showTimer);
+      if (hideTimer) window.clearTimeout(hideTimer);
+    };
+  }, [unlockedAchievements]);
 
   // 엔딩 체크 (9999조 도달)
   useEffect(() => {
-    if (totalMoney >= MAX_MONEY && !hasSeenEnding) {
-      setHasSeenEnding(true);
+    if (totalMoney < MAX_MONEY || hasSeenEndingRef.current) return;
+    const timer = window.setTimeout(() => {
+      hasSeenEndingRef.current = true;
       setActiveModal('ending');
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [totalMoney]);
+
+  useEffect(() => {
+    if (totalMoney < MAX_MONEY) {
+      hasSeenEndingRef.current = false;
     }
-  }, [totalMoney, hasSeenEnding]);
+  }, [totalMoney]);
 
   const runningBoosts = activeBoosts.filter(boost => boost.endTime > now);
 
@@ -104,28 +137,20 @@ function App() {
     const store = useGameStore.getState();
     const hasMaxMoneyAchievement = store.unlockedAchievements.includes('max_money');
 
-    // 초기 상태로 리셋하되, max_money 업적은 유지
-    useGameStore.setState({
-      coins: [],
-      totalMoney: 100,
-      pps: 0,
-      spawnLevel: 1,
-      spawnCooldown: 5000,
-      incomeInterval: 10000,
-      mergeBonusLevel: 0,
-      gemSystemUnlocked: false,
-      bitcoinDiscovered: false,
-      autoSpawnEnabled: false,
-      lastMergedId: null,
-      activeBoosts: [],
-      unlockedAchievements: hasMaxMoneyAchievement ? ['max_money'] : [],
-      totalMergeCount: 0,
-      totalEarnedMoney: 0,
-    });
+    resetGame();
+
+    if (hasMaxMoneyAchievement) {
+      useGameStore.setState(state => ({
+        unlockedAchievements: state.unlockedAchievements.includes('max_money')
+          ? state.unlockedAchievements
+          : [...state.unlockedAchievements, 'max_money'],
+      }));
+    }
 
     setActiveModal(null);
-    setHasSeenEnding(false);
-  }, []);
+    setShowAchievementBadge(false);
+    hasSeenEndingRef.current = false;
+  }, [resetGame]);
 
   return (
     <div className="game-container">
