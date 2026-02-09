@@ -12,6 +12,7 @@ on:
       - 'package.json'
       - 'vite.config.ts'
       - 'capacitor.config.ts'
+      - '.github/workflows/**'
 
 jobs:
   build:
