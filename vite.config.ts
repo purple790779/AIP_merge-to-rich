@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/AIP_merge-to-rich/',
+  base: process.env.VITE_BUILD_TARGET === 'capacitor' ? './' : '/AIP_merge-to-rich/',
   plugins: [
     react(),
     tailwindcss(),

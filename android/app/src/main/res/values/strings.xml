@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Merge Money Tycoon</string>
-    <string name="title_activity_main">Merge Money Tycoon</string>
+    <string name="app_name">머지머니타이쿤</string>
+    <string name="title_activity_main">머지머니타이쿤</string>
     <string name="package_name">com.purple790779.mergemoney</string>
     <string name="custom_url_scheme">com.purple790779.mergemoney</string>
 </resources>
