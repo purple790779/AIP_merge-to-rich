@@ -1,5 +1,19 @@
 # 머지 머니 타이쿤 개발일지
 
+## [1.3.2] - 2026-02-12
+
+### 🐛 안드로이드 앱 긴급 수정
+- **화이트 스크린 해결**: Vite `base` 경로를 Capacitor 빌드 시 상대경로(`./`)로 자동 전환
+  - 원인: GitHub Pages용 `base: '/AIP_merge-to-rich/'`가 WebView에서 리소스 로딩 실패 유발
+- **커스텀 아이콘 적용**: `generate-android-icons.cjs` 스크립트로 `icon_600.png`를 5가지 해상도로 변환
+  - mdpi(48), hdpi(72), xhdpi(96), xxhdpi(144), xxxhdpi(192)
+  - Adaptive Icon foreground + 배경색(`#1a1a2e`) 설정
+- **앱 이름 한글화**: `Merge Money Tycoon` → `머지머니타이쿤`
+
+### 🔧 CI/CD 개선
+- GitHub Actions 워크플로우에 `VITE_BUILD_TARGET=capacitor` 환경변수 추가
+- 빌드 시 아이콘 자동 생성 스텝 추가
+
 ## [1.3.1] - 2026-02-09
 
 ### 🚀 배포 및 인프라
