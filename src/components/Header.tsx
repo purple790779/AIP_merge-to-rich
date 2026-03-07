@@ -39,10 +39,7 @@ export function Header() {
     const ppsRef = useRef(pps);
     const addMoneyRef = useRef(addMoney);
     const [isIncreasing, setIsIncreasing] = useState(false);
-
-    // 수익 프로그레스바 상태
-    const [incomeProgress, setIncomeProgress] = useState(0);
-    const startTimeRef = useRef(0);
+    const [progressCycleKey, setProgressCycleKey] = useState(0);
 
     useEffect(() => {
         setIsIncreasing(totalMoney > prevMoneyRef.current);
@@ -58,33 +55,19 @@ export function Header() {
         addMoneyRef.current = addMoney;
     }, [addMoney]);
 
-    // 수익 프로그레스바 애니메이션
+    // incomeInterval마다 수익 지급 + 진행바 사이클 리셋
     useEffect(() => {
-        let animationId: number;
-        startTimeRef.current = Date.now();
-
-        const animate = () => {
-            const now = Date.now();
-            const elapsed = now - startTimeRef.current;
-            const progress = (elapsed / incomeInterval) * 100;
-
-            if (progress >= 100) {
-                // 수익 지급
-                const currentPps = ppsRef.current;
-                if (currentPps > 0) {
-                    addMoneyRef.current(currentPps);
-                }
-                startTimeRef.current = now;
-                setIncomeProgress(0);
-            } else {
-                setIncomeProgress(progress);
+        const timerId = window.setInterval(() => {
+            const currentPps = ppsRef.current;
+            if (currentPps > 0) {
+                addMoneyRef.current(currentPps);
             }
+            setProgressCycleKey(prev => prev + 1);
+        }, incomeInterval);
 
-            animationId = requestAnimationFrame(animate);
+        return () => {
+            window.clearInterval(timerId);
         };
-
-        animationId = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(animationId);
     }, [incomeInterval]);
 
     return (
@@ -124,10 +107,10 @@ export function Header() {
                 </div>
                 {/* 수익 프로그레스바 */}
                 <div className="income-progress-bar">
-                    <motion.div
+                    <div
+                        key={`${incomeInterval}-${progressCycleKey}`}
                         className="income-progress-fill"
-                        style={{ width: `${incomeProgress}%` }}
-                        transition={{ duration: 0.1 }}
+                        style={{ animationDuration: `${incomeInterval}ms` }}
                     />
                 </div>
             </div>

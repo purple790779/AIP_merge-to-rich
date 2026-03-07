@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
-import { COIN_LEVELS } from '../types/game';
+import { COIN_LEVELS, TOTAL_CELLS } from '../types/game';
 import { FaCoins, FaShoppingBag, FaBook } from 'react-icons/fa';
 import { soundManager } from '../utils/soundManager';
 
@@ -24,10 +24,10 @@ interface ControlsProps {
 export function Controls({ onOpenStore, onOpenCollection }: ControlsProps) {
     const spawnCoin = useGameStore(state => state.spawnCoin);
     const spawnLevel = useGameStore(state => state.spawnLevel);
-    const isBoardFull = useGameStore(state => state.isBoardFull);
+    const coinsLength = useGameStore(state => state.coins.length);
     const totalMoney = useGameStore(state => state.totalMoney);
 
-    const boardFull = isBoardFull();
+    const boardFull = coinsLength >= TOTAL_CELLS;
     const coinInfo = COIN_LEVELS[spawnLevel] || { name: `Lv.${spawnLevel}`, emoji: '🪙', value: 10 };
     const spawnCost = coinInfo.value;
     const canAfford = totalMoney >= spawnCost;

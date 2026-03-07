@@ -1,12 +1,22 @@
 # Merge Money Tycoon 트러블슈팅 가이드
 
-작성일: 2026-02-08
+작성일: 2026-03-05
 
 ## 1. 빠른 점검 순서
-1. 의존성 확인: `npm install`
-2. 정적 점검: `npm run lint`
-3. 빌드 검증: `npm run build`
-4. 개발 실행: `npm run dev`
+1. Node 버전 확인: `node -v` (`22.x` 권장, `.nvmrc` 기준)
+2. 의존성 확인: `npm install`
+3. 정적 점검: `npm run lint`
+4. 빌드 검증: `npm run build`
+5. 개발 실행: `npm run dev`
+
+### 빌드 크래시 원인 분리 커맨드
+- 기본 빌드:
+  - PowerShell: `npm run build`
+  - bash/zsh: `npm run build`
+- PWA 플러그인 비활성 빌드:
+  - PowerShell: `$env:VITE_ENABLE_PWA='false'; npm run build`
+  - bash/zsh: `VITE_ENABLE_PWA=false npm run build`
+- 증상 예시: `vite build`가 `modules transformed` 직후 종료코드 `-1073740791`로 종료
 
 ## 2. 증상별 대응
 
@@ -14,11 +24,16 @@
 - 증상 예시:
   - `TS2552: Cannot find name 'set'`
   - `vite config` 로딩 실패
+  - `vite build` 비정상 종료 (`-1073740791`)
 - 확인 포인트:
   - `src/store/useGameStore.ts`의 `onRehydrateStorage` 구현이 최신인지 확인
+  - `node -v`가 `22.x`인지 확인
+  - `VITE_ENABLE_PWA=false`일 때도 동일 증상인지 비교
   - 로컬 보안 정책으로 `esbuild` 실행 차단(`EPERM`)이 있는지 확인
 - 조치:
   - 현재 기준 구현은 하이드레이션 콜백에서 상태를 직접 보정해야 함
+  - Node를 `22.x`로 통일한 뒤 재빌드
+  - PWA 비활성 빌드가 정상이라면 `vite-plugin-pwa` 설정/캐시를 우선 점검
   - 권한 문제면 관리자 권한 터미널 또는 보안 정책 예외로 재시도
 
 ### B. 수익 배율 업그레이드가 체감되지 않는다
@@ -64,6 +79,14 @@
 - 조치:
   - `discoveredLevels` 기반으로 해금/수집률 계산
 
+### G. 보드가 비었는데 생산 버튼이 비활성 상태다
+- 증상:
+  - 머지로 빈칸이 생겼는데 생산 버튼이 즉시 활성화되지 않음
+- 확인 포인트:
+  - `Controls.tsx`가 `coins.length` selector에 직접 구독하는지 확인
+- 조치:
+  - 보드 full 판단을 함수 호출(`isBoardFull()`)이 아닌 `coins.length >= TOTAL_CELLS` 구독으로 유지
+
 ## 3. 상태 저장(퍼시스트) 마이그레이션 체크리스트
 - 하이드레이션 시 아래 값 기본 보정 확인:
   - `pps`
@@ -74,9 +97,11 @@
   - `totalEarnedMoney`
 
 ## 4. 회귀 테스트 체크리스트
+- Node 22 환경에서 `npm run build`가 정상 완료되는지 확인
 - 수익 배율 업그레이드만 올린 뒤(2배 부스트 OFF) 수익 증가 확인
 - 2배 부스트 ON 시 동일 수익이 정확히 2배 추가로 중첩되는지 확인
 - 머지 보너스도 같은 배율 규칙이 적용되는지 확인
+- 보드 가득찬 상태에서 머지 후 생산 버튼이 즉시 활성화되는지 확인
 - 엔딩 진입 후 리셋 시 게임이 정상 초기화되는지 확인
 - 업적 달성 직후 배지/토스트가 즉시 노출되는지 확인
 - 도감이 실제 발견 코인만 해금되는지 확인

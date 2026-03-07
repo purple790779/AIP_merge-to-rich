@@ -83,7 +83,7 @@ export interface GameState {
     spawnLevel: number; // 생성되는 코인의 기본 레벨
     spawnCooldown: number; // 생성 쿨다운 (ms)
     incomeInterval: number; // 수익 지급 간격 (ms), 기본 10000ms (10초)
-    mergeBonusLevel: number; // 머지 보너스 레벨 (레벨당 1%)
+    mergeBonusLevel: number; // 머지 보너스 레벨 (레벨당 0.5%)
     gemSystemUnlocked: boolean; // 보석 시스템 해금 여부
     bitcoinDiscovered: boolean; // 비트코인 발견 여부
     autoSpawnEnabled: boolean;

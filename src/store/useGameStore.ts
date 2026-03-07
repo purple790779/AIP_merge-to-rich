@@ -70,7 +70,6 @@ interface GameStore extends GameState {
     resetGame: () => void;
     clearLastMergedId: () => void;
     clearLastDiscoveredLevel: () => void;
-    isBoardFull: () => boolean;
 
     // 업적
     checkAchievements: () => string[]; // 새로 해금된 업적 ID 반환
@@ -309,7 +308,8 @@ export const useGameStore = create<GameStore>()(
 
             upgradeSpawnLevel: () => {
                 const { spawnLevel, totalMoney, coins } = get();
-                const cost = 1000 * Math.pow(spawnLevel, 2);
+                // 밸런스 v1.4: 비용 곡선 강화 (기존 1000 × Lv^2)
+                const cost = 5000 * Math.pow(spawnLevel, 3.5);
 
                 if (totalMoney >= cost && spawnLevel < 11) {
                     const newSpawnLevel = spawnLevel + 1;
@@ -334,8 +334,8 @@ export const useGameStore = create<GameStore>()(
                 if (spawnCooldown <= 200) return false;
 
                 const level = Math.floor((5000 - spawnCooldown) / 500) + 1;
-                // 비용 증가: 1000 * level^1.8
-                const cost = 1000 * Math.pow(level, 1.8);
+                // 밸런스 v1.4: 비용 곡선 강화 (기존 1000 × Lv^1.8)
+                const cost = 3000 * Math.pow(level, 2.8);
 
                 if (totalMoney >= cost) {
                     set(state => ({
@@ -353,8 +353,8 @@ export const useGameStore = create<GameStore>()(
                 if (incomeInterval <= 1000) return false;
 
                 const level = Math.floor((10000 - incomeInterval) / 100) + 1;
-                // 비용 대폭 증가: 1000 * level^2.0 (기존 300 * level^1.3)
-                const cost = 1000 * Math.pow(level, 2.0);
+                // 밸런스 v1.4: 비용 곡선 강화 (기존 1000 × Lv^2.0)
+                const cost = 5000 * Math.pow(level, 3.0);
 
                 if (totalMoney >= cost) {
                     set(state => ({
@@ -372,7 +372,8 @@ export const useGameStore = create<GameStore>()(
                 // 최대 60레벨 = 30% (0.5% * 60)
                 if (mergeBonusLevel >= 60) return false;
 
-                const cost = 200 * Math.pow(mergeBonusLevel + 1, 1.4);
+                // 밸런스 v1.4: 비용 곡선 강화 (기존 200 × Lv^1.4)
+                const cost = 1000 * Math.pow(mergeBonusLevel + 1, 2.5);
 
                 if (totalMoney >= cost) {
                     set(state => ({
@@ -388,7 +389,8 @@ export const useGameStore = create<GameStore>()(
             unlockGemSystem: () => {
                 const { gemSystemUnlocked, totalMoney } = get();
                 if (gemSystemUnlocked) return false;
-                const cost = 100000000;
+                // 밸런스 v1.4: 보석 시스템 해금 비용 상향 (기존 1억 → 10억)
+                const cost = 1000000000;
                 if (totalMoney >= cost) {
                     set(state => ({
                         gemSystemUnlocked: true,
@@ -433,7 +435,8 @@ export const useGameStore = create<GameStore>()(
             upgradeIncomeMultiplier: () => {
                 const { incomeMultiplierLevel, totalMoney } = get();
                 const currentLevel = incomeMultiplierLevel ?? 0;
-                const cost = Math.floor(5000 * Math.pow(currentLevel + 1, 1.6));
+                // 밸런스 v1.4: 비용 곡선 강화 (기존 5000 × Lv^1.6)
+                const cost = Math.floor(15000 * Math.pow(currentLevel + 1, 2.8));
                 const maxLevel = 80;
 
                 if (totalMoney >= cost && currentLevel < maxLevel) {
@@ -451,7 +454,8 @@ export const useGameStore = create<GameStore>()(
                 const { autoMergeInterval, totalMoney } = get();
                 const currentInterval = autoMergeInterval ?? 5000;
                 const currentLevel = Math.floor((5000 - currentInterval) / 200) + 1;
-                const cost = Math.floor(10000 * Math.pow(currentLevel, 1.8));
+                // 밸런스 v1.4: 비용 곡선 강화 (기존 10000 × Lv^1.8)
+                const cost = Math.floor(25000 * Math.pow(currentLevel, 3.0));
                 const minInterval = 200; // 최소 0.2초
 
                 if (totalMoney >= cost && currentInterval > minInterval) {
@@ -477,13 +481,9 @@ export const useGameStore = create<GameStore>()(
                 set({ lastDiscoveredLevel: null });
             },
 
-            isBoardFull: () => {
-                const { coins } = get();
-                return coins.length >= TOTAL_CELLS;
-            },
         }),
         {
-            name: 'merge-money-tycoon-v5', // 버전 업데이트
+            name: 'merge-money-tycoon-v6', // 밸런스 v1.4 리워크로 버전 업
             partialize: (state) => ({
                 coins: state.coins,
                 totalMoney: state.totalMoney,

@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import type { ReactNode } from 'react';
 import './index.css';
 import {
   Header,
@@ -11,31 +10,23 @@ import {
   SettingsModal,
   AdButton,
   BoostModal,
+  BoostStatus,
   AchievementModal
 } from './components';
 import { useGameStore } from './store/useGameStore';
-import type { BoostType } from './types/game';
 import { MAX_MONEY, ACHIEVEMENTS, COIN_LEVELS } from './types/game';
-import { FaBolt, FaCoins, FaRobot, FaQuestion, FaTrophy } from 'react-icons/fa';
+import { FaCoins, FaQuestion, FaTrophy } from 'react-icons/fa';
 import { IoSettingsSharp } from 'react-icons/io5';
 import { AnimatePresence, motion } from 'framer-motion';
 
 type ModalType = 'store' | 'collection' | 'help' | 'settings' | 'boost' | 'achievement' | 'ending' | null;
 
-const BOOST_META: Record<BoostType, { label: string; className: string; icon: ReactNode }> = {
-  AUTO_MERGE: { label: '자동 병합', className: 'auto-merge', icon: <FaRobot /> },
-  DOUBLE_INCOME: { label: '수익 2배', className: 'double-income', icon: <FaCoins /> },
-  AUTO_SPAWN: { label: '자동 생산', className: 'auto-spawn', icon: <FaBolt /> },
-};
-
 function App() {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
-  const activeBoosts = useGameStore(state => state.activeBoosts);
   const unlockedAchievements = useGameStore(state => state.unlockedAchievements);
   const resetGame = useGameStore(state => state.resetGame);
   const totalMoney = useGameStore(state => state.totalMoney);
   const lastDiscoveredLevel = useGameStore(state => state.lastDiscoveredLevel);
-  const [now, setNow] = useState(() => Date.now());
   const [showAchievementBadge, setShowAchievementBadge] = useState(false);
   const [celebrationText, setCelebrationText] = useState<string | null>(null);
   const [discoveryText, setDiscoveryText] = useState<string | null>(null);
@@ -43,11 +34,6 @@ function App() {
   const prevUnlockedAchievementsRef = useRef<string[]>(unlockedAchievements);
   const discoveryShowTimerRef = useRef<number | null>(null);
   const discoveryHideTimerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // 새 코인 발견 알림
   useEffect(() => {
@@ -118,14 +104,6 @@ function App() {
       hasSeenEndingRef.current = false;
     }
   }, [totalMoney]);
-
-  const runningBoosts = activeBoosts.filter(boost => boost.endTime > now);
-
-  const formatRemaining = (endTime: number) => {
-    const remainingSec = Math.max(0, Math.ceil((endTime - now) / 1000));
-    if (remainingSec >= 60) return `${Math.ceil(remainingSec / 60)}분`;
-    return `${remainingSec}초`;
-  };
 
   const handleOpenAchievement = () => {
     setShowAchievementBadge(false);
@@ -219,22 +197,7 @@ function App() {
 
       {/* 부스트 버튼 */}
       <div className="boost-row">
-        <div className="boost-status">
-          {runningBoosts.length === 0 ? (
-            <span className="boost-empty">{'활성 부스트 없음'}</span>
-          ) : (
-            runningBoosts.map(boost => {
-              const meta = BOOST_META[boost.type];
-              return (
-                <div key={boost.type} className={`boost-chip ${meta.className}`}>
-                  <span className="boost-chip-icon">{meta.icon}</span>
-                  <span className="boost-chip-label">{meta.label}</span>
-                  <span className="boost-chip-time">{formatRemaining(boost.endTime)}</span>
-                </div>
-              );
-            })
-          )}
-        </div>
+        <BoostStatus />
         <AdButton onClick={() => setActiveModal('boost')} />
       </div>
 

@@ -13,7 +13,18 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     const resetGame = useGameStore(state => state.resetGame);
 
     const handleReset = () => {
+        const store = useGameStore.getState();
+        const hasMaxMoneyAchievement = store.unlockedAchievements.includes('max_money');
         resetGame();
+
+        if (hasMaxMoneyAchievement) {
+            useGameStore.setState(state => ({
+                unlockedAchievements: state.unlockedAchievements.includes('max_money')
+                    ? state.unlockedAchievements
+                    : [...state.unlockedAchievements, 'max_money'],
+            }));
+        }
+
         setShowResetConfirm(false);
         onClose();
     };

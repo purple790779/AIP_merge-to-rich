@@ -28,91 +28,52 @@ export function StoreModal({ onClose }: StoreModalProps) {
     const upgradeAutoMergeSpeed = useGameStore(state => state.upgradeAutoMergeSpeed);
 
     // 비용 계산
-    const levelCost = 1000 * Math.pow(spawnLevel, 2);
+    const levelCost = 5000 * Math.pow(spawnLevel, 3.5);
 
     // 생산 속도 레벨 (1~10) - 비용 증가
     const speedLevel = Math.floor((5000 - spawnCooldown) / 500) + 1;
-    const speedCost = 1000 * Math.pow(speedLevel, 1.8);
+    const speedCost = 3000 * Math.pow(speedLevel, 2.8);
     const isMaxSpeed = spawnCooldown <= 200;
     const isMaxLevel = spawnLevel >= 11;
 
     // 수익 속도 레벨 (1~90) - 비용 대폭 증가
     const incomeLevel = Math.floor((10000 - incomeInterval) / 100) + 1;
-    const incomeCost = 1000 * Math.pow(incomeLevel, 2.0);
+    const incomeCost = 5000 * Math.pow(incomeLevel, 3.0);
     const isMaxIncome = incomeInterval <= 1000;
 
     // 머지 보너스 (0.5% 단위, 최대 60레벨 = 30%)
-    const mergeBonusCost = 200 * Math.pow(mergeBonusLevel + 1, 1.4);
+    const mergeBonusCost = 1000 * Math.pow(mergeBonusLevel + 1, 2.5);
     const isMaxMergeBonus = mergeBonusLevel >= 60;
 
     // 보석 시스템 해금
-    const gemCost = 100000000; // 1억원
+    const gemCost = 1000000000; // 10억원
 
     // 신규: 수익 배율
-    const incomeMultiplierCost = Math.floor(5000 * Math.pow(incomeMultiplierLevel + 1, 1.6));
+    const incomeMultiplierCost = Math.floor(15000 * Math.pow(incomeMultiplierLevel + 1, 2.8));
     const isMaxIncomeMultiplier = incomeMultiplierLevel >= 80;
     const currentMultiplier = (1.0 + incomeMultiplierLevel * 0.1).toFixed(1);
 
     // 신규: 자동 병합 속도
     const autoMergeLevel = Math.floor((5000 - autoMergeInterval) / 200) + 1;
-    const autoMergeCost = Math.floor(10000 * Math.pow(autoMergeLevel, 1.8));
+    const autoMergeCost = Math.floor(25000 * Math.pow(autoMergeLevel, 3.0));
     const isMaxAutoMerge = autoMergeInterval <= 200;
 
-    const handleBuyLevel = () => {
-        if (upgradeSpawnLevel()) {
-            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+    // 공통 업그레이드 핸들러 (성공=짧은 진동, 실패=긴 진동)
+    const handleUpgrade = (upgradeFn: () => boolean, isSpecial = false) => () => {
+        if (upgradeFn()) {
+            if (navigator.vibrate) navigator.vibrate(isSpecial ? [100, 50, 100, 50, 100] : [50, 50, 50]);
         } else {
             if (navigator.vibrate) navigator.vibrate(200);
         }
     };
 
-    const handleBuySpeed = () => {
-        if (upgradeSpeed()) {
-            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-        } else {
-            if (navigator.vibrate) navigator.vibrate(200);
-        }
-    };
-
-    const handleBuyIncome = () => {
-        if (upgradeIncomeSpeed()) {
-            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-        } else {
-            if (navigator.vibrate) navigator.vibrate(200);
-        }
-    };
-
-    const handleBuyMergeBonus = () => {
-        if (upgradeMergeBonus()) {
-            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-        } else {
-            if (navigator.vibrate) navigator.vibrate(200);
-        }
-    };
-
-    const handleBuyGem = () => {
-        if (unlockGemSystem()) {
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100]);
-        } else {
-            if (navigator.vibrate) navigator.vibrate(200);
-        }
-    };
-
-    const handleBuyIncomeMultiplier = () => {
-        if (upgradeIncomeMultiplier()) {
-            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-        } else {
-            if (navigator.vibrate) navigator.vibrate(200);
-        }
-    };
-
-    const handleBuyAutoMergeSpeed = () => {
-        if (upgradeAutoMergeSpeed()) {
-            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-        } else {
-            if (navigator.vibrate) navigator.vibrate(200);
-        }
-    };
+    const handleBuyLevel = handleUpgrade(upgradeSpawnLevel);
+    const handleBuySpeed = handleUpgrade(upgradeSpeed);
+    const handleBuyIncome = handleUpgrade(upgradeIncomeSpeed);
+    const handleBuyMergeBonus = handleUpgrade(upgradeMergeBonus);
+    const handleBuyGem = handleUpgrade(unlockGemSystem, true);
+    const handleBuyIncomeMultiplier = handleUpgrade(upgradeIncomeMultiplier);
+    const handleBuyAutoMergeSpeed = handleUpgrade(upgradeAutoMergeSpeed);
 
     const formatMoney = (amount: number): string => {
         if (amount >= 100000000) {
@@ -264,7 +225,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
                             </div>
                             <div className="upgrade-info">
                                 <div className="upgrade-title">💰 수익 배율</div>
-                                <div className="upgrade-desc">수익 2배 부스트 시 {currentMultiplier}배 적용 (Max Lv.80 → 9.0배)</div>
+                                <div className="upgrade-desc">기본 수익에 {currentMultiplier}배 상시 적용 (2배 부스트와 중첩, Max Lv.80 → 9.0배)</div>
                             </div>
                             <div className="upgrade-level">Lv.{incomeMultiplierLevel}</div>
                         </div>

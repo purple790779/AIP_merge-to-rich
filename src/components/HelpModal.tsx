@@ -31,7 +31,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
         {
             icon: '💰',
             title: '수익 배율',
-            description: '수익 2배 부스트 시 추가 배율 적용. [Max Lv.80 → 9.0배]'
+            description: '기본 수익에 항상 적용되며, 2배 부스트와 중첩됩니다. [Max Lv.80 → 9.0배]'
         },
         {
             icon: '🤖',
@@ -46,7 +46,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
         {
             icon: '💎',
             title: '보석 시스템',
-            description: '토스 빌딩(Lv.15) 달성 후 해금되는 특수 재화입니다. [1억원으로 해금]'
+            description: '토스 빌딩(Lv.12) 이후 보석 단계를 해금합니다. [10억원으로 해금]'
         },
         {
             icon: '💾',

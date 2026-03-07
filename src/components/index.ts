@@ -9,4 +9,5 @@ export * from './HelpModal';
 export * from './SettingsModal';
 export * from './AdButton';
 export * from './BoostModal';
+export * from './BoostStatus';
 export * from './AchievementModal';
