@@ -9,9 +9,14 @@ on:
       - 'android/**'
       - 'src/**'
       - 'public/**'
+      - 'index.html'
       - 'package.json'
+      - 'package-lock.json'
+      - '.nvmrc'
+      - 'tsconfig*.json'
       - 'vite.config.ts'
       - 'capacitor.config.ts'
+      - 'generate-android-icons.cjs'
       - '.github/workflows/**'
 
 jobs:
@@ -68,7 +73,7 @@ jobs:
       - name: Build Android App Bundle (signed release)
         working-directory: android
         env:
-          ANDROID_KEYSTORE_PATH: app/upload.keystore
+          ANDROID_KEYSTORE_PATH: upload.keystore
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
