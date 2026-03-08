@@ -1,33 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { FaChartLine } from 'react-icons/fa';
+import { formatMoney } from '../utils/formatMoney';
 
-// 숫자를 한국 원화 형식으로 포맷 (억 단위까지 숫자, 조 단위부터 축약, 최대 9999조)
-function formatMoney(amount: number): string {
-    const rounded = Math.floor(amount);
-    const maxValue = 9999 * 1000000000000; // 9999조
-    const capped = Math.min(rounded, maxValue);
 
-    if (capped >= 1000000000000) {
-        // 조 단위 (1조 이상) - 억 단위도 함께 표시
-        const jo = Math.floor(capped / 1000000000000);
-        const eok = Math.floor((capped % 1000000000000) / 100000000);
-        if (eok > 0) {
-            return `${jo.toLocaleString()}조 ${eok}억`;
-        }
-        return `${jo.toLocaleString()}조`;
-    }
-    if (capped >= 100000000) {
-        // 억 단위 (1억 이상)
-        return `${Math.floor(capped / 100000000).toLocaleString()}억`;
-    }
-    if (capped >= 10000) {
-        // 만 단위
-        return `${(capped / 10000).toFixed(1)}만`;
-    }
-    return capped.toLocaleString();
-}
 
 export function Header() {
     const totalMoney = useGameStore(state => state.totalMoney);
@@ -46,7 +23,7 @@ export function Header() {
         prevMoneyRef.current = totalMoney;
     }, [totalMoney]);
 
-    // PPS에 따른 수익 발생 (incomeInterval마다)
+    // PPS???곕Ⅸ ?섏씡 諛쒖깮 (incomeInterval留덈떎)
     useEffect(() => {
         ppsRef.current = pps;
     }, [pps]);
@@ -55,7 +32,7 @@ export function Header() {
         addMoneyRef.current = addMoney;
     }, [addMoney]);
 
-    // incomeInterval마다 수익 지급 + 진행바 사이클 리셋
+    // incomeInterval留덈떎 ?섏씡 吏湲?+ 吏꾪뻾諛??ъ씠??由ъ뀑
     useEffect(() => {
         const timerId = window.setInterval(() => {
             const currentPps = ppsRef.current;
@@ -72,9 +49,9 @@ export function Header() {
 
     return (
         <div className="header-container">
-            {/* 총 자산 */}
+            {/* 珥??먯궛 */}
             <div className="header-card">
-                <div className="header-label">총 자산</div>
+                <div className="header-label">珥??먯궛</div>
                 <AnimatePresence mode="popLayout">
                     <motion.div
                         key={totalMoney}
@@ -84,17 +61,17 @@ export function Header() {
                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                         className="header-value"
                     >
-                        {formatMoney(totalMoney)}원
+                        {formatMoney(totalMoney)}??
                     </motion.div>
                 </AnimatePresence>
             </div>
 
-            {/* PPS 표시 + 프로그레스바 */}
+            {/* PPS ?쒖떆 + ?꾨줈洹몃젅?ㅻ컮 */}
             <div className="pps-card">
                 <div className="pps-info">
                     <span className="pps-label">
                         <FaChartLine style={{ display: 'inline', marginRight: 6 }} />
-                        {incomeInterval / 1000}초당 수익
+                        {incomeInterval / 1000}珥덈떦 ?섏씡
                     </span>
                     <motion.span
                         key={pps}
@@ -102,10 +79,10 @@ export function Header() {
                         animate={{ scale: 1 }}
                         className="pps-value"
                     >
-                        +{formatMoney(pps)}원
+                        +{formatMoney(pps)}??
                     </motion.span>
                 </div>
-                {/* 수익 프로그레스바 */}
+                {/* ?섏씡 ?꾨줈洹몃젅?ㅻ컮 */}
                 <div className="income-progress-bar">
                     <div
                         key={`${incomeInterval}-${progressCycleKey}`}

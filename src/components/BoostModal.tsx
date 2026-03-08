@@ -13,6 +13,7 @@ interface BoostModalProps {
 export function BoostModal({ onClose }: BoostModalProps) {
     const activateBoost = useGameStore(state => state.activateBoost);
     const isBoostActive = useGameStore(state => state.isBoostActive);
+    const autoMergeInterval = useGameStore(state => state.autoMergeInterval) ?? 5000;
     const [isWatchingAd, setIsWatchingAd] = useState(false);
     const [adProgress, setAdProgress] = useState(0);
 
@@ -21,6 +22,7 @@ export function BoostModal({ onClose }: BoostModalProps) {
     const isMountedRef = useRef(true);
 
     const DURATION_SECONDS = 300; // 5분
+    const durationMinutes = DURATION_SECONDS / 60;
 
     // Cleanup on unmount
     useEffect(() => {
@@ -89,11 +91,11 @@ export function BoostModal({ onClose }: BoostModalProps) {
                 >
                     {active ? (
                         <>
-                            <IoTimeOutline /> 시간 +3분 연장
+                            <IoTimeOutline /> 시간 +{durationMinutes}분 연장
                         </>
                     ) : (
                         <>
-                            <IoPlayCircle /> 광고 보고 활성화 (3분)
+                            <IoPlayCircle /> 광고 보고 활성화 ({durationMinutes}분)
                         </>
                     )}
                 </button>
@@ -150,13 +152,13 @@ export function BoostModal({ onClose }: BoostModalProps) {
                 {/* 컨텐츠 */}
                 <div className="modal-content scrollable">
                     <div className="help-text" style={{ padding: '0 4px 16px', color: 'rgba(255,255,255,0.6)', fontSize: '13px', textAlign: 'center' }}>
-                        광고를 시청하고 3분 동안 특별한 효과를 얻으세요!
+                        광고를 시청하고 {durationMinutes}분 동안 특별한 효과를 얻으세요!
                     </div>
 
                     {renderBoostCard(
                         'AUTO_MERGE',
                         '자동 병합',
-                        '1초마다 같은 코인을 자동으로 합칩니다.',
+                        `현재 간격 기준 ${(autoMergeInterval / 1000).toFixed(1)}초마다 같은 코인을 자동으로 합칩니다.`,
                         <FaRobot />,
                         'level' // 재사용 (노란색)
                     )}

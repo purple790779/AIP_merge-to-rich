@@ -1,5 +1,24 @@
 # 머지 머니 타이쿤 개발일지
 
+## [1.4.2] - 2026-03-08
+
+### 🔧 코드 품질 개선
+- **`formatMoney` 유틸 통합**: Header, StoreModal, Controls에 각각 중복 정의되어 있던 `formatMoney` 함수를 `src/utils/formatMoney.ts`로 통합. 조/억/만 단위가 모든 화면에서 동일하게 표시됨
+- **사용하지 않는 코드 제거**: `autoSpawnEnabled` 상태를 GameState 및 initialState에서 삭제 (어디서도 읽지 않는 dead code)
+- **deprecated API 교체**: `Math.random().toString(36).substr()` → `.substring()`
+
+### 🎮 UX 개선
+- **리셋 확인 대화창 추가**: '처음부터 다시하기' 클릭 시 `window.confirm()` 확인창 표시 (실수 방지)
+- **PPS 실제 수익 반영**: Header의 PPS 표시에 수익 배율(`incomeMultiplierLevel`)과 2배 부스트가 반영된 실제 유효 수익을 표시
+- **머지 보너스 평균 표시**: 상점에서 머지 보너스의 "평균 기대 보너스"를 함께 표시하여 직관성 향상
+
+### 📄 문서화
+- **인수인계 가이드 신규 작성**: `docs/ONBOARDING.md` (환경 구축 + Keystore 보안 + GitHub Actions AAB 빌드 및 다운로드 가이드)
+- **아키텍처 가이드 신규 작성**: `docs/ARCHITECTURE.md` (상태 관리 + 확장 방법 가이드)
+- **에셋 관리 가이드 신규 작성**: `docs/ASSET_GUIDE.md` (AI 에이전트 활용 에셋 생성 지침)
+- **템플릿 가이드 신규 작성**: `docs/TEMPLATE_GUIDE.md` (향후 신규 게임 보일러플레이트)
+- **README.md 보강**: 신규 문서 링크 일괄 추가
+
 ## [1.4.1] - 2026-03-05
 
 ### 🔐 보안/배포

@@ -3,18 +3,9 @@ import { useGameStore } from '../store/useGameStore';
 import { COIN_LEVELS, TOTAL_CELLS } from '../types/game';
 import { FaCoins, FaShoppingBag, FaBook } from 'react-icons/fa';
 import { soundManager } from '../utils/soundManager';
+import { formatMoney } from '../utils/formatMoney';
 
-// 억 단위 포맷팅
-function formatMoney(amount: number): string {
-    const rounded = Math.floor(amount);
-    if (rounded >= 100000000) {
-        return `${Math.floor(rounded / 100000000).toLocaleString()}억`;
-    }
-    if (rounded >= 10000) {
-        return `${(rounded / 10000).toFixed(1)}만`;
-    }
-    return rounded.toLocaleString();
-}
+
 
 interface ControlsProps {
     onOpenStore: () => void;

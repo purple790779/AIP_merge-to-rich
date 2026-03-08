@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+﻿import { useEffect, useState, useCallback, useRef } from 'react';
 import './index.css';
 import {
   Header,
@@ -35,7 +35,7 @@ function App() {
   const discoveryShowTimerRef = useRef<number | null>(null);
   const discoveryHideTimerRef = useRef<number | null>(null);
 
-  // 새 코인 발견 알림
+  // ??肄붿씤 諛쒓껄 ?뚮┝
   useEffect(() => {
     if (lastDiscoveredLevel === null || lastDiscoveredLevel < 2) return;
     const coinInfo = COIN_LEVELS[lastDiscoveredLevel];
@@ -45,7 +45,7 @@ function App() {
     if (discoveryHideTimerRef.current) window.clearTimeout(discoveryHideTimerRef.current);
 
     discoveryShowTimerRef.current = window.setTimeout(() => {
-      setDiscoveryText(`✨ ${coinInfo.emoji} ${coinInfo.name} 첫 병합 성공!`);
+      setDiscoveryText(`??${coinInfo.emoji} ${coinInfo.name} 泥?蹂묓빀 ?깃났!`);
       useGameStore.getState().clearLastDiscoveredLevel();
       discoveryShowTimerRef.current = null;
     }, 0);
@@ -77,7 +77,7 @@ function App() {
 
       const achievement = ACHIEVEMENTS.find(a => a.id === newlyUnlocked[0]);
       if (achievement) {
-        setCelebrationText(`🎉 "${achievement.title}" 업적 달성!`);
+        setCelebrationText(`?럦 "${achievement.title}" ?낆쟻 ?ъ꽦!`);
         hideTimer = window.setTimeout(() => setCelebrationText(null), 3000);
       }
     }, 0);
@@ -88,7 +88,7 @@ function App() {
     };
   }, [unlockedAchievements]);
 
-  // 엔딩 체크 (9999조 도달)
+  // ?붾뵫 泥댄겕 (9999議??꾨떖)
   useEffect(() => {
     if (totalMoney < MAX_MONEY || hasSeenEndingRef.current) return;
     const timer = window.setTimeout(() => {
@@ -110,8 +110,12 @@ function App() {
     setActiveModal('achievement');
   };
 
-  // 게임 리셋 (최대자산 업적은 유지)
+  // 寃뚯엫 由ъ뀑 (理쒕??먯궛 ?낆쟻? ?좎?)
   const handleReset = useCallback(() => {
+    if (!window.confirm(' 정말 처음부터 다시 시작하시겠습니까?\n모든 코인, 자산, 업그레이드가 초기화됩니다.')) {
+      return;
+    }
+
     const store = useGameStore.getState();
     const hasMaxMoneyAchievement = store.unlockedAchievements.includes('max_money');
 
@@ -132,7 +136,7 @@ function App() {
 
   return (
     <div className="game-container">
-      {/* 업적 축하 토스트 */}
+      {/* ?낆쟻 異뺥븯 ?좎뒪??*/}
       <AnimatePresence>
         {celebrationText && (
           <motion.div
@@ -147,7 +151,7 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* 새 코인 발견 토스트 */}
+      {/* ??肄붿씤 諛쒓껄 ?좎뒪??*/}
       <AnimatePresence>
         {discoveryText && (
           <motion.div
@@ -162,11 +166,11 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* 게임 타이틀 + 헤더 아이콘 */}
+      {/* 寃뚯엫 ??댄? + ?ㅻ뜑 ?꾩씠肄?*/}
       <div className="title-row">
         <h1 className="game-title">
           <FaCoins className="game-title-icon" style={{ color: '#fbbf24' }} />
-          <span>머지 머니 타이쿤</span>
+          <span>癒몄? 癒몃땲 ??댁엘</span>
         </h1>
         <div className="title-actions">
           <button className="title-icon-btn achievement-btn" onClick={handleOpenAchievement}>
@@ -189,25 +193,25 @@ function App() {
         </div>
       </div>
 
-      {/* 상단 정보 */}
+      {/* ?곷떒 ?뺣낫 */}
       <Header />
 
-      {/* 게임 보드 */}
+      {/* 寃뚯엫 蹂대뱶 */}
       <Board />
 
-      {/* 부스트 버튼 */}
+      {/* 遺?ㅽ듃 踰꾪듉 */}
       <div className="boost-row">
         <BoostStatus />
         <AdButton onClick={() => setActiveModal('boost')} />
       </div>
 
-      {/* 하단 컨트롤 */}
+      {/* ?섎떒 而⑦듃濡?*/}
       <Controls
         onOpenStore={() => setActiveModal('store')}
         onOpenCollection={() => setActiveModal('collection')}
       />
 
-      {/* 모달 레이어 */}
+      {/* 紐⑤떖 ?덉씠??*/}
       <AnimatePresence>
         {activeModal === 'store' && (
           <StoreModal onClose={() => setActiveModal(null)} />
@@ -241,26 +245,26 @@ function App() {
               exit={{ scale: 0.8, opacity: 0 }}
             >
               <div className="ending-content">
-                <div className="ending-trophy">🏆</div>
-                <h2 className="ending-title">축하합니다!</h2>
-                <p className="ending-subtitle">최대 자산 업적을 달성하였습니다!</p>
-                <p className="ending-amount">9,999조원</p>
+                <div className="ending-trophy">?룇</div>
+                <h2 className="ending-title">異뺥븯?⑸땲??</h2>
+                <p className="ending-subtitle">理쒕? ?먯궛 ?낆쟻???ъ꽦?섏??듬땲??</p>
+                <p className="ending-amount">9,999議곗썝</p>
                 <p className="ending-message">
-                  당신은 전설의 부자가 되었습니다!<br />
-                  이 업적은 영원히 기록됩니다.
+                  ?뱀떊? ?꾩꽕??遺?먭? ?섏뿀?듬땲??<br />
+                  ???낆쟻? ?곸썝??湲곕줉?⑸땲??
                 </p>
                 <div className="ending-buttons">
                   <button
                     className="toss-button primary"
                     onClick={() => setActiveModal(null)}
                   >
-                    계속 플레이
+                    怨꾩냽 ?뚮젅??
                   </button>
                   <button
                     className="toss-button secondary"
                     onClick={handleReset}
                   >
-                    처음부터 다시하기
+                    泥섏쓬遺???ㅼ떆?섍린
                   </button>
                 </div>
               </div>

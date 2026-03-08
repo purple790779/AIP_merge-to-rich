@@ -75,7 +75,15 @@ $env:VITE_ENABLE_PWA='false'; npm run build
 - 서버로 개인정보를 수집/전송하지 않습니다.
 - 상세 정책: `public/privacy.html`, `docs/PRIVACY_POLICY.md`
 
-## 문서
+## 문서 가이드 (Documentation)
+원활한 인수인계와 향후 개발을 위해 다음 문서들을 반드시 먼저 읽어보시길 권장합니다.
+
+- **[인수인계 및 환경세팅 가이드 `docs/ONBOARDING.md`](docs/ONBOARDING.md)**: 🚨 새 개발 환경 구축 및 Secret 보호
+- **[시스템 아키텍처 및 로직 `docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**: React, Zustand, 상태 로직 분석
+- **[에셋 자동화 및 AI 에이전트 지침 `docs/ASSET_GUIDE.md`](docs/ASSET_GUIDE.md)**: 저작권 우회를 위한 AI 기반 에셋 자동화 가이드
+- **[신규 게임 템플릿화 구축 `docs/TEMPLATE_GUIDE.md`](docs/TEMPLATE_GUIDE.md)**: 현재 프로젝트 기반의 보일러플레이트 구축 가이드
+
+### 히스토리 및 기타
 - 변경 이력: `docs/CHANGELOG.md`
 - 종합 개발 로그: `docs/DEV_LOG_FULL.md`
 - 로드맵: `docs/ROADMAP.md`

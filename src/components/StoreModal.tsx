@@ -4,6 +4,7 @@ import { COIN_LEVELS } from '../types/game';
 import { IoClose } from 'react-icons/io5';
 import { FaArrowUp, FaShoppingBag, FaChartLine, FaGem, FaPercentage, FaTimes, FaRobot } from 'react-icons/fa';
 import { FaBolt } from 'react-icons/fa';
+import { formatMoney } from '../utils/formatMoney';
 
 interface StoreModalProps {
     onClose: () => void;
@@ -75,15 +76,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
     const handleBuyIncomeMultiplier = handleUpgrade(upgradeIncomeMultiplier);
     const handleBuyAutoMergeSpeed = handleUpgrade(upgradeAutoMergeSpeed);
 
-    const formatMoney = (amount: number): string => {
-        if (amount >= 100000000) {
-            return `${(amount / 100000000).toFixed(1)}억`;
-        }
-        if (amount >= 10000) {
-            return `${(amount / 10000).toFixed(0)}만`;
-        }
-        return amount.toLocaleString();
-    };
+
 
     return (
         <motion.div
@@ -157,7 +150,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
                             </div>
                             <div className="upgrade-info">
                                 <div className="upgrade-title">🎯 머지 보너스</div>
-                                <div className="upgrade-desc">10% 확률로 {(mergeBonusLevel * 0.5).toFixed(1)}% 보너스 (Max Lv.60 → 30%)</div>
+                                <div className="upgrade-desc">10% 확률로 {(mergeBonusLevel * 0.5).toFixed(1)}% 보너스 (평균 +{(mergeBonusLevel * 0.5 * 0.1).toFixed(1)}%, Max Lv.60)</div>
                             </div>
                             <div className="upgrade-level">Lv.{mergeBonusLevel}</div>
                         </div>

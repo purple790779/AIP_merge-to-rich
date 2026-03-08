@@ -1,7 +1,7 @@
-{
+﻿{
   "name": "merge-money-tycoon",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.4.2",
   "homepage": "https://purple790779.github.io/AIP_merge-to-rich",
   "engines": {
     "node": "22.x"
@@ -9,6 +9,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/check-node-version.cjs 22",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

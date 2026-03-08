@@ -1,12 +1,12 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Coin, GameState, BoostType } from '../types/game';
 import { TOTAL_CELLS, COIN_PPS, COIN_LEVELS, ACHIEVEMENTS } from '../types/game';
 
-// 유틸리티: 고유 ID 생성
-const generateId = () => `coin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+// ?좏떥由ы떚: 怨좎쑀 ID ?앹꽦
+const generateId = () => `coin_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
-// 유틸리티: 랜덤 빈 셀 찾기
+// ?좏떥由ы떚: ?쒕뜡 鍮?? 李얘린
 const findRandomEmptyCell = (coins: Coin[]): number | null => {
     const occupiedIndices = new Set(coins.map(c => c.gridIndex));
     const emptyCells: number[] = [];
@@ -17,12 +17,12 @@ const findRandomEmptyCell = (coins: Coin[]): number | null => {
     return emptyCells[Math.floor(Math.random() * emptyCells.length)];
 };
 
-// 유틸리티: 총 PPS 계산
+// ?좏떥由ы떚: 珥?PPS 怨꾩궛
 const calculateTotalPPS = (coins: Coin[]): number => {
     return coins.reduce((sum, coin) => sum + (COIN_PPS[coin.level] || 0), 0);
 };
 
-// 수익/보너스 공통 배율 적용
+// ?섏씡/蹂대꼫??怨듯넻 諛곗쑉 ?곸슜
 const applyIncomeMultipliers = (
     amount: number,
     activeBoosts: GameState['activeBoosts'],
@@ -38,47 +38,47 @@ const applyIncomeMultipliers = (
 };
 
 interface GameStore extends GameState {
-    // 코인 생성
+    // 肄붿씤 ?앹꽦
     spawnCoin: () => boolean;
 
-    // 코인 이동 (성공 여부 반환)
+    // 肄붿씤 ?대룞 (?깃났 ?щ? 諛섑솚)
     moveCoin: (coinId: string, targetIndex: number) => boolean;
 
-    // 머지 시도
+    // 癒몄? ?쒕룄
     tryMerge: (coinId: string, targetIndex: number) => boolean;
 
-    // 자동 머지 트리거 (1쌍)
+    // ?먮룞 癒몄? ?몃━嫄?(1??
     triggerAutoMerge: () => boolean;
 
-    // 부스트 활성화
+    // 遺?ㅽ듃 ?쒖꽦??
     activateBoost: (type: BoostType, durationSec: number) => void;
 
-    // 부스트 확인
+    // 遺?ㅽ듃 ?뺤씤
     isBoostActive: (type: BoostType) => boolean;
 
-    // 돈 추가 (PPS에 의한 수익)
+    // ??異붽? (PPS???섑븳 ?섏씡)
     addMoney: (amount: number) => void;
 
-    // 업그레이드 functions...
+    // ?낃렇?덉씠??functions...
     upgradeSpawnLevel: () => boolean;
     upgradeSpeed: () => boolean;
     upgradeIncomeSpeed: () => boolean;
     upgradeMergeBonus: () => boolean;
     unlockGemSystem: () => boolean;
 
-    // 기타
+    // 湲고?
     resetGame: () => void;
     clearLastMergedId: () => void;
     clearLastDiscoveredLevel: () => void;
 
-    // 업적
-    checkAchievements: () => string[]; // 새로 해금된 업적 ID 반환
+    // ?낆쟻
+    checkAchievements: () => string[]; // ?덈줈 ?닿툑???낆쟻 ID 諛섑솚
 
-    // 신규 업그레이드
+    // ?좉퇋 ?낃렇?덉씠??
     upgradeIncomeMultiplier: () => boolean;
     upgradeAutoMergeSpeed: () => boolean;
 
-    // 새 레벨 발견 상태
+    // ???덈꺼 諛쒓껄 ?곹깭
     lastDiscoveredLevel: number | null;
 }
 
@@ -92,18 +92,17 @@ const initialState: GameState & { lastDiscoveredLevel: number | null } = {
     mergeBonusLevel: 0,
     gemSystemUnlocked: false,
     bitcoinDiscovered: false,
-    autoSpawnEnabled: false,
     lastMergedId: null,
     activeBoosts: [],
-    // 업적 시스템
+    // ?낆쟻 ?쒖뒪??
     unlockedAchievements: [],
     totalMergeCount: 0,
     totalEarnedMoney: 0,
-    discoveredLevels: [1], // 레벨 1은 기본으로 발견
+    discoveredLevels: [1], // ?덈꺼 1? 湲곕낯?쇰줈 諛쒓껄
     lastDiscoveredLevel: null,
-    // 신규 업그레이드
-    incomeMultiplierLevel: 0, // 1.0x부터 시작 (0레벨 = 1.0x)
-    autoMergeInterval: 5000, // 5초부터 시작
+    // ?좉퇋 ?낃렇?덉씠??
+    incomeMultiplierLevel: 0, // 1.0x遺???쒖옉 (0?덈꺼 = 1.0x)
+    autoMergeInterval: 5000, // 5珥덈????쒖옉
 };
 
 export const useGameStore = create<GameStore>()(
@@ -160,7 +159,7 @@ export const useGameStore = create<GameStore>()(
             tryMerge: (coinId: string, targetIndex: number) => {
                 const state = get();
                 const { coins, mergeBonusLevel, gemSystemUnlocked } = state;
-                // 방어 코드: 기존 저장 데이터에 discoveredLevels가 없을 수 있음
+                // 諛⑹뼱 肄붾뱶: 湲곗〈 ????곗씠?곗뿉 discoveredLevels媛 ?놁쓣 ???덉쓬
                 const discoveredLevels = state.discoveredLevels || [1];
 
                 const movingCoin = coins.find(c => c.id === coinId);
@@ -183,8 +182,8 @@ export const useGameStore = create<GameStore>()(
                     };
 
                     const newCoinValue = COIN_LEVELS[newLevel]?.value || 0;
-                    // 머지 보너스: 10% 확률로 발동, 0.5% 단위 (mergeBonusLevel * 0.5%)
-                    const bonusChance = Math.random() < 0.1; // 10% 확률
+                    // 癒몄? 蹂대꼫?? 10% ?뺣쪧濡?諛쒕룞, 0.5% ?⑥쐞 (mergeBonusLevel * 0.5%)
+                    const bonusChance = Math.random() < 0.1; // 10% ?뺣쪧
                     const bonusPercent = (mergeBonusLevel * 0.5) / 100;
                     const mergeBonus = bonusChance ? Math.floor(newCoinValue * bonusPercent) : 0;
 
@@ -194,7 +193,7 @@ export const useGameStore = create<GameStore>()(
 
                     const bitcoinFound = newLevel === 18;
 
-                    // 첫 발견 체크 (레벨 2 이상만)
+                    // 泥?諛쒓껄 泥댄겕 (?덈꺼 2 ?댁긽留?
                     const isFirstDiscovery = newLevel >= 2 && !discoveredLevels.includes(newLevel);
                     const updatedDiscoveredLevels = isFirstDiscovery
                         ? [...discoveredLevels, newLevel]
@@ -230,26 +229,26 @@ export const useGameStore = create<GameStore>()(
 
             triggerAutoMerge: () => {
                 const { coins, tryMerge } = get();
-                // 레벨별로 코인 분류
+                // ?덈꺼蹂꾨줈 肄붿씤 遺꾨쪟
                 const coinsByLevel: Record<number, Coin[]> = {};
 
-                // 정렬된 상태로 순회하지 않아도 됨
+                // ?뺣젹???곹깭濡??쒗쉶?섏? ?딆븘????
                 coins.forEach(c => {
                     if (!coinsByLevel[c.level]) coinsByLevel[c.level] = [];
                     coinsByLevel[c.level].push(c);
                 });
 
-                // 낮은 레벨부터 머지 시도
+                // ??? ?덈꺼遺??癒몄? ?쒕룄
                 const levels = Object.keys(coinsByLevel).map(Number).sort((a, b) => a - b);
 
                 for (const level of levels) {
                     const group = coinsByLevel[level];
                     if (group.length >= 2) {
-                        // 2개를 찾아서 머지 시도
+                        // 2媛쒕? 李얠븘??癒몄? ?쒕룄
                         const coinA = group[0];
                         const coinB = group[1];
 
-                        // tryMerge 호출 (coinA를 coinB 위치로 이동)
+                        // tryMerge ?몄텧 (coinA瑜?coinB ?꾩튂濡??대룞)
                         return tryMerge(coinA.id, coinB.gridIndex);
                     }
                 }
@@ -265,11 +264,11 @@ export const useGameStore = create<GameStore>()(
                 const endTime = now + (durationSec * 1000);
 
                 if (existing) {
-                    // 시간 연장 (현재 남은 시간 + 추가 시간)
-                    // 혹은 그냥 종료 시간을 덮어쓰기? -> 보통은 기존 시간에 누적
-                    // 여기서는 심플하게 현재 시간 기준 + duration으로 갱신 (리필 개념)
-                    // 아니면 기존 시간 + duration (누적)
-                    // 사용자 경험상 누적이 좋음
+                    // ?쒓컙 ?곗옣 (?꾩옱 ?⑥? ?쒓컙 + 異붽? ?쒓컙)
+                    // ?뱀? 洹몃깷 醫낅즺 ?쒓컙????뼱?곌린? -> 蹂댄넻? 湲곗〈 ?쒓컙???꾩쟻
+                    // ?ш린?쒕뒗 ?ы뵆?섍쾶 ?꾩옱 ?쒓컙 湲곗? + duration?쇰줈 媛깆떊 (由ы븘 媛쒕뀗)
+                    // ?꾨땲硫?湲곗〈 ?쒓컙 + duration (?꾩쟻)
+                    // ?ъ슜??寃쏀뿕???꾩쟻??醫뗭쓬
                     const baseTime = existing.endTime > now ? existing.endTime : now;
                     newBoosts = activeBoosts.map(b =>
                         b.type === type ? { ...b, endTime: baseTime + (durationSec * 1000) } : b
@@ -308,7 +307,7 @@ export const useGameStore = create<GameStore>()(
 
             upgradeSpawnLevel: () => {
                 const { spawnLevel, totalMoney, coins } = get();
-                // 밸런스 v1.4: 비용 곡선 강화 (기존 1000 × Lv^2)
+                // 諛몃윴??v1.4: 鍮꾩슜 怨≪꽑 媛뺥솕 (湲곗〈 1000 횞 Lv^2)
                 const cost = 5000 * Math.pow(spawnLevel, 3.5);
 
                 if (totalMoney >= cost && spawnLevel < 11) {
@@ -334,7 +333,7 @@ export const useGameStore = create<GameStore>()(
                 if (spawnCooldown <= 200) return false;
 
                 const level = Math.floor((5000 - spawnCooldown) / 500) + 1;
-                // 밸런스 v1.4: 비용 곡선 강화 (기존 1000 × Lv^1.8)
+                // 諛몃윴??v1.4: 鍮꾩슜 怨≪꽑 媛뺥솕 (湲곗〈 1000 횞 Lv^1.8)
                 const cost = 3000 * Math.pow(level, 2.8);
 
                 if (totalMoney >= cost) {
@@ -353,7 +352,7 @@ export const useGameStore = create<GameStore>()(
                 if (incomeInterval <= 1000) return false;
 
                 const level = Math.floor((10000 - incomeInterval) / 100) + 1;
-                // 밸런스 v1.4: 비용 곡선 강화 (기존 1000 × Lv^2.0)
+                // 諛몃윴??v1.4: 鍮꾩슜 怨≪꽑 媛뺥솕 (湲곗〈 1000 횞 Lv^2.0)
                 const cost = 5000 * Math.pow(level, 3.0);
 
                 if (totalMoney >= cost) {
@@ -369,10 +368,10 @@ export const useGameStore = create<GameStore>()(
 
             upgradeMergeBonus: () => {
                 const { mergeBonusLevel, totalMoney } = get();
-                // 최대 60레벨 = 30% (0.5% * 60)
+                // 理쒕? 60?덈꺼 = 30% (0.5% * 60)
                 if (mergeBonusLevel >= 60) return false;
 
-                // 밸런스 v1.4: 비용 곡선 강화 (기존 200 × Lv^1.4)
+                // 諛몃윴??v1.4: 鍮꾩슜 怨≪꽑 媛뺥솕 (湲곗〈 200 횞 Lv^1.4)
                 const cost = 1000 * Math.pow(mergeBonusLevel + 1, 2.5);
 
                 if (totalMoney >= cost) {
@@ -389,7 +388,7 @@ export const useGameStore = create<GameStore>()(
             unlockGemSystem: () => {
                 const { gemSystemUnlocked, totalMoney } = get();
                 if (gemSystemUnlocked) return false;
-                // 밸런스 v1.4: 보석 시스템 해금 비용 상향 (기존 1억 → 10억)
+                // 諛몃윴??v1.4: 蹂댁꽍 ?쒖뒪???닿툑 鍮꾩슜 ?곹뼢 (湲곗〈 1????10??
                 const cost = 1000000000;
                 if (totalMoney >= cost) {
                     set(state => ({
@@ -407,17 +406,17 @@ export const useGameStore = create<GameStore>()(
                 const newlyUnlocked: string[] = [];
 
                 ACHIEVEMENTS.forEach(achievement => {
-                    // 이미 해금된 업적은 스킵
+                    // ?대? ?닿툑???낆쟻? ?ㅽ궢
                     if (state.unlockedAchievements.includes(achievement.id)) return;
 
-                    // 조건 체크
+                    // 議곌굔 泥댄겕
                     if (achievement.condition(state)) {
                         newlyUnlocked.push(achievement.id);
                     }
                 });
 
                 if (newlyUnlocked.length > 0) {
-                    // 보상 계산
+                    // 蹂댁긽 怨꾩궛
                     const totalReward = newlyUnlocked.reduce((sum, id) => {
                         const achievement = ACHIEVEMENTS.find(a => a.id === id);
                         return sum + (achievement?.reward || 0);
@@ -435,7 +434,7 @@ export const useGameStore = create<GameStore>()(
             upgradeIncomeMultiplier: () => {
                 const { incomeMultiplierLevel, totalMoney } = get();
                 const currentLevel = incomeMultiplierLevel ?? 0;
-                // 밸런스 v1.4: 비용 곡선 강화 (기존 5000 × Lv^1.6)
+                // 諛몃윴??v1.4: 鍮꾩슜 怨≪꽑 媛뺥솕 (湲곗〈 5000 횞 Lv^1.6)
                 const cost = Math.floor(15000 * Math.pow(currentLevel + 1, 2.8));
                 const maxLevel = 80;
 
@@ -454,9 +453,9 @@ export const useGameStore = create<GameStore>()(
                 const { autoMergeInterval, totalMoney } = get();
                 const currentInterval = autoMergeInterval ?? 5000;
                 const currentLevel = Math.floor((5000 - currentInterval) / 200) + 1;
-                // 밸런스 v1.4: 비용 곡선 강화 (기존 10000 × Lv^1.8)
+                // 諛몃윴??v1.4: 鍮꾩슜 怨≪꽑 媛뺥솕 (湲곗〈 10000 횞 Lv^1.8)
                 const cost = Math.floor(25000 * Math.pow(currentLevel, 3.0));
-                const minInterval = 200; // 최소 0.2초
+                const minInterval = 200; // 理쒖냼 0.2珥?
 
                 if (totalMoney >= cost && currentInterval > minInterval) {
                     set(state => ({
@@ -483,7 +482,7 @@ export const useGameStore = create<GameStore>()(
 
         }),
         {
-            name: 'merge-money-tycoon-v6', // 밸런스 v1.4 리워크로 버전 업
+            name: 'merge-money-tycoon-v6', // 諛몃윴??v1.4 由ъ썙?щ줈 踰꾩쟾 ??
             partialize: (state) => ({
                 coins: state.coins,
                 totalMoney: state.totalMoney,
@@ -494,19 +493,19 @@ export const useGameStore = create<GameStore>()(
                 gemSystemUnlocked: state.gemSystemUnlocked,
                 bitcoinDiscovered: state.bitcoinDiscovered,
                 activeBoosts: state.activeBoosts,
-                // 업적 관련 추가
+                // ?낆쟻 愿??異붽?
                 unlockedAchievements: state.unlockedAchievements,
                 totalMergeCount: state.totalMergeCount,
                 totalEarnedMoney: state.totalEarnedMoney,
                 discoveredLevels: state.discoveredLevels,
-                // 신규 업그레이드
+                // ?좉퇋 ?낃렇?덉씠??
                 incomeMultiplierLevel: state.incomeMultiplierLevel,
                 autoMergeInterval: state.autoMergeInterval,
             }),
             onRehydrateStorage: () => (state) => {
                 if (!state) return;
                 state.pps = calculateTotalPPS(state.coins);
-                // 기존 저장 데이터 마이그레이션
+                // 湲곗〈 ????곗씠??留덉씠洹몃젅?댁뀡
                 state.discoveredLevels = state.discoveredLevels || [1];
                 state.lastDiscoveredLevel = null;
                 state.incomeMultiplierLevel = state.incomeMultiplierLevel ?? 0;

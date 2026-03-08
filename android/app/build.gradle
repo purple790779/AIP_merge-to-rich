@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+﻿apply plugin: 'com.android.application'
 
 def releaseStorePath = System.getenv("ANDROID_KEYSTORE_PATH") ?: (project.findProperty("ANDROID_KEYSTORE_PATH") ?: "upload.keystore")
 def releaseStorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: project.findProperty("ANDROID_KEYSTORE_PASSWORD")
@@ -14,8 +14,8 @@ android {
         applicationId "com.purple790779.mergemoney"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "1.4.0"
+        versionCode 4
+        versionName "1.4.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
