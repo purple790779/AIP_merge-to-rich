@@ -69,15 +69,24 @@ jobs:
             echo "::error::Decoded keystore is empty."
             exit 1
           fi
+          echo "✅ Keystore restored successfully: $(wc -c < android/app/upload.keystore) bytes"
 
       - name: Build Android App Bundle (signed release)
         working-directory: android
         env:
-          ANDROID_KEYSTORE_PATH: upload.keystore
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/app/upload.keystore
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew bundleRelease
+        run: |
+          echo "--- Debug: Checking signing config ---"
+          echo "KEYSTORE_PATH: $ANDROID_KEYSTORE_PATH"
+          ls -la "$ANDROID_KEYSTORE_PATH" && echo "✅ Keystore file exists" || echo "❌ Keystore file NOT found"
+          [ -n "$ANDROID_KEY_ALIAS" ] && echo "✅ KEY_ALIAS is set" || echo "❌ KEY_ALIAS is EMPTY"
+          [ -n "$ANDROID_KEYSTORE_PASSWORD" ] && echo "✅ KEYSTORE_PASSWORD is set" || echo "❌ KEYSTORE_PASSWORD is EMPTY"
+          [ -n "$ANDROID_KEY_PASSWORD" ] && echo "✅ KEY_PASSWORD is set" || echo "❌ KEY_PASSWORD is EMPTY"
+          echo "--- Starting Gradle build ---"
+          ./gradlew bundleRelease
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
