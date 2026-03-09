@@ -1,7 +1,7 @@
 # Merge Money Tycoon 트러블슈팅 가이드
 
 상태: Current  
-기준일: 2026-03-08
+기준일: 2026-03-09
 
 작성일: 2026-03-05
 
@@ -89,6 +89,20 @@
   - `Controls.tsx`가 `coins.length` selector에 직접 구독하는지 확인
 - 조치:
   - 보드 full 판단을 함수 호출(`isBoardFull()`)이 아닌 `coins.length >= TOTAL_CELLS` 구독으로 유지
+
+### H. 업적 상세 화면이 겹쳐 보이거나 터치가 이상하다
+- 증상:
+  - 카테고리 상세 진입 후 맨 위 업적만 정상적으로 보이거나 선택되는 것처럼 보임
+  - 다른 업적 카드가 반투명 배경처럼 겹쳐 보이며 스크롤됨
+  - 상세 화면 스크롤/터치가 불안정함
+- 확인 포인트:
+  - `achievement-detail-header`에 `position: sticky` + `backdrop-filter` 조합이 남아 있는지 확인
+  - `.achievement-content`, `.achievement-list`, `.achievement-item`의 스크롤/레이어/터치 관련 스타일이 최신인지 확인
+  - 잠금 업적 카드가 전체 opacity 감소 방식으로 처리되고 있지 않은지 확인
+- 조치:
+  - 상세 헤더는 일반 레이아웃으로 유지해 레이어 충돌을 피함
+  - 리스트는 단일 스크롤 컨테이너로 유지하고 `pointer-events` / `touch-action`을 명시함
+  - 잠금 업적은 텍스트 대비 유지 스타일로 표현하고 카드 전체 opacity 감소는 피함
 
 ## 3. 상태 저장(퍼시스트) 마이그레이션 체크리스트
 - 하이드레이션 시 아래 값 기본 보정 확인:
