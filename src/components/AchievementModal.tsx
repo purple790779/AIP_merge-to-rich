@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaCheck, FaGift, FaLock } from 'react-icons/fa';
+import { FaCheck, FaChevronLeft, FaGift, FaLock } from 'react-icons/fa';
 import { IoClose, IoTrophy } from 'react-icons/io5';
 import {
     ACHIEVEMENTS,
@@ -11,6 +11,7 @@ import {
     getAchievementRankProgress,
 } from '../game/achievements';
 import { useGameStore } from '../store/useGameStore';
+import type { AchievementCategory } from '../types/game';
 import { formatMoney } from '../utils/formatMoney';
 
 interface AchievementModalProps {
@@ -21,6 +22,8 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
     const checkAchievements = useGameStore((state) => state.checkAchievements);
     const gameState = useGameStore((state) => state);
     const [newlyUnlocked, setNewlyUnlocked] = useState<string[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<AchievementCategory | null>(null);
+    const contentRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const newAchievements = checkAchievements();
@@ -34,6 +37,11 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
         return () => window.clearTimeout(timerId);
     }, [checkAchievements]);
 
+    useEffect(() => {
+        if (!contentRef.current) return;
+        contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [selectedCategory]);
+
     const unlockedCount = gameState.unlockedAchievements.length;
     const totalCount = ACHIEVEMENTS.length;
     const unlockedSet = useMemo(() => new Set(gameState.unlockedAchievements), [gameState.unlockedAchievements]);
@@ -46,11 +54,23 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
         [gameState.unlockedAchievements]
     );
 
-    const achievementGroups = ACHIEVEMENT_CATEGORY_ORDER.map((category) => ({
-        category,
-        meta: ACHIEVEMENT_CATEGORY_META[category],
-        items: ACHIEVEMENTS.filter((achievement) => achievement.category === category),
-    }));
+    const achievementGroups = useMemo(() => {
+        return ACHIEVEMENT_CATEGORY_ORDER.map((category) => ({
+            category,
+            meta: ACHIEVEMENT_CATEGORY_META[category],
+            items: ACHIEVEMENTS.filter((achievement) => achievement.category === category),
+        }));
+    }, []);
+
+    const selectedGroup = selectedCategory
+        ? achievementGroups.find((group) => group.category === selectedCategory) ?? null
+        : null;
+    const selectedSummary = selectedCategory
+        ? categorySummary.find((summary) => summary.category === selectedCategory) ?? null
+        : null;
+    const selectedPercent = selectedSummary && selectedSummary.totalCount > 0
+        ? Math.floor((selectedSummary.unlockedCount / selectedSummary.totalCount) * 100)
+        : 0;
 
     return (
         <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
@@ -66,7 +86,7 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                         <div className="modal-icon achievement">
                             <IoTrophy />
                         </div>
-                        <h2>업적</h2>
+                        <h2>{selectedGroup ? selectedGroup.meta.title : '업적'}</h2>
                     </div>
                     <button className="modal-close" onClick={onClose}>
                         <IoClose />
@@ -99,15 +119,6 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                     </div>
                 </div>
 
-                <div className="achievement-category-strip">
-                    {categorySummary.map((summary) => (
-                        <div key={summary.category} className="achievement-category-pill">
-                            <span>{ACHIEVEMENT_CATEGORY_META[summary.category].title}</span>
-                            <strong>{summary.unlockedCount}/{summary.totalCount}</strong>
-                        </div>
-                    ))}
-                </div>
-
                 <AnimatePresence>
                     {newlyUnlocked.length > 0 && (
                         <motion.div className="achievement-new-banner" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
@@ -117,68 +128,139 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                     )}
                 </AnimatePresence>
 
-                <div className="modal-content achievement-content">
-                    <div className="achievement-list">
-                        {achievementGroups.map((group) => (
-                            <section key={group.category} className="achievement-section">
-                                <header className="achievement-section-header">
-                                    <h3>{group.meta.title}</h3>
-                                    <span>{group.meta.subtitle}</span>
-                                </header>
-                                {group.items.map((achievement) => {
-                                    const isUnlocked = unlockedSet.has(achievement.id);
-                                    const isNew = newlyUnlocked.includes(achievement.id);
-                                    const progress = getAchievementProgress(gameState, achievement);
+                <div className="modal-content achievement-content" ref={contentRef}>
+                    <AnimatePresence mode="wait">
+                        {!selectedGroup ? (
+                            <motion.div key="category-list" className="achievement-category-screen" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.2 }}>
+                                <p className="achievement-view-note">카테고리를 선택해 상세 업적과 진행도를 확인하세요.</p>
+                                <div className="achievement-category-grid">
+                                    {categorySummary.map((summary) => {
+                                        const meta = ACHIEVEMENT_CATEGORY_META[summary.category];
+                                        const percent = summary.totalCount > 0
+                                            ? Math.floor((summary.unlockedCount / summary.totalCount) * 100)
+                                            : 0;
 
-                                    return (
-                                        <motion.div
-                                            key={achievement.id}
-                                            className={`achievement-item ${isUnlocked ? 'unlocked' : 'locked'} ${isNew ? 'new' : ''}`}
-                                            initial={isNew ? { scale: 1.05 } : {}}
-                                            animate={isNew ? { scale: [1.05, 1] } : {}}
-                                            transition={{ duration: 0.3 }}
+                                        return (
+                                            <button
+                                                key={summary.category}
+                                                className={`achievement-category-card ${meta.accent}`}
+                                                onClick={() => {
+                                                    if (navigator.vibrate) navigator.vibrate(15);
+                                                    setSelectedCategory(summary.category);
+                                                }}
+                                                type="button"
+                                            >
+                                                <div className="achievement-category-card-top">
+                                                    <span className="achievement-category-icon">{meta.icon}</span>
+                                                    <div className="achievement-category-copy">
+                                                        <strong>{meta.title}</strong>
+                                                        <span>{meta.subtitle}</span>
+                                                    </div>
+                                                    <span className="achievement-category-percent">{percent}%</span>
+                                                </div>
+                                                <p>{meta.flavor}</p>
+                                                <div className="achievement-category-footer">
+                                                    <span>{summary.unlockedCount} / {summary.totalCount}</span>
+                                                    <span>탭해서 보기</span>
+                                                </div>
+                                                <div className="mission-progress-bar">
+                                                    <div className="mission-progress-fill" style={{ width: `${percent}%` }} />
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div key={selectedGroup.category} className="achievement-detail-screen" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }} transition={{ duration: 0.2 }}>
+                                <div className="achievement-detail-header">
+                                    <div className="achievement-detail-top">
+                                        <button
+                                            className="achievement-back"
+                                            onClick={() => {
+                                                if (navigator.vibrate) navigator.vibrate(12);
+                                                setSelectedCategory(null);
+                                            }}
+                                            type="button"
                                         >
-                                            <div className="achievement-icon-wrapper">
-                                                {isUnlocked ? (
-                                                    <span className="achievement-emoji">{achievement.icon}</span>
-                                                ) : (
-                                                    <FaLock className="locked-icon" />
-                                                )}
-                                                {isUnlocked && (
-                                                    <div className="achievement-check">
-                                                        <FaCheck />
+                                            <FaChevronLeft />
+                                            <span>카테고리 목록</span>
+                                        </button>
+                                        <div className="achievement-detail-meta">
+                                            <strong>{selectedGroup.meta.title}</strong>
+                                            <span>{selectedGroup.meta.flavor}</span>
+                                        </div>
+                                        {selectedSummary && <span className="achievement-detail-count">{selectedSummary.unlockedCount}/{selectedSummary.totalCount}</span>}
+                                    </div>
+                                    {selectedSummary && (
+                                        <div className="achievement-detail-progress">
+                                            <div className="achievement-detail-progress-row">
+                                                <span>완료율</span>
+                                                <strong>{selectedPercent}%</strong>
+                                            </div>
+                                            <div className="mission-progress-bar">
+                                                <div className="mission-progress-fill" style={{ width: `${selectedPercent}%` }} />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="achievement-list">
+                                    {selectedGroup.items.map((achievement) => {
+                                        const isUnlocked = unlockedSet.has(achievement.id);
+                                        const isNew = newlyUnlocked.includes(achievement.id);
+                                        const progress = getAchievementProgress(gameState, achievement);
+
+                                        return (
+                                            <motion.div
+                                                key={achievement.id}
+                                                className={`achievement-item ${isUnlocked ? 'unlocked' : 'locked'} ${isNew ? 'new' : ''}`}
+                                                initial={isNew ? { scale: 1.05 } : {}}
+                                                animate={isNew ? { scale: [1.05, 1] } : {}}
+                                                transition={{ duration: 0.3 }}
+                                            >
+                                                <div className="achievement-icon-wrapper">
+                                                    {isUnlocked ? (
+                                                        <span className="achievement-emoji">{achievement.icon}</span>
+                                                    ) : (
+                                                        <FaLock className="locked-icon" />
+                                                    )}
+                                                    {isUnlocked && (
+                                                        <div className="achievement-check">
+                                                            <FaCheck />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="achievement-info">
+                                                    <div className="achievement-title-row">
+                                                        <div className="achievement-title">{achievement.title}</div>
+                                                        {achievement.tier && <span className="achievement-tier">T{achievement.tier}</span>}
+                                                    </div>
+                                                    <div className="achievement-desc">{achievement.description}</div>
+                                                    {!isUnlocked && progress.target !== null && (
+                                                        <>
+                                                            <div className="achievement-progress-row">
+                                                                <span>{formatMoney(progress.current)} / {formatMoney(progress.target)}</span>
+                                                                <span>{progress.percent}%</span>
+                                                            </div>
+                                                            <div className="mission-progress-bar">
+                                                                <div className="mission-progress-fill" style={{ width: `${progress.percent}%` }} />
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {achievement.reward !== undefined && achievement.reward > 0 && (
+                                                    <div className={`achievement-reward ${isUnlocked ? 'claimed' : ''}`}>
+                                                        {isUnlocked ? '수령 완료' : `+${formatMoney(achievement.reward)}원`}
                                                     </div>
                                                 )}
-                                            </div>
-                                            <div className="achievement-info">
-                                                <div className="achievement-title-row">
-                                                    <div className="achievement-title">{achievement.title}</div>
-                                                    {achievement.tier && <span className="achievement-tier">T{achievement.tier}</span>}
-                                                </div>
-                                                <div className="achievement-desc">{achievement.description}</div>
-                                                {!isUnlocked && progress.target !== null && (
-                                                    <>
-                                                        <div className="achievement-progress-row">
-                                                            <span>{formatMoney(progress.current)} / {formatMoney(progress.target)}</span>
-                                                            <span>{progress.percent}%</span>
-                                                        </div>
-                                                        <div className="mission-progress-bar">
-                                                            <div className="mission-progress-fill" style={{ width: `${progress.percent}%` }} />
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                            {achievement.reward !== undefined && achievement.reward > 0 && (
-                                                <div className={`achievement-reward ${isUnlocked ? 'claimed' : ''}`}>
-                                                    {isUnlocked ? '수령 완료' : `+${formatMoney(achievement.reward)}원`}
-                                                </div>
-                                            )}
-                                        </motion.div>
-                                    );
-                                })}
-                            </section>
-                        ))}
-                    </div>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </motion.div>
         </motion.div>

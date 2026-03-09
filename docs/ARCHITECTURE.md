@@ -24,14 +24,19 @@
 ### `src/game/achievements.ts`
 - 업적 정의(카테고리/티어/조건/보상/점수)
 - 업적 진행도 계산 + 레거시 랭크 계산
+- 108개 장기 업적 데이터(발견/숙련/경제/수집/복귀/업그레이드/완성자)
 
 ### `src/components/MissionModal.tsx`
 - 미션 카테고리별(일일/주간/마일스톤) 진행도/보상 수령 UI
 - 수령 가능 상태를 명시적으로 보여주는 메인 콘텐츠 확장 포인트
 
 ### `src/components/AchievementModal.tsx`
-- 카테고리별 업적 섹션/진행도 UI
-- 레거시 랭크 카드와 카테고리 완료 요약 노출
+- 2단 탐색 구조(카테고리 목록 -> 카테고리 상세)
+- 레거시 랭크 카드, 카테고리 진행 카드, 상세 화면 Back 내비게이션
+
+### `src/components/StoreModal.tsx`
+- 섹션형 상점 UI(핵심 성장/자동화/특수 해금)
+- 카드별 진행률/효과 칩/CTA를 통한 업그레이드 구매 동선 제공
 
 ### `src/store/persistence.ts`
 - persist partialize
