@@ -1144,7 +1144,11 @@
 }
 
 .achievement-content {
-  max-height: 420px;
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .achievement-category-screen,
@@ -1152,6 +1156,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  position: relative;
+  z-index: 0;
 }
 
 .achievement-view-note {
@@ -1288,12 +1294,10 @@
   gap: 8px;
   padding: 10px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.88);
+  position: relative;
+  z-index: 1;
 }
 
 .achievement-detail-top {
@@ -1370,6 +1374,34 @@
 
 .achievement-detail-progress-row strong {
   color: #fff;
+}
+
+.achievement-list {
+  position: relative;
+  z-index: 1;
+}
+
+.achievement-item {
+  position: relative;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  opacity: 1;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.achievement-item.locked {
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.achievement-item.locked .achievement-title {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.achievement-item.locked .achievement-desc {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .store-modal {
