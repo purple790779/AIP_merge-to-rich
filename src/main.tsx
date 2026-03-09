@@ -1,16 +1,15 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+import { registerSW } from 'virtual:pwa-register'
 import App from './App.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
+import './index.css'
 
-import { registerSW } from 'virtual:pwa-register'
-
-// 서비스 워커 자동 업데이트 (Capacitor WebView에서 confirm() 미지원)
+// Capacitor WebView에서도 별도 확인창 없이 최신 SW를 바로 적용한다.
 registerSW({
   immediate: true,
   onNeedRefresh() {
-    // 자동으로 새 버전 적용
+    // 새 버전을 감지하면 즉시 새로고침한다.
     window.location.reload()
   },
 })
@@ -22,4 +21,3 @@ createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </StrictMode>,
 )
-

@@ -1,61 +1,59 @@
-# 시스템 아키텍처 및 로직 가이드 (ARCHITECTURE)
+# 아키텍처 가이드
 
-본 문서는 프로젝트의 뼈대와 핵심 게임 로직(Global State, 그리드 연산)을 파악하고, 추후 콘텐츠 추가 시 어디를 수정해야 하는지 설명하는 기술 설계도입니다.
+상태: Current  
+기준일: 2026-03-09
 
-## 1. 폴더 및 파일 구조
+이 문서는 `v1.5.2` 기반(2026-03-09 작업 반영) 실제 코드 구조를 설명합니다.
 
-```text
-src/
-├── components/       # UI 및 렌더링을 담당하는 React 컴포넌트들
-│   ├── Board.tsx     # 4x4 머지 그리드 구현
-│   ├── Coin.tsx      # 개별 코인 객체 (DnD 애니메이션)
-│   ├── StoreModal.tsx# 업그레이드 상점 로직 연결
-│   └── ...
-├── store/
-│   └── useGameStore.ts # [핵심] 게임의 모든 규칙과 상태를 관장하는 Zustand 전역 스토어
-├── types/
-│   └── game.ts       # TypeScript 인터페이스 (상태, 통계, 코인 타입 등)
-├── index.css         # 글로벌 TailwindCSS 엔트리 및 애니메이션 키프레임
-└── main.tsx          # React 마운트 지점 및 PWA Service Worker 런타임
-```
+## 핵심 구조
 
-## 2. 상태 관리 (State Management)
-이 게임은 `Zustand` (`src/store/useGameStore.ts`)를 이용해 모든 상태 관리를 중앙 집중화합니다. React 컴포넌트는 단지 이 스토어의 값을 꺼내서 렌더링(View)할 뿐입니다.
+### `src/App.tsx`
+- 메인 화면 오케스트레이션
+- timed reward 자동 노출 / suppression 제어
+- 일일 보상 자정 경계 갱신용 시계 보유
 
-- **핵심 기술**: `zustand/middleware/persist`를 사용하여 유저의 모든 게임 데이터(Coin 배열, 누적 골드, 강화 레벨 등)를 브라우저의 `localStorage`에 자동 저장하고 복원합니다.
-- **밸런스 초기화**: 밸런스가 완전히 갈아엎어지는 큰 패치 시, `useGameStore.ts` 하단의 `version: 'vX'` 값을 한 단계 올리면 접속자들의 기존 데이터가 초기화됩니다. (현재 `v6`)
+### `src/store/useGameStore.ts`
+- 게임 액션 오케스트레이션
+- timed reward preview 생성 / 수령 / 폐기
+- 미션 보상 수령 가드(`claimMissionReward`)
 
-## 3. 핵심 규칙: 머지 앤 그리드 (Merge & Grid)
-게임판 공간은 1차원 배열(0~15 인덱스)을 4x4 프런트엔드 CSS Grid에 맞추어 표시합니다.
+### `src/game/missions.ts`
+- 미션 정의(카테고리 cadence/조건/목표/보상)
+- 진행도/수령 가능 계산 로직
 
-- **코인 생성**: 빈 공간(`findRandomEmptyCell`) 추첨 후 새 코인 객체 배열 삽입
-- **코인 병합(`tryMerge`)**:
-  - 드래그 앤 드롭으로 출발지(source)와 도착지(target) 인덱스 계산
-  - 대상 칸에 동전이 있고 둘의 `level`이 같다면, 대상 동전의 `level`을 `+1` 증가
-  - 출발지 동전은 배열에서 삭제
+### `src/game/achievements.ts`
+- 업적 정의(카테고리/티어/조건/보상/점수)
+- 업적 진행도 계산 + 레거시 랭크 계산
 
-## 4. 커스텀 확장 체트리스트 (How-to Guide)
+### `src/components/MissionModal.tsx`
+- 미션 카테고리별(일일/주간/마일스톤) 진행도/보상 수령 UI
+- 수령 가능 상태를 명시적으로 보여주는 메인 콘텐츠 확장 포인트
 
-### 4.1. 새로운 등급의 코인을 추가하려면?
-현재 `level: 1`부터 `level: 16`까지의 코인이 있습니다. 단계를 확장하려면 다음을 수행하세요:
+### `src/components/AchievementModal.tsx`
+- 카테고리별 업적 섹션/진행도 UI
+- 레거시 랭크 카드와 카테고리 완료 요약 노출
 
-1. **레벨 정의 추가**: `src/types/game.ts` 의 `COIN_LEVELS` 및 `COIN_PPS` 상수에 `level: 17` 이상의 데이터(이름, 초당 수익)를 추가합니다.
-2. **이미지 에셋 추가**: `public/assets/coins/` 폴더 안에 `coin_17.png` 이미지를 넣습니다. (UI 컴포넌트인 `src/components/Coin.tsx`가 레벨 숫자에 맞춰 이 이미지를 자동 로드합니다)
-3. **상점/업그레이드 대응**: 코인 레벨이 확장되었으니, 상점(`StoreModal.tsx`)에서 17레벨 동전을 상점에서 바로 살 수 있도록 추가 로직을 붙일 수 있습니다.
+### `src/store/persistence.ts`
+- persist partialize
+- hydration fallback
+- pending reward 복원
 
-### 4.2. 업그레이드 밸런스 비용을 수정하려면?
-상점 업그레이드의 가격 인플레이션 커브는 `useGameStore.ts`의 각 업그레이드 항목 공식에 정의되어 있습니다.
+### `src/components/TimedRewardTray.tsx`
+- 보류 중인 timed reward 재오픈 진입점
 
-*수정 예시:*
-```typescript
-// useGameStore.ts 내부 업그레이드 함수 중
-buyCoinLevelUpgrade: () => set((state) => {
-    // ⬇️ 가격 밸런스를 바꾸고 싶다면 Math.pow(x, 1.8) 등의 지수 계수를 조절하세요
-    const cost = Math.floor(100 * Math.pow(state.coinLevelUpgrade, 3.5));
-    if (state.score < cost) return state;
-    return { score: state.score - cost, coinLevelUpgrade: state.coinLevelUpgrade + 1 };
-}),
-```
+## timed reward 원칙
+- 복귀 보상과 오프라인 보상은 pending state로 유지합니다.
+- 모달을 닫는 행위와 보상을 버리는 행위를 분리합니다.
+- pending reward는 저장 대상에 포함합니다.
+- 앱 재시작 후에도 pending reward가 복원됩니다.
+- 이미 pending 상태인 reward는 refresh 시 새 계산값으로 덮어쓰지 않습니다.
 
-### 4.3 UI를 대대적으로 갈아엎으려면?
-데이터(Store)와 껍데기(UI Component)가 분리되어 있습니다. Zustand 스토어를 건들릴 필요 없이, `src/components/` 산하의 `tsx` 파일들의 Tailwind 클래스와 Framer Motion(애니메이션) 설정만 뜯어고치면 작동에 100% 이상이 생기지 않습니다.
+## 미션 원칙
+- 미션 정의는 데이터 중심으로 관리하고, UI는 정의를 렌더링만 합니다.
+- 미션 보상 수령은 store 액션 단일 경로에서만 허용합니다.
+- 수령 이력(`missionClaimedIds`)은 persist 대상입니다.
+
+## 운영 우선 원칙
+- 라이브 단계에서는 저장 안정성, 보상 중복 방지, 기기별 레이아웃 안정성을 기능 추가보다 우선합니다.
+- 문구 깨짐이나 safe-area 문제는 기능 버그와 같은 우선순위로 다룹니다.
+- 구조 변경 시 `README`, `CHANGELOG`, `ROADMAP`, `PHASE1_TASKS`를 함께 갱신합니다.

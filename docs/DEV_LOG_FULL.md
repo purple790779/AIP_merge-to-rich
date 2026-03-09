@@ -1,6 +1,9 @@
 # 📘 Merge Money Tycoon - 개발 현황 종합 보고서
 
-> **문서 목적**: 이 문서는 '머지 머니 타이쿤'의 시작부터 핵심 앱 릴리즈 `v1.4.0`까지의 개발 과정을 중심으로 기록한 종합 보고서입니다. `2026-03-05` 기준 후속 안정화/문서화 변경은 `docs/CHANGELOG.md`의 `v1.4.1` 항목과 함께 참고합니다.
+상태: Historical  
+기준일: 2026-03-08
+
+> **문서 목적**: 이 문서는 `v1.4.0` 중심의 개발 과정을 기록한 히스토리 문서입니다. 현재 기준 최신 상태는 `docs/CHANGELOG.md`와 `docs/ARCHITECTURE.md`를 우선 참고하십시오.
 
 ---
 
@@ -14,8 +17,8 @@
 | **핵심 재미** | 코인을 합쳐 자산을 증식시키는 쾌감, 시원한 타격감의 UI |
 | **개발 기간** | 2026.01.28 ~ 2026.02.08 |
 | **기준 앱 버전** | `v1.4.0` |
-| **최신 변경 로그** | `v1.4.1` (Updated: 2026-03-05) |
-| **기술 스택** | React 18, Vite, TypeScript, Zustand, Framer Motion, TailwindCSS |
+| **현재 최신 변경 로그** | `v1.4.3` (see `docs/CHANGELOG.md`) |
+| **현재 기술 스택 참고** | React 19, Vite 7, TypeScript, Zustand, Framer Motion, Tailwind CSS 4 |
 
 ---
 
@@ -111,7 +114,7 @@ interface GameStore {
 
 ---
 
-## 📊 5. 데이터 및 밸런싱 (Data & Balancing)
+## 📊 5. 데이터 및 밸런싱 (v1.4.0 당시 기준)
 
 > **활용 팁**: 이 데이터를 이용해 엑셀이나 차트를 그려 밸런스 시뮬레이션을 할 수 있습니다.
 
@@ -152,7 +155,7 @@ interface GameStore {
 
 ---
 
-## 🔮 7. 향후 발전 계획 (Roadmap)
+## 🔮 7. 향후 발전 계획 (당시 로드맵 메모)
 
 1.  **오프라인 수익 (Offline Earnings)**
     *   앱 종료 후 재접속 시 경과 시간($t$) 계산: $Reward = PPS \times t \times 0.5$ (50% 효율)

@@ -1,11 +1,9 @@
 import { motion } from 'framer-motion';
+import { FaBook, FaCoins, FaShoppingBag } from 'react-icons/fa';
 import { useGameStore } from '../store/useGameStore';
 import { COIN_LEVELS, TOTAL_CELLS } from '../types/game';
-import { FaCoins, FaShoppingBag, FaBook } from 'react-icons/fa';
 import { soundManager } from '../utils/soundManager';
 import { formatMoney } from '../utils/formatMoney';
-
-
 
 interface ControlsProps {
     onOpenStore: () => void;
@@ -13,13 +11,13 @@ interface ControlsProps {
 }
 
 export function Controls({ onOpenStore, onOpenCollection }: ControlsProps) {
-    const spawnCoin = useGameStore(state => state.spawnCoin);
-    const spawnLevel = useGameStore(state => state.spawnLevel);
-    const coinsLength = useGameStore(state => state.coins.length);
-    const totalMoney = useGameStore(state => state.totalMoney);
+    const spawnCoin = useGameStore((state) => state.spawnCoin);
+    const spawnLevel = useGameStore((state) => state.spawnLevel);
+    const coinsLength = useGameStore((state) => state.coins.length);
+    const totalMoney = useGameStore((state) => state.totalMoney);
 
     const boardFull = coinsLength >= TOTAL_CELLS;
-    const coinInfo = COIN_LEVELS[spawnLevel] || { name: `Lv.${spawnLevel}`, emoji: '🪙', value: 10 };
+    const coinInfo = COIN_LEVELS[spawnLevel] ?? { name: `Lv.${spawnLevel}`, emoji: '🪙', value: 10 };
     const spawnCost = coinInfo.value;
     const canAfford = totalMoney >= spawnCost;
 
@@ -28,22 +26,21 @@ export function Controls({ onOpenStore, onOpenCollection }: ControlsProps) {
         if (success) {
             soundManager.playSpawn();
             if (navigator.vibrate) navigator.vibrate(30);
-        } else {
-            soundManager.playError();
-            if (navigator.vibrate) navigator.vibrate(100);
+            return;
         }
+
+        soundManager.playError();
+        if (navigator.vibrate) navigator.vibrate(100);
     };
 
-    // 버튼 텍스트 결정
     const getButtonText = () => {
-        if (boardFull) return '보드가 가득 찼어요!';
-        if (!canAfford) return `자산이 부족해요! (${formatMoney(spawnCost)}원 필요)`;
+        if (boardFull) return '보드가 가득 찼어요';
+        if (!canAfford) return `자산이 부족해요 (${formatMoney(spawnCost)}원 필요)`;
         return `${coinInfo.name} 생산하기 (-${formatMoney(spawnCost)}원)`;
     };
 
     return (
         <div className="controls-container">
-            {/* 생산 버튼 */}
             <motion.button
                 whileTap={{ scale: 0.98 }}
                 whileHover={{ scale: 1.02 }}
@@ -55,23 +52,14 @@ export function Controls({ onOpenStore, onOpenCollection }: ControlsProps) {
                 <span>{getButtonText()}</span>
             </motion.button>
 
-            {/* 하단 메뉴 버튼들 */}
             <div className="menu-buttons">
-                <motion.button
-                    whileTap={{ scale: 0.98 }}
-                    onClick={onOpenStore}
-                    className="menu-button menu-button-store"
-                >
+                <motion.button whileTap={{ scale: 0.98 }} onClick={onOpenStore} className="menu-button menu-button-store">
                     <span className="menu-icon store">
                         <FaShoppingBag />
                     </span>
                     <span>상점</span>
                 </motion.button>
-                <motion.button
-                    whileTap={{ scale: 0.98 }}
-                    onClick={onOpenCollection}
-                    className="menu-button menu-button-collection"
-                >
+                <motion.button whileTap={{ scale: 0.98 }} onClick={onOpenCollection} className="menu-button menu-button-collection">
                     <span className="menu-icon collection">
                         <FaBook />
                     </span>

@@ -1,57 +1,57 @@
-﻿import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useGameStore } from '../store/useGameStore';
+import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { FaChartLine } from 'react-icons/fa';
+import { getBoostMultiplier, getIncomeMultiplier } from '../game/economy';
 import { formatMoney } from '../utils/formatMoney';
-
-
+import { useGameStore } from '../store/useGameStore';
 
 export function Header() {
-    const totalMoney = useGameStore(state => state.totalMoney);
-    const pps = useGameStore(state => state.pps);
-    const incomeInterval = useGameStore(state => state.incomeInterval);
-    const addMoney = useGameStore(state => state.addMoney);
+    const totalMoney = useGameStore((state) => state.totalMoney);
+    const incomePerTick = useGameStore((state) => state.incomePerTick);
+    const incomeInterval = useGameStore((state) => state.incomeInterval);
+    const incomeMultiplierLevel = useGameStore((state) => state.incomeMultiplierLevel) ?? 0;
+    const activeBoosts = useGameStore((state) => state.activeBoosts);
+    const grantMoney = useGameStore((state) => state.grantMoney);
 
     const prevMoneyRef = useRef(totalMoney);
-    const ppsRef = useRef(pps);
-    const addMoneyRef = useRef(addMoney);
+    const incomePerTickRef = useRef(incomePerTick);
+    const grantMoneyRef = useRef(grantMoney);
     const [isIncreasing, setIsIncreasing] = useState(false);
     const [progressCycleKey, setProgressCycleKey] = useState(0);
+
+    const boostMultiplier = getBoostMultiplier(activeBoosts);
+    const incomeMultiplier = getIncomeMultiplier(incomeMultiplierLevel);
+    const effectiveIncome = Math.floor(incomePerTick * incomeMultiplier * boostMultiplier);
 
     useEffect(() => {
         setIsIncreasing(totalMoney > prevMoneyRef.current);
         prevMoneyRef.current = totalMoney;
     }, [totalMoney]);
 
-    // PPS???곕Ⅸ ?섏씡 諛쒖깮 (incomeInterval留덈떎)
     useEffect(() => {
-        ppsRef.current = pps;
-    }, [pps]);
+        incomePerTickRef.current = incomePerTick;
+    }, [incomePerTick]);
 
     useEffect(() => {
-        addMoneyRef.current = addMoney;
-    }, [addMoney]);
+        grantMoneyRef.current = grantMoney;
+    }, [grantMoney]);
 
-    // incomeInterval留덈떎 ?섏씡 吏湲?+ 吏꾪뻾諛??ъ씠??由ъ뀑
     useEffect(() => {
         const timerId = window.setInterval(() => {
-            const currentPps = ppsRef.current;
-            if (currentPps > 0) {
-                addMoneyRef.current(currentPps);
+            const currentIncome = incomePerTickRef.current;
+            if (currentIncome > 0) {
+                grantMoneyRef.current(currentIncome, 'passive_income');
             }
-            setProgressCycleKey(prev => prev + 1);
+            setProgressCycleKey((value) => value + 1);
         }, incomeInterval);
 
-        return () => {
-            window.clearInterval(timerId);
-        };
+        return () => window.clearInterval(timerId);
     }, [incomeInterval]);
 
     return (
         <div className="header-container">
-            {/* 珥??먯궛 */}
             <div className="header-card">
-                <div className="header-label">珥??먯궛</div>
+                <div className="header-label">총 자산</div>
                 <AnimatePresence mode="popLayout">
                     <motion.div
                         key={totalMoney}
@@ -61,28 +61,26 @@ export function Header() {
                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                         className="header-value"
                     >
-                        {formatMoney(totalMoney)}??
+                        {formatMoney(totalMoney)}원
                     </motion.div>
                 </AnimatePresence>
             </div>
 
-            {/* PPS ?쒖떆 + ?꾨줈洹몃젅?ㅻ컮 */}
             <div className="pps-card">
                 <div className="pps-info">
                     <span className="pps-label">
                         <FaChartLine style={{ display: 'inline', marginRight: 6 }} />
-                        {incomeInterval / 1000}珥덈떦 ?섏씡
+                        {incomeInterval / 1000}초마다 수익
                     </span>
                     <motion.span
-                        key={pps}
+                        key={`${incomePerTick}-${incomeMultiplierLevel}-${boostMultiplier}`}
                         initial={{ scale: 1.2 }}
                         animate={{ scale: 1 }}
                         className="pps-value"
                     >
-                        +{formatMoney(pps)}??
+                        +{formatMoney(effectiveIncome)}원
                     </motion.span>
                 </div>
-                {/* ?섏씡 ?꾨줈洹몃젅?ㅻ컮 */}
                 <div className="income-progress-bar">
                     <div
                         key={`${incomeInterval}-${progressCycleKey}`}

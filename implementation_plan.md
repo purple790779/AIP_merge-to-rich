@@ -1,35 +1,56 @@
-# [AIP_merge-to-rich] Implementation Plan - Gameplay Fixes & Extensions
+# [AIP_merge-to-rich] Live Operations Implementation Plan
 
 ## Goal Description
-Fix critical drag-and-drop bugs (coins overlapping, flying away) and implement missing core features (Store, Collection, Achievements) to enhance gameplay depth and stability.
+The game is already live on Google Play.
+The current goal is no longer "ship the first playable build", but to maintain a healthy live product, improve retention, and prepare monetization without destabilizing the existing release.
 
-## User Review Required
-> [!IMPORTANT]
-> **Drag Logic Change**: Unsuccessful drags (invalid target, empty space) will now strictly **snap back** to the original position.
+## Current Working Policy
+- Development is **local-first**.
+- Make small, reversible commits locally.
+- Push to GitHub only when explicitly requested or when a stable milestone is ready.
+- Before any push candidate: run build + basic smoke test + save/load sanity check.
 
-## Proposed Changes
+## Current Priority Tracks
 
-### Gameplay Logic (Stability)
-#### [MODIFY] [useGameStore.ts](file:///E:/Daddy_Project/Apps-in-Toss/AIP_merge-to-rich/src/store/useGameStore.ts)
-- Update `moveCoin` and `spawnCoin` to ensure strict grid validation.
-- Add `upgradeSpeed` action for store functionality.
+### Track A — Live Stability
+- Re-check save/load reliability.
+- Review version-to-version compatibility risks.
+- Audit core UI flows for accidental blockers or regressions.
 
-#### [MODIFY] [Coin.tsx](file:///E:/Daddy_Project/Apps-in-Toss/AIP_merge-to-rich/src/components/Coin.tsx)
-- Implement `dragSnapToOrigin` functionality manually or via framer-motion props.
-- Ensure `zIndex` is handled correctly during drag to preventing clipping.
+### Track B — Retention Foundation
+- Add at least one strong return loop.
+- Recommended first candidates:
+  1. Daily reward
+  2. Return bonus
+  3. Lightweight mission loop
 
-### New Features
-#### [NEW] [StoreModal.tsx](file:///E:/Daddy_Project/Apps-in-Toss/AIP_merge-to-rich/src/components/StoreModal.tsx)
-- UI for upgrading 'Spawn Rate' and 'Spawn Level'.
+### Track C — Monetization Readiness
+- Prepare systems that can later support monetization cleanly.
+- Favor player-friendly structures first:
+  - rewarded ads
+  - ad removal
+  - starter packs
+- Do not rush monetization before the repeat-play loop feels solid.
 
-#### [NEW] [CollectionModal.tsx](file:///E:/Daddy_Project/Apps-in-Toss/AIP_merge-to-rich/src/components/CollectionModal.tsx)
-- Grid view of unlocked coins.
+## Proposed Near-Term Tasks
 
-#### [NEW] [AchievementSystem.tsx](file:///E:/Daddy_Project/Apps-in-Toss/AIP_merge-to-rich/src/components/AchievementSystem.tsx)
-- Simple toast notification for reaching milestones.
+### [PLAN] Live document refresh
+- Update roadmap and phase planning docs for post-launch reality.
+- Keep release/ownership references current.
 
-## Verification Plan
-### Manual Verification
-- **Drag Test**: Drag a coin to an empty space -> Should return to origin.
-- **Merge Test**: Drag Lv.1 to Lv.1 -> Should become Lv.2.
-- **Store Test**: Buy upgrade -> Check if money decreases and stats improve.
+### [PLAN] Retention feature selection
+- Choose one first implementation target:
+  - Daily reward
+  - Return reward
+  - Mission board
+
+### [PLAN] Stability checklist
+- Save/load
+- Offline progression behavior
+- Core merge loop
+- Reward claim flow
+- Basic Android/web smoke pass
+
+## Honest Recommendation
+Do not stay local-only for too long.
+Local-first is good for fast iteration, but stable checkpoints should still be preserved with local commits and occasional remote sync when requested.

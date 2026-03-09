@@ -1,5 +1,8 @@
 # Merge Money Tycoon 버그/이슈 리포트
 
+상태: Historical  
+기준일: 2026-03-08
+
 작성일: 2026-02-08  
 대상 프로젝트: `merge-money-tycoon` (`v1.3.0` 기준 코드)
 

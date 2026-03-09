@@ -11,29 +11,30 @@ const BOOST_META: Record<BoostType, { label: string; className: string; icon: Re
 };
 
 export function BoostStatus() {
-    const activeBoosts = useGameStore(state => state.activeBoosts);
+    const activeBoosts = useGameStore((state) => state.activeBoosts);
     const [now, setNow] = useState(() => Date.now());
 
     useEffect(() => {
-        const timer = window.setInterval(() => setNow(Date.now()), 1000);
-        return () => window.clearInterval(timer);
+        const timerId = window.setInterval(() => setNow(Date.now()), 1000);
+        return () => window.clearInterval(timerId);
     }, []);
 
-    const runningBoosts = activeBoosts.filter(boost => boost.endTime > now);
+    const runningBoosts = activeBoosts.filter((boost) => boost.endTime > now);
 
     const formatRemaining = (endTime: number) => {
-        const remainingSec = Math.max(0, Math.ceil((endTime - now) / 1000));
-        if (remainingSec >= 60) return `${Math.ceil(remainingSec / 60)}분`;
-        return `${remainingSec}초`;
+        const remainingSeconds = Math.max(0, Math.ceil((endTime - now) / 1000));
+        if (remainingSeconds >= 60) return `${Math.ceil(remainingSeconds / 60)}분`;
+        return `${remainingSeconds}초`;
     };
 
     return (
         <div className="boost-status">
             {runningBoosts.length === 0 ? (
-                <span className="boost-empty">{'활성 부스트 없음'}</span>
+                <span className="boost-empty">활성 부스트 없음</span>
             ) : (
-                runningBoosts.map(boost => {
+                runningBoosts.map((boost) => {
                     const meta = BOOST_META[boost.type];
+
                     return (
                         <div key={boost.type} className={`boost-chip ${meta.className}`}>
                             <span className="boost-chip-icon">{meta.icon}</span>

@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import type { ReactNode, ErrorInfo } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
     children: ReactNode;
@@ -26,22 +26,24 @@ export class ErrorBoundary extends Component<Props, State> {
     render() {
         if (this.state.hasError) {
             return (
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100vh',
-                    background: '#1a1a2e',
-                    color: '#fff',
-                    fontFamily: 'sans-serif',
-                    padding: '2rem',
-                    textAlign: 'center',
-                }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>😵</div>
-                    <h2 style={{ marginBottom: '0.5rem' }}>앗! 오류가 발생했습니다</h2>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '100vh',
+                        background: '#1a1a2e',
+                        color: '#fff',
+                        fontFamily: 'sans-serif',
+                        padding: '2rem',
+                        textAlign: 'center',
+                    }}
+                >
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+                    <h2 style={{ marginBottom: '0.5rem' }}>예상치 못한 오류가 발생했습니다</h2>
                     <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>
-                        게임 데이터는 자동 저장되어 있으니 안심하세요.
+                        게임 데이터는 자동 저장 중일 수 있습니다. 새로고침 후 다시 확인해 주세요.
                     </p>
                     <button
                         onClick={() => window.location.reload()}
