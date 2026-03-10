@@ -27,3 +27,9 @@
 - 변경: `Header`, `TimedRewardTray`, `Controls`, `layout/responsive.css`를 손봐 모바일 밀도와 짧은 화면 대응을 개선했습니다. 자동 수익 메타를 카드화하고, 생산 CTA/상점·도감 버튼은 정보형 레이아웃으로 정리했으며, 보드 크기 산정에 `--board-shell-offset` 변수를 도입했습니다.
 - 검증: `npm ci` 완료. `npm run build` 통과.
 - 검증: 초기 셸 작업 시점에는 `npm run lint`가 기존 `src/components/AchievementModal.tsx:56`의 `react-hooks/set-state-in-effect` 에러로 실패했지만, 이후 Rook 패스에서 해당 lint blocker가 정리되었습니다.
+
+## 2026-03-10 12:27-12:43 KST — Atlas shell/world progression pass
+- 변경: 상단 셸을 타이틀/자산 헤더 중심으로 더 가볍게 정리하고, 진행 숏컷/보류 보상/부스트/컨트롤/지역 카드를 보드 아래 지원 스택으로 재배치했습니다. 모바일에서 보드가 더 빨리 보이고 체감상 메인 플레이 surface가 앞서도록 `--board-shell-offset`도 함께 축소했습니다.
+- 변경: `Header`, `Controls`, `TimedRewardTray`를 장기 세션용 정보형 카피로 다듬었습니다. 현재 권역 메타를 헤더에 흡수하고, 생산 버튼 아래 행동 가이드를 추가했으며, 보류 보상 트레이는 합계 자산 중심 문구로 정리했습니다.
+- 변경: `src/game/worlds.ts`, `RegionModal`, 셸 지역 카드/토스트를 확장해 region flow를 더 실제 진행 목표처럼 보이게 만들었습니다. 지역별 tagline/flavor/hint를 추가했고, 현재 권역 hero, 월드 진행 트랙, 다음 해금 진행도, 지역 전환 토스트를 넣어 해금/이동 동선의 동기 부여를 강화했습니다.
+- 검증: `npm ci` 완료(이 worktree에 의존성 부재), `npm run lint` 통과, `npm run build` 통과.

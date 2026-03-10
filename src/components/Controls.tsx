@@ -46,6 +46,13 @@ export function Controls({ onOpenStore, onOpenCollection }: ControlsProps) {
         return `즉시 비용 -${formatMoney(spawnCost)}원`;
     };
 
+    const getActionGuidance = () => {
+        if (boardFull) return '같은 등급 코인을 먼저 합쳐 공간을 확보하면 생산 루프가 다시 살아납니다.';
+        if (!canAfford) return '자동 수익과 보류 보상 정산으로 자산을 채운 뒤 다시 생산을 이어가세요.';
+        if (emptyCells <= 2) return '빈 칸이 거의 없습니다. 다음 합병 자리를 미리 정리해 두면 흐름이 부드럽습니다.';
+        return `${coinInfo.name} 라인을 밀어 다음 지역 목표 자산을 차근차근 쌓아가세요.`;
+    };
+
     return (
         <div className="controls-container">
             <div className="controls-meta">
@@ -70,6 +77,8 @@ export function Controls({ onOpenStore, onOpenCollection }: ControlsProps) {
                     <span className="spawn-button-subtitle">{getButtonDetail()}</span>
                 </span>
             </motion.button>
+
+            <div className={`controls-guidance${boardFull || !canAfford ? ' is-warning' : ''}`}>{getActionGuidance()}</div>
 
             <div className="menu-buttons">
                 <motion.button whileTap={{ scale: 0.98 }} onClick={onOpenStore} className="menu-button menu-button-store">

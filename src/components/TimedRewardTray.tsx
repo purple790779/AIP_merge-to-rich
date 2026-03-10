@@ -16,17 +16,25 @@ export function TimedRewardTray({
     onOpenOfflineReward,
 }: TimedRewardTrayProps) {
     const pendingCount = Number(Boolean(pendingReturnReward)) + Number(Boolean(pendingOfflineReward));
+    const totalPendingAmount = (pendingReturnReward?.amount ?? 0) + (pendingOfflineReward?.amount ?? 0);
 
     if (pendingCount === 0) return null;
+
+    const summaryTitle = pendingReturnReward && pendingOfflineReward
+        ? '복귀 보상과 오프라인 정산이 함께 도착했습니다.'
+        : pendingReturnReward
+            ? '복귀 보상이 준비됐습니다.'
+            : '비운 동안 쌓인 수익을 정산할 수 있습니다.';
 
     return (
         <section className="timed-reward-tray" aria-label="보류 중인 보상">
             <div className="timed-reward-tray-summary">
                 <div className="timed-reward-tray-summary-copy">
                     <p className="timed-reward-tray-eyebrow">보류 보상</p>
-                    <p className="timed-reward-tray-title">{pendingCount}개의 정산이 대기 중입니다.</p>
+                    <p className="timed-reward-tray-title">{summaryTitle}</p>
+                    <p className="timed-reward-tray-meta">합계 +{formatMoney(totalPendingAmount)}원 · 탭해서 바로 수령</p>
                 </div>
-                <span className="timed-reward-tray-count">{pendingCount}개</span>
+                <span className="timed-reward-tray-count">{pendingCount}건</span>
             </div>
 
             <div className={`timed-reward-tray-actions${pendingCount > 1 ? ' has-multiple' : ''}`}>

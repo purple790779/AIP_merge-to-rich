@@ -27,6 +27,7 @@ import { getRegionById, WORLD_REGIONS, getNextLockedRegion } from './game/worlds
 import { useGameStore } from './store/useGameStore';
 import { getClaimableMissionCountByMetrics } from './game/missions';
 import { COIN_LEVELS, MAX_MONEY } from './types/game';
+import { formatMoney } from './utils/formatMoney';
 
 type ModalType =
     | 'store'
@@ -51,6 +52,7 @@ function App() {
     const [showAchievementBadge, setShowAchievementBadge] = useState(false);
     const [celebrationText, setCelebrationText] = useState<string | null>(null);
     const [discoveryText, setDiscoveryText] = useState<string | null>(null);
+    const [worldTransitionText, setWorldTransitionText] = useState<string | null>(null);
     const [, setDailyRewardClock] = useState(() => Date.now());
 
     const unlockedAchievements = useGameStore((state) => state.unlockedAchievements);
@@ -78,13 +80,22 @@ function App() {
     const unlockedRegionIds = useGameStore((state) => state.unlockedRegionIds);
     const nextLockedRegion = getNextLockedRegion(unlockedRegionIds);
     const currentRegion = getRegionById(currentRegionId);
-    const showRegionStatus =
-        unlockedRegionIds.length > 1 || (nextLockedRegion ? totalMoney >= nextLockedRegion.unlockCost * 0.35 : false);
+    const showRegionStatus = Boolean(currentRegion);
+    const nextRegionUnlockProgress = nextLockedRegion ? Math.min(1, totalMoney / nextLockedRegion.unlockCost) : 1;
+    const nextRegionRemaining = nextLockedRegion ? Math.max(0, nextLockedRegion.unlockCost - totalMoney) : 0;
+    const worldJourneySummary = nextLockedRegion
+        ? nextRegionUnlockProgress >= 1
+            ? `${nextLockedRegion.name} 입장 준비 완료 · 지도에서 해금 후 바로 이동할 수 있습니다.`
+            : `${formatMoney(nextRegionRemaining)}원 남음 · ${nextLockedRegion.tagline}`
+        : '모든 지역이 해금되었습니다. 원하는 권역으로 자유롭게 이동하세요.';
 
     const hasSeenEndingRef = useRef(false);
     const prevUnlockedAchievementsRef = useRef<string[]>(unlockedAchievements);
     const discoveryShowTimerRef = useRef<number | null>(null);
     const discoveryHideTimerRef = useRef<number | null>(null);
+    const worldTransitionTimerRef = useRef<number | null>(null);
+    const prevRegionIdRef = useRef(currentRegionId);
+    const prevUnlockedRegionCountRef = useRef(unlockedRegionIds.length);
 
     const canClaimDailyReward = canClaimDailyRewardFromStore();
     const claimableMissionCount = getClaimableMissionCountByMetrics(
@@ -192,8 +203,37 @@ function App() {
         return () => {
             if (discoveryShowTimerRef.current) window.clearTimeout(discoveryShowTimerRef.current);
             if (discoveryHideTimerRef.current) window.clearTimeout(discoveryHideTimerRef.current);
+            if (worldTransitionTimerRef.current) window.clearTimeout(worldTransitionTimerRef.current);
         };
     }, []);
+
+    useEffect(() => {
+        const previousRegionId = prevRegionIdRef.current;
+        const previousUnlockedRegionCount = prevUnlockedRegionCountRef.current;
+
+        let nextWorldTransitionText: string | null = null;
+        if (unlockedRegionIds.length > previousUnlockedRegionCount) {
+            nextWorldTransitionText = `새 지역 해금 · ${currentRegion.name}`;
+        } else if (currentRegionId !== previousRegionId) {
+            nextWorldTransitionText = `지역 이동 · ${currentRegion.name}`;
+        }
+
+        prevRegionIdRef.current = currentRegionId;
+        prevUnlockedRegionCountRef.current = unlockedRegionIds.length;
+
+        if (!nextWorldTransitionText) return;
+
+        const showTimerId = window.setTimeout(() => {
+            if (worldTransitionTimerRef.current) window.clearTimeout(worldTransitionTimerRef.current);
+            setWorldTransitionText(nextWorldTransitionText);
+            worldTransitionTimerRef.current = window.setTimeout(() => {
+                setWorldTransitionText(null);
+                worldTransitionTimerRef.current = null;
+            }, 2400);
+        }, 0);
+
+        return () => window.clearTimeout(showTimerId);
+    }, [currentRegion.name, currentRegionId, unlockedRegionIds.length]);
 
     useEffect(() => {
         const previous = prevUnlockedAchievementsRef.current;
@@ -312,6 +352,20 @@ function App() {
                 )}
             </AnimatePresence>
 
+            <AnimatePresence>
+                {worldTransitionText && (
+                    <motion.div
+                        className="world-transition-toast"
+                        initial={{ y: -100, opacity: 0, scale: 0.92 }}
+                        animate={{ y: 0, opacity: 1, scale: 1 }}
+                        exit={{ y: -100, opacity: 0, scale: 0.92 }}
+                        transition={{ type: 'spring', stiffness: 360, damping: 24 }}
+                    >
+                        {worldTransitionText}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="shell-top">
                 <div className="title-row">
                     <h1 className="game-title">
@@ -330,89 +384,6 @@ function App() {
 
                 <Header />
 
-                <div className="utility-shortcuts" role="toolbar" aria-label="진행 빠른 메뉴">
-                    <button
-                        type="button"
-                        className="utility-shortcut daily"
-                        onClick={() => setActiveModal('dailyReward')}
-                        aria-label="일일 보상"
-                    >
-                        <span className="utility-shortcut-icon">
-                            <FaGift />
-                        </span>
-                        <span className="utility-shortcut-main">
-                            <span className="utility-shortcut-label">일일 보상</span>
-                            <span className="utility-shortcut-meta">
-                                {canClaimDailyReward ? '지금 수령 가능' : '다음 리셋 대기'}
-                            </span>
-                        </span>
-                        {canClaimDailyReward && (
-                            <motion.span
-                                className="daily-reward-badge"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: 'spring', stiffness: 500 }}
-                            />
-                        )}
-                    </button>
-
-                    <button
-                        type="button"
-                        className="utility-shortcut mission"
-                        onClick={() => setActiveModal('mission')}
-                        aria-label="성장 목표"
-                    >
-                        <span className="utility-shortcut-icon">
-                            <FaBullseye />
-                        </span>
-                        <span className="utility-shortcut-main">
-                            <span className="utility-shortcut-label">성장 목표</span>
-                            <span className="utility-shortcut-meta">
-                                {claimableMissionCount > 0 ? `${claimableMissionCount}개 수령 가능` : '진행 중'}
-                            </span>
-                        </span>
-                        {claimableMissionCount > 0 && (
-                            <motion.span
-                                className="mission-badge"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: 'spring', stiffness: 500 }}
-                            />
-                        )}
-                    </button>
-
-                    <button
-                        type="button"
-                        className="utility-shortcut achievement"
-                        onClick={handleOpenAchievement}
-                        aria-label="업적"
-                    >
-                        <span className="utility-shortcut-icon">
-                            <FaTrophy />
-                        </span>
-                        <span className="utility-shortcut-main">
-                            <span className="utility-shortcut-label">업적</span>
-                            <span className="utility-shortcut-meta">
-                                {showAchievementBadge ? '새 업적 도착' : `${unlockedAchievements.length}개 해금`}
-                            </span>
-                        </span>
-                        {showAchievementBadge && (
-                            <motion.span
-                                className="achievement-badge"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: 'spring', stiffness: 500 }}
-                            />
-                        )}
-                    </button>
-                </div>
-
-                <TimedRewardTray
-                    pendingReturnReward={pendingReturnReward}
-                    pendingOfflineReward={pendingOfflineReward}
-                    onOpenReturnReward={() => openTimedRewardModal('returnReward')}
-                    onOpenOfflineReward={() => openTimedRewardModal('offlineReward')}
-                />
             </div>
 
             <main className="play-surface">
@@ -421,6 +392,90 @@ function App() {
                 </div>
 
                 <div className="shell-support-stack">
+                    <div className="utility-shortcuts" role="toolbar" aria-label="진행 빠른 메뉴">
+                        <button
+                            type="button"
+                            className="utility-shortcut daily"
+                            onClick={() => setActiveModal('dailyReward')}
+                            aria-label="일일 보상"
+                        >
+                            <span className="utility-shortcut-icon">
+                                <FaGift />
+                            </span>
+                            <span className="utility-shortcut-main">
+                                <span className="utility-shortcut-label">일일 보상</span>
+                                <span className="utility-shortcut-meta">
+                                    {canClaimDailyReward ? '지금 수령 가능' : '다음 리셋 대기'}
+                                </span>
+                            </span>
+                            {canClaimDailyReward && (
+                                <motion.span
+                                    className="daily-reward-badge"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: 'spring', stiffness: 500 }}
+                                />
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            className="utility-shortcut mission"
+                            onClick={() => setActiveModal('mission')}
+                            aria-label="성장 목표"
+                        >
+                            <span className="utility-shortcut-icon">
+                                <FaBullseye />
+                            </span>
+                            <span className="utility-shortcut-main">
+                                <span className="utility-shortcut-label">성장 목표</span>
+                                <span className="utility-shortcut-meta">
+                                    {claimableMissionCount > 0 ? `${claimableMissionCount}개 수령 가능` : '진행 중'}
+                                </span>
+                            </span>
+                            {claimableMissionCount > 0 && (
+                                <motion.span
+                                    className="mission-badge"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: 'spring', stiffness: 500 }}
+                                />
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            className="utility-shortcut achievement"
+                            onClick={handleOpenAchievement}
+                            aria-label="업적"
+                        >
+                            <span className="utility-shortcut-icon">
+                                <FaTrophy />
+                            </span>
+                            <span className="utility-shortcut-main">
+                                <span className="utility-shortcut-label">업적</span>
+                                <span className="utility-shortcut-meta">
+                                    {showAchievementBadge ? '새 업적 도착' : `${unlockedAchievements.length}개 해금`}
+                                </span>
+                            </span>
+                            {showAchievementBadge && (
+                                <motion.span
+                                    className="achievement-badge"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: 'spring', stiffness: 500 }}
+                                />
+                            )}
+                        </button>
+                    </div>
+
+                    <TimedRewardTray
+                        pendingReturnReward={pendingReturnReward}
+                        pendingOfflineReward={pendingOfflineReward}
+                        onOpenReturnReward={() => openTimedRewardModal('returnReward')}
+                        onOpenOfflineReward={() => openTimedRewardModal('offlineReward')}
+                    />
+
                     <div className="boost-row">
                         <BoostStatus />
                         <AdButton onClick={() => setActiveModal('boost')} />
@@ -437,18 +492,35 @@ function App() {
                             className="region-status-pill"
                             onClick={() => setActiveModal('region')}
                         >
-                            <span className="region-status-pill-title">
-                                <FaMapMarkedAlt />
-                                <span className="region-status-pill-text">
-                                    <strong>현재 지역 · {currentRegion.name}</strong>
-                                    <span className="region-status-pill-copy">
-                                        {nextLockedRegion ? `다음 ${nextLockedRegion.name} 해금 준비` : '모든 지역 해금 완료'}
+                            <span className="region-status-pill-top">
+                                <span className="region-status-pill-title">
+                                    <FaMapMarkedAlt />
+                                    <span className="region-status-pill-text">
+                                        <span className="region-status-pill-kicker">WORLD JOURNEY</span>
+                                        <strong>{currentRegion.name}</strong>
+                                        <span className="region-status-pill-copy">{currentRegion.tagline}</span>
                                     </span>
                                 </span>
+                                <span className="region-status-pill-progress">
+                                    {nextLockedRegion ? `${Math.round(nextRegionUnlockProgress * 100)}%` : '완료'}
+                                </span>
                             </span>
-                            <span className="region-status-pill-progress">
-                                {unlockedRegionIds.length}/{WORLD_REGIONS.length}
+
+                            <span className="region-status-pill-bottom">
+                                <span className="region-status-pill-status">{worldJourneySummary}</span>
+                                <span className="region-status-pill-count">
+                                    {unlockedRegionIds.length}/{WORLD_REGIONS.length} 지역
+                                </span>
                             </span>
+
+                            {nextLockedRegion && (
+                                <span className="region-status-pill-meter" aria-hidden="true">
+                                    <span
+                                        className="region-status-pill-meter-fill"
+                                        style={{ width: `${nextRegionUnlockProgress * 100}%` }}
+                                    />
+                                </span>
+                            )}
                         </button>
                     )}
                 </div>

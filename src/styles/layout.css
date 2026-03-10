@@ -342,6 +342,13 @@
   line-height: 1.35;
 }
 
+.timed-reward-tray-meta {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.4;
+}
+
 .timed-reward-tray-count {
   flex-shrink: 0;
   display: inline-flex;
@@ -431,29 +438,36 @@
 
 .region-status-pill {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(14, 165, 233, 0.08));
   color: #fff;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-  min-height: 46px;
   text-align: left;
 }
 
 .region-status-pill:hover {
   transform: translateY(-1px);
   border-color: rgba(139, 92, 246, 0.26);
-  background: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.16), rgba(14, 165, 233, 0.1));
+}
+
+.region-status-pill-top,
+.region-status-pill-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .region-status-pill-title {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   min-width: 0;
   color: #fff;
@@ -462,6 +476,7 @@
 .region-status-pill-title svg {
   flex-shrink: 0;
   color: rgba(167, 139, 250, 0.95);
+  margin-top: 2px;
 }
 
 .region-status-pill-text {
@@ -471,18 +486,33 @@
   gap: 2px;
 }
 
+.region-status-pill-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(191, 219, 254, 0.8);
+}
+
 .region-status-pill-title strong {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  color: #fff;
+}
+
+.region-status-pill-copy,
+.region-status-pill-status {
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .region-status-pill-copy {
-  font-size: 11px;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.region-status-pill-status {
   color: var(--text-secondary);
-  line-height: 1.35;
+  min-width: 0;
 }
 
 .region-status-pill-progress {
@@ -490,14 +520,36 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 42px;
-  padding: 0 10px;
-  height: 24px;
+  min-width: 52px;
+  padding: 0 12px;
+  height: 26px;
   border-radius: 999px;
-  background: rgba(139, 92, 246, 0.16);
-  color: rgba(255, 255, 255, 0.86);
+  background: rgba(139, 92, 246, 0.22);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.region-status-pill-count {
+  flex-shrink: 0;
   font-size: 11px;
   font-weight: 700;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.region-status-pill-meter {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.region-status-pill-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #8b5cf6 0%, #22c55e 100%);
 }
 
 .board-container {
@@ -728,6 +780,22 @@
   display: flex;
   flex-direction: column;
   gap: 9px;
+}
+
+.controls-guidance {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.controls-guidance.is-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.2);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .controls-meta {

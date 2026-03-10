@@ -4,7 +4,7 @@
     --screen-padding-top: max(10px, env(safe-area-inset-top));
     --screen-padding-bottom: max(20px, env(safe-area-inset-bottom));
     --content-width: min(340px, calc(100vw - (var(--screen-padding-x) * 2)));
-    --board-shell-offset: 224px;
+    --board-shell-offset: 194px;
   }
 
   .game-container {
@@ -61,7 +61,7 @@
     --cell-gap: 6px;
     --board-padding: 10px;
     --content-width: min(320px, calc(100vw - (var(--screen-padding-x) * 2)));
-    --board-shell-offset: 188px;
+    --board-shell-offset: 166px;
   }
 
   .title-row {
@@ -233,8 +233,18 @@
   }
 
   .region-status-pill {
-    align-items: flex-start;
     padding: 10px;
+  }
+
+  .region-status-pill-top,
+  .region-status-pill-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .region-status-pill-progress,
+  .region-status-pill-count {
+    align-self: flex-start;
   }
 
   .region-status-pill-copy,
