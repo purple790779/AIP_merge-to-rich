@@ -312,18 +312,40 @@ function App() {
                 )}
             </AnimatePresence>
 
-            <div className="title-row">
-                <h1 className="game-title">
-                    <FaCoins className="game-title-icon" style={{ color: '#fbbf24' }} />
-                    <span>머지 머니 타이쿤</span>
-                </h1>
-                <div className="title-actions">
+            <div className="shell-top">
+                <div className="title-row">
+                    <h1 className="game-title">
+                        <FaCoins className="game-title-icon" style={{ color: '#fbbf24' }} />
+                        <span>머지 머니 타이쿤</span>
+                    </h1>
+                    <div className="title-actions">
+                        <button className="title-icon-btn" onClick={() => setActiveModal('help')} aria-label="도움말">
+                            <FaQuestion />
+                        </button>
+                        <button className="title-icon-btn" onClick={() => setActiveModal('settings')} aria-label="설정">
+                            <IoSettingsSharp />
+                        </button>
+                    </div>
+                </div>
+
+                <Header />
+
+                <div className="utility-shortcuts" role="toolbar" aria-label="진행 빠른 메뉴">
                     <button
-                        className="title-icon-btn daily-reward-btn"
+                        type="button"
+                        className="utility-shortcut daily"
                         onClick={() => setActiveModal('dailyReward')}
                         aria-label="일일 보상"
                     >
-                        <FaGift />
+                        <span className="utility-shortcut-icon">
+                            <FaGift />
+                        </span>
+                        <span className="utility-shortcut-main">
+                            <span className="utility-shortcut-label">일일 보상</span>
+                            <span className="utility-shortcut-meta">
+                                {canClaimDailyReward ? '지금 수령 가능' : '다음 리셋 대기'}
+                            </span>
+                        </span>
                         {canClaimDailyReward && (
                             <motion.span
                                 className="daily-reward-badge"
@@ -333,12 +355,22 @@ function App() {
                             />
                         )}
                     </button>
+
                     <button
-                        className="title-icon-btn mission-btn"
+                        type="button"
+                        className="utility-shortcut mission"
                         onClick={() => setActiveModal('mission')}
                         aria-label="성장 목표"
                     >
-                        <FaBullseye />
+                        <span className="utility-shortcut-icon">
+                            <FaBullseye />
+                        </span>
+                        <span className="utility-shortcut-main">
+                            <span className="utility-shortcut-label">성장 목표</span>
+                            <span className="utility-shortcut-meta">
+                                {claimableMissionCount > 0 ? `${claimableMissionCount}개 수령 가능` : '진행 중'}
+                            </span>
+                        </span>
                         {claimableMissionCount > 0 && (
                             <motion.span
                                 className="mission-badge"
@@ -348,19 +380,22 @@ function App() {
                             />
                         )}
                     </button>
+
                     <button
-                        className="title-icon-btn"
-                        onClick={() => setActiveModal('region')}
-                        aria-label="지역"
-                    >
-                        <FaMapMarkedAlt />
-                    </button>
-                    <button
-                        className="title-icon-btn achievement-btn"
+                        type="button"
+                        className="utility-shortcut achievement"
                         onClick={handleOpenAchievement}
                         aria-label="업적"
                     >
-                        <FaTrophy />
+                        <span className="utility-shortcut-icon">
+                            <FaTrophy />
+                        </span>
+                        <span className="utility-shortcut-main">
+                            <span className="utility-shortcut-label">업적</span>
+                            <span className="utility-shortcut-meta">
+                                {showAchievementBadge ? '새 업적 도착' : `${unlockedAchievements.length}개 해금`}
+                            </span>
+                        </span>
                         {showAchievementBadge && (
                             <motion.span
                                 className="achievement-badge"
@@ -370,52 +405,54 @@ function App() {
                             />
                         )}
                     </button>
-                    <button className="title-icon-btn" onClick={() => setActiveModal('help')} aria-label="도움말">
-                        <FaQuestion />
-                    </button>
-                    <button className="title-icon-btn" onClick={() => setActiveModal('settings')} aria-label="설정">
-                        <IoSettingsSharp />
-                    </button>
                 </div>
+
+                <TimedRewardTray
+                    pendingReturnReward={pendingReturnReward}
+                    pendingOfflineReward={pendingOfflineReward}
+                    onOpenReturnReward={() => openTimedRewardModal('returnReward')}
+                    onOpenOfflineReward={() => openTimedRewardModal('offlineReward')}
+                />
             </div>
 
-            <Header />
+            <main className="play-surface">
+                <div className="board-stage">
+                    <Board />
+                </div>
 
-            {showRegionStatus && (
-                <button
-                    type="button"
-                    className="region-status-pill"
-                    onClick={() => setActiveModal('region')}
-                >
-                    <span className="region-status-pill-title">
-                        <FaMapMarkedAlt />
-                        <strong>{currentRegion.name}</strong>
-                    </span>
-                    <span className="region-status-pill-copy">
-                        {unlockedRegionIds.length}/{WORLD_REGIONS.length} 해금
-                        {nextLockedRegion ? ` · 다음 ${nextLockedRegion.name}` : ' · 전체 완료'}
-                    </span>
-                </button>
-            )}
+                <div className="shell-support-stack">
+                    <div className="boost-row">
+                        <BoostStatus />
+                        <AdButton onClick={() => setActiveModal('boost')} />
+                    </div>
 
-            <TimedRewardTray
-                pendingReturnReward={pendingReturnReward}
-                pendingOfflineReward={pendingOfflineReward}
-                onOpenReturnReward={() => openTimedRewardModal('returnReward')}
-                onOpenOfflineReward={() => openTimedRewardModal('offlineReward')}
-            />
+                    <Controls
+                        onOpenStore={() => setActiveModal('store')}
+                        onOpenCollection={() => setActiveModal('collection')}
+                    />
 
-            <Board />
-
-            <div className="boost-row">
-                <BoostStatus />
-                <AdButton onClick={() => setActiveModal('boost')} />
-            </div>
-
-            <Controls
-                onOpenStore={() => setActiveModal('store')}
-                onOpenCollection={() => setActiveModal('collection')}
-            />
+                    {showRegionStatus && (
+                        <button
+                            type="button"
+                            className="region-status-pill"
+                            onClick={() => setActiveModal('region')}
+                        >
+                            <span className="region-status-pill-title">
+                                <FaMapMarkedAlt />
+                                <span className="region-status-pill-text">
+                                    <strong>현재 지역 · {currentRegion.name}</strong>
+                                    <span className="region-status-pill-copy">
+                                        {nextLockedRegion ? `다음 ${nextLockedRegion.name} 해금 준비` : '모든 지역 해금 완료'}
+                                    </span>
+                                </span>
+                            </span>
+                            <span className="region-status-pill-progress">
+                                {unlockedRegionIds.length}/{WORLD_REGIONS.length}
+                            </span>
+                        </button>
+                    )}
+                </div>
+            </main>
 
             <AnimatePresence>
                 {activeModal === 'store' && <StoreModal onClose={() => setActiveModal(null)} />}

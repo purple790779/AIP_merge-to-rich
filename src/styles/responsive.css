@@ -4,40 +4,55 @@
     --screen-padding-top: max(10px, env(safe-area-inset-top));
     --screen-padding-bottom: max(20px, env(safe-area-inset-bottom));
     --content-width: min(340px, calc(100vw - (var(--screen-padding-x) * 2)));
+    --board-shell-offset: 224px;
   }
 
   .game-container {
-    gap: 6px;
+    gap: 10px;
+  }
+
+  .shell-top,
+  .shell-support-stack,
+  .play-surface {
+    gap: 10px;
   }
 
   .header-card {
-    padding: 10px 12px 8px;
+    padding: 12px 13px 10px;
   }
 
   .header-value {
     font-size: 24px;
   }
 
-  .region-status-pill {
-    padding: 7px 10px;
-    min-height: 36px;
+  .utility-shortcut {
+    min-height: 50px;
+    padding: 9px 10px;
   }
 
-  .region-status-pill-copy {
-    font-size: 10px;
+  .timed-reward-tray {
+    padding: 8px 10px;
+  }
+
+  .timed-reward-pill {
+    padding: 8px 9px;
+  }
+
+  .region-status-pill {
+    padding: 9px 11px;
   }
 
   .board-container {
-    border-radius: 20px;
+    border-radius: 22px;
   }
 
   .spawn-button {
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 12px 14px;
+    min-height: 56px;
   }
 
   .menu-button {
-    padding: 9px 14px;
+    padding: 10px 12px;
   }
 }
 
@@ -46,10 +61,11 @@
     --cell-gap: 6px;
     --board-padding: 10px;
     --content-width: min(320px, calc(100vw - (var(--screen-padding-x) * 2)));
+    --board-shell-offset: 188px;
   }
 
   .title-row {
-    margin-bottom: 0;
+    gap: 6px;
   }
 
   .game-title {
@@ -64,27 +80,74 @@
   .title-icon-btn {
     width: 30px;
     height: 30px;
+    font-size: 13px;
+  }
+
+  .header-card {
+    padding: 10px 12px 9px;
+  }
+
+  .header-main-row {
+    gap: 8px;
   }
 
   .header-value {
     font-size: 21px;
   }
 
-  .pps-label,
-  .pps-value {
-    font-size: 12px;
+  .header-income-pill {
+    min-width: 96px;
+    padding: 7px 9px;
+  }
+
+  .header-income-pill-value {
+    font-size: 13px;
+  }
+
+  .header-meta-row {
+    margin-top: 8px;
+  }
+
+  .header-meta-chip {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+
+  .utility-shortcut {
+    min-height: 46px;
+    padding: 8px 9px;
+    gap: 8px;
+  }
+
+  .utility-shortcut-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  .utility-shortcut-label {
+    font-size: 11px;
+  }
+
+  .utility-shortcut-meta {
+    font-size: 9px;
   }
 
   .timed-reward-tray {
-    padding: 9px 10px;
+    gap: 7px;
   }
 
-  .timed-reward-pill {
-    padding: 8px 9px;
+  .timed-reward-pill-title {
+    font-size: 11px;
+  }
+
+  .timed-reward-pill-value {
+    font-size: 10px;
   }
 
   .boost-row {
-    align-items: flex-end;
+    align-items: center;
   }
 
   .boost-empty {
@@ -92,24 +155,36 @@
   }
 
   .ad-floating-button {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
   }
 
   .ad-floating-label {
     bottom: -13px;
   }
 
-  .spawn-button-icon {
-    font-size: 20px;
+  .controls-meta {
+    gap: 6px;
+  }
+
+  .spawn-button-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+  }
+
+  .spawn-button-title {
+    font-size: 14px;
+  }
+
+  .spawn-button-subtitle,
+  .menu-button-meta {
+    font-size: 10px;
   }
 }
 
 @media (max-width: 380px) {
-  .title-row {
-    gap: 6px;
-  }
-
   .title-actions {
     gap: 6px;
   }
@@ -133,8 +208,33 @@
     line-height: 1.02;
   }
 
+  .utility-shortcuts {
+    gap: 6px;
+  }
+
+  .utility-shortcut {
+    min-height: 44px;
+    padding: 8px;
+    gap: 7px;
+  }
+
+  .utility-shortcut-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .utility-shortcut-label {
+    font-size: 11px;
+  }
+
+  .utility-shortcut-meta {
+    font-size: 9px;
+  }
+
   .region-status-pill {
-    padding: 7px 9px;
+    align-items: flex-start;
+    padding: 10px;
   }
 
   .region-status-pill-copy,
@@ -143,13 +243,17 @@
   }
 
   .menu-button {
-    padding: 9px 10px;
-    gap: 6px;
+    padding: 10px;
+    gap: 8px;
   }
 
   .menu-icon {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     font-size: 12px;
+  }
+
+  .timed-reward-tray-actions.has-multiple {
+    grid-template-columns: 1fr;
   }
 }

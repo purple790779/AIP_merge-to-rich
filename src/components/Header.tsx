@@ -67,21 +67,25 @@ export function Header() {
                             </motion.div>
                         </AnimatePresence>
                     </div>
-                    <div className="header-side-stat">
-                        <span className="pps-label">
-                            <FaChartLine style={{ display: 'inline', marginRight: 6 }} />
-                            {incomeInterval / 1000}초 주기
-                        </span>
-                        <motion.span
-                            key={`${incomePerTick}-${incomeMultiplierLevel}-${boostMultiplier}`}
-                            initial={{ scale: 1.2 }}
-                            animate={{ scale: 1 }}
-                            className="pps-value"
-                        >
-                            +{formatMoney(effectiveIncome)}원
-                        </motion.span>
-                    </div>
+
+                    <motion.div
+                        key={`${incomePerTick}-${incomeMultiplierLevel}-${boostMultiplier}`}
+                        initial={{ scale: 1.04, opacity: 0.9 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="header-income-pill"
+                    >
+                        <span className="header-income-pill-label">자동 수익</span>
+                        <span className="header-income-pill-value">+{formatMoney(effectiveIncome)}원</span>
+                    </motion.div>
                 </div>
+
+                <div className="header-meta-row">
+                    <span className="header-meta-chip">
+                        <FaChartLine className="header-meta-icon" />
+                        {incomeInterval / 1000}초마다 자동 정산
+                    </span>
+                </div>
+
                 <div className="income-progress-bar">
                     <div
                         key={`${incomeInterval}-${progressCycleKey}`}
