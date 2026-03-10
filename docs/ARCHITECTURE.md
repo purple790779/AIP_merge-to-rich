@@ -122,3 +122,10 @@
 - fresh worktree에서는 먼저 `npm install`이 필요합니다.
 - 검증 기준 명령은 `npm run lint`, `npm run build`입니다.
 - `v1.5.6` morning QA pass 기준 두 명령 모두 Node `22.x`에서 통과했습니다.
+
+
+## 멀티에이전트 작업 원칙
+- 메인 총괄 브랜치에서 전체 방향을 관리하고, 하위 작업은 역할별 worktree / 브랜치로 분리합니다.
+- 일반적으로 셸/월드(Atlas), 진행 UX(Lyra), 밸런스/문서/QA(Rook)로 역할을 나눕니다.
+- 하위 결과는 메인 작업 브랜치에 통합 후 lint/build를 다시 확인합니다.
+- 자세한 운영 방식은 `docs/DEVELOPMENT_WORKFLOW.md`를 기준 문서로 봅니다.

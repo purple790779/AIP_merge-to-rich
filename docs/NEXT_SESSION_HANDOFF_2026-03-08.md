@@ -43,6 +43,7 @@
 4. 문자열 / 좁은 화면 / timed reward / daily reward smoke QA
 
 ## 5. 바로 보면 좋은 문서
+- [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)
 - [README.md](../README.md)
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
 - [ROADMAP.md](./ROADMAP.md)

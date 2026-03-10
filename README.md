@@ -66,6 +66,7 @@ npm run build
 ```
 
 ## 현재 기준 문서
+- [DEVELOPMENT_WORKFLOW.md](./docs/DEVELOPMENT_WORKFLOW.md)
 - [ONBOARDING.md](./docs/ONBOARDING.md)
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md)
 - [CHANGELOG.md](./docs/CHANGELOG.md)
