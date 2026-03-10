@@ -30,6 +30,7 @@ export function RegionModal({ onClose }: RegionModalProps) {
     const unlockedRegionIds = useGameStore((state) => state.unlockedRegionIds);
     const currentRegionId = useGameStore((state) => state.currentRegionId);
     const claimedRegionGoalIds = useGameStore((state) => state.claimedRegionGoalIds);
+    const regionGoalBaselines = useGameStore((state) => state.regionGoalBaselines);
     const unlockRegion = useGameStore((state) => state.unlockRegion);
     const selectRegion = useGameStore((state) => state.selectRegion);
     const claimRegionGoalReward = useGameStore((state) => state.claimRegionGoalReward);
@@ -48,7 +49,12 @@ export function RegionModal({ onClose }: RegionModalProps) {
 
     const currentRegion = getRegionById(currentRegionId);
     const currentBoardProfile = getRegionBoardProfile(currentRegionId);
-    const currentRegionSummary = getRegionProgressSummary(currentRegionId, progressSnapshot, claimedRegionGoalIds);
+    const currentRegionSummary = getRegionProgressSummary(
+        currentRegionId,
+        progressSnapshot,
+        claimedRegionGoalIds,
+        regionGoalBaselines[currentRegionId]
+    );
     const nextLockedRegion = getNextLockedRegion(unlockedRegionIds);
     const nextRegionProgress = nextLockedRegion ? Math.min(1, totalMoney / nextLockedRegion.unlockCost) : 1;
     const nextRegionRemaining = nextLockedRegion ? Math.max(0, nextLockedRegion.unlockCost - totalMoney) : 0;
@@ -106,7 +112,7 @@ export function RegionModal({ onClose }: RegionModalProps) {
                                     {nextLockedRegion
                                         ? nextRegionProgress >= 1
                                             ? '자산 목표를 달성했습니다. 바로 해금하고 이동할 수 있습니다.'
-                                            : `${formatMoney(nextRegionRemaining)}원만 더 모으면 새 권역이 열립니다.`
+                                            : `${formatMoney(nextRegionRemaining)}원만 더 확보하면 새 권역이 열립니다. 진행도는 현재 보유 자산 기준입니다.`
                                         : '원하는 권역으로 이동하며 운영 목표를 정리하세요.'}
                                 </p>
                             </div>
@@ -160,8 +166,18 @@ export function RegionModal({ onClose }: RegionModalProps) {
                     <div className="region-list">
                         {WORLD_REGIONS.map((region) => {
                             const boardProfile = getRegionBoardProfile(region.id);
-                            const goalStatuses = getRegionGoalStatuses(region.id, progressSnapshot, claimedRegionGoalIds);
-                            const progressSummary = getRegionProgressSummary(region.id, progressSnapshot, claimedRegionGoalIds);
+                            const goalStatuses = getRegionGoalStatuses(
+                                region.id,
+                                progressSnapshot,
+                                claimedRegionGoalIds,
+                                regionGoalBaselines[region.id]
+                            );
+                            const progressSummary = getRegionProgressSummary(
+                                region.id,
+                                progressSnapshot,
+                                claimedRegionGoalIds,
+                                regionGoalBaselines[region.id]
+                            );
                             const isUnlocked = unlockedRegionIds.includes(region.id);
                             const isCurrent = currentRegionId === region.id;
                             const isNextUnlock = nextLockedRegion?.id === region.id;

@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaCheck, FaChevronLeft, FaGift, FaLock } from 'react-icons/fa';
 import { IoClose, IoTrophy } from 'react-icons/io5';
+import { useShallow } from 'zustand/react/shallow';
 import {
     ACHIEVEMENTS,
     ACHIEVEMENT_CATEGORY_META,
     ACHIEVEMENT_CATEGORY_ORDER,
+    type AchievementMetricState,
     getAchievementCategorySummary,
     getAchievementProgress,
     getAchievementRankProgress,
@@ -63,17 +65,38 @@ const DETAIL_FILTER_COPY: Record<AchievementDetailFilter, { label: string; note:
 };
 
 export function AchievementModal({ onClose }: AchievementModalProps) {
-    const gameState = useGameStore((state) => state);
+    const achievementState = useGameStore(
+        useShallow((state) => ({
+            coins: state.coins,
+            totalMoney: state.totalMoney,
+            unlockedAchievements: state.unlockedAchievements,
+            totalMergeCount: state.totalMergeCount,
+            totalEarnedMoney: state.totalEarnedMoney,
+            discoveredLevels: state.discoveredLevels,
+            dailyRewardTotalClaimed: state.dailyRewardTotalClaimed,
+            dailyRewardStreak: state.dailyRewardStreak,
+            returnRewardTotalClaimed: state.returnRewardTotalClaimed,
+            offlineRewardTotalClaimed: state.offlineRewardTotalClaimed,
+            spawnLevel: state.spawnLevel,
+            spawnCooldown: state.spawnCooldown,
+            incomeInterval: state.incomeInterval,
+            mergeBonusLevel: state.mergeBonusLevel,
+            gemSystemUnlocked: state.gemSystemUnlocked,
+            incomeMultiplierLevel: state.incomeMultiplierLevel,
+            autoMergeInterval: state.autoMergeInterval,
+            totalMissionRewardsClaimed: state.totalMissionRewardsClaimed,
+        }))
+    );
     const [newlyUnlocked, setNewlyUnlocked] = useState<string[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<AchievementCategory | null>(null);
     const [detailFilter, setDetailFilter] = useState<AchievementDetailFilter>('all');
     const contentRef = useRef<HTMLDivElement | null>(null);
-    const previousUnlockedAchievementsRef = useRef<string[]>(gameState.unlockedAchievements);
+    const previousUnlockedAchievementsRef = useRef<string[]>(achievementState.unlockedAchievements);
 
     useEffect(() => {
         const previousUnlocked = previousUnlockedAchievementsRef.current;
-        const newAchievements = gameState.unlockedAchievements.filter((id) => !previousUnlocked.includes(id));
-        previousUnlockedAchievementsRef.current = gameState.unlockedAchievements;
+        const newAchievements = achievementState.unlockedAchievements.filter((id) => !previousUnlocked.includes(id));
+        previousUnlockedAchievementsRef.current = achievementState.unlockedAchievements;
 
         if (newAchievements.length === 0) return;
 
@@ -87,7 +110,7 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
         }, 3000);
 
         return () => window.clearTimeout(timerId);
-    }, [gameState.unlockedAchievements]);
+    }, [achievementState.unlockedAchievements]);
 
     useEffect(() => {
         if (!contentRef.current) return;
@@ -95,16 +118,16 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
     }, [selectedCategory, detailFilter]);
 
 
-    const unlockedCount = gameState.unlockedAchievements.length;
+    const unlockedCount = achievementState.unlockedAchievements.length;
     const totalCount = ACHIEVEMENTS.length;
-    const unlockedSet = useMemo(() => new Set(gameState.unlockedAchievements), [gameState.unlockedAchievements]);
+    const unlockedSet = useMemo(() => new Set(achievementState.unlockedAchievements), [achievementState.unlockedAchievements]);
     const rankProgress = useMemo(
-        () => getAchievementRankProgress(gameState.unlockedAchievements),
-        [gameState.unlockedAchievements]
+        () => getAchievementRankProgress(achievementState.unlockedAchievements),
+        [achievementState.unlockedAchievements]
     );
     const categorySummary = useMemo(
-        () => getAchievementCategorySummary(gameState.unlockedAchievements),
-        [gameState.unlockedAchievements]
+        () => getAchievementCategorySummary(achievementState.unlockedAchievements),
+        [achievementState.unlockedAchievements]
     );
 
     const achievementGroups = useMemo(() => {
@@ -130,7 +153,7 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
         const candidates = selectedGroup.items
             .filter((achievement) => !unlockedSet.has(achievement.id))
             .map((achievement, index) => {
-                const progress = getAchievementProgress(gameState, achievement);
+                const progress = getAchievementProgress(achievementState as AchievementMetricState, achievement);
                 const remaining = progress.target !== null ? Math.max(0, progress.target - progress.current) : Number.MAX_SAFE_INTEGER;
 
                 return {
@@ -151,14 +174,14 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
             });
 
         return candidates[0]?.achievementId ?? null;
-    }, [gameState, selectedGroup, unlockedSet]);
+    }, [achievementState, selectedGroup, unlockedSet]);
 
     const selectedAchievementItems = useMemo<AchievementListItem[]>(() => {
         if (!selectedGroup) return [];
 
         return selectedGroup.items.map((achievement, index) => {
             const isUnlocked = unlockedSet.has(achievement.id);
-            const progress = getAchievementProgress(gameState, achievement);
+            const progress = getAchievementProgress(achievementState as AchievementMetricState, achievement);
             const isActive = !isUnlocked && progress.target !== null && progress.current > 0;
             const isNearComplete = !isUnlocked && progress.target !== null && progress.percent >= 70;
             const isRecommended = !isUnlocked && achievement.id === selectedRecommendedId;
@@ -189,7 +212,7 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                 sortPriority,
             };
         });
-    }, [gameState, newlyUnlocked, selectedGroup, selectedRecommendedId, unlockedSet]);
+    }, [achievementState, newlyUnlocked, selectedGroup, selectedRecommendedId, unlockedSet]);
 
     const filteredAchievements = useMemo(() => {
         const sortedItems = [...selectedAchievementItems].sort((a, b) => {
@@ -216,7 +239,7 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
             const items = group.items
                 .filter((achievement) => !unlockedSet.has(achievement.id))
                 .map((achievement, index) => {
-                    const progress = getAchievementProgress(gameState, achievement);
+                    const progress = getAchievementProgress(achievementState as AchievementMetricState, achievement);
                     const remaining = progress.target !== null ? Math.max(0, progress.target - progress.current) : Number.MAX_SAFE_INTEGER;
 
                     return {
@@ -249,7 +272,7 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                 isCompleted: summary ? summary.unlockedCount >= summary.totalCount : false,
             };
         });
-    }, [achievementGroups, categorySummary, gameState, unlockedSet]);
+    }, [achievementGroups, categorySummary, achievementState, unlockedSet]);
 
     const spotlightCategories = useMemo(() => {
         return [...categoryFocus]

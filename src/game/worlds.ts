@@ -20,6 +20,8 @@ export type WorldRegionGoalMetric =
     | 'gem_system_unlocked'
     | 'bitcoin_discovered';
 
+export type WorldRegionGoalTrackingMode = 'absolute' | 'delta';
+
 export interface WorldRegionBoardProfile {
     hotspotLabel: string;
     hotspotSummary: string;
@@ -32,6 +34,7 @@ export interface WorldRegionGoalDefinition {
     title: string;
     description: string;
     metric: WorldRegionGoalMetric;
+    trackingMode?: WorldRegionGoalTrackingMode;
     target: number;
     reward: number;
 }
@@ -55,6 +58,22 @@ export interface WorldRegionGoalStatus extends WorldRegionGoalDefinition {
     isClaimed: boolean;
     progressLabel: string;
 }
+
+export interface WorldRegionGoalBaseline {
+    totalMoney: number;
+    totalEarnedMoney: number;
+    totalMergeCount: number;
+    spawnLevel: number;
+    mergeBonusLevel: number;
+    incomeMultiplierLevel: number;
+    highestDiscoveredLevel: number;
+    discoveredLevelCount: number;
+    gemSystemUnlocked: boolean;
+    bitcoinDiscovered: boolean;
+    capturedAt: number;
+}
+
+export type WorldRegionGoalBaselineMap = Partial<Record<WorldRegionId, WorldRegionGoalBaseline>>;
 
 export interface WorldRegionProgressSummary {
     totalGoals: number;
@@ -95,8 +114,8 @@ export const WORLD_REGIONS: WorldRegionDefinition[] = [
         flavor: '작은 동전이 지폐와 자산으로 커지기 시작하는 도심 금융 허브입니다.',
         unlockHint: '생산과 합병 업그레이드를 다져 골드 권역으로 넘어갈 종잣돈을 만드세요.',
         boardProfile: {
-            hotspotLabel: '중앙 창구',
-            hotspotSummary: '보드 중앙 교차 구역에서 합병 보너스가 더 크게 터집니다.',
+            hotspotLabel: '중앙 핫존',
+            hotspotSummary: '보드 중앙 교차 구역에서 합병 보너스가 더 크게 적용됩니다.',
             hotspotCells: [7, 11, 12, 13, 17],
             mergeHotspotBonusPercent: 4,
         },
@@ -295,7 +314,35 @@ function getHighestDiscoveredLevel(discoveredLevels: number[]): number {
     return discoveredLevels.length > 0 ? Math.max(...discoveredLevels) : 1;
 }
 
-function getRegionGoalCurrentValue(metric: WorldRegionGoalMetric, snapshot: WorldRegionProgressSnapshot): number {
+function getRegionGoalTrackingMode(goal: WorldRegionGoalDefinition): WorldRegionGoalTrackingMode {
+    if (goal.trackingMode) return goal.trackingMode;
+    if (goal.metric === 'gem_system_unlocked' || goal.metric === 'bitcoin_discovered') {
+        return 'absolute';
+    }
+
+    return 'delta';
+}
+
+export function createRegionGoalBaseline(
+    snapshot: WorldRegionProgressSnapshot,
+    capturedAt: number = Date.now()
+): WorldRegionGoalBaseline {
+    return {
+        totalMoney: snapshot.totalMoney,
+        totalEarnedMoney: snapshot.totalEarnedMoney,
+        totalMergeCount: snapshot.totalMergeCount,
+        spawnLevel: snapshot.spawnLevel,
+        mergeBonusLevel: snapshot.mergeBonusLevel,
+        incomeMultiplierLevel: snapshot.incomeMultiplierLevel,
+        highestDiscoveredLevel: getHighestDiscoveredLevel(snapshot.discoveredLevels),
+        discoveredLevelCount: snapshot.discoveredLevels.length,
+        gemSystemUnlocked: snapshot.gemSystemUnlocked,
+        bitcoinDiscovered: snapshot.bitcoinDiscovered,
+        capturedAt,
+    };
+}
+
+function getRegionGoalRawCurrentValue(metric: WorldRegionGoalMetric, snapshot: WorldRegionProgressSnapshot): number {
     switch (metric) {
         case 'total_money':
             return snapshot.totalMoney;
@@ -322,19 +369,55 @@ function getRegionGoalCurrentValue(metric: WorldRegionGoalMetric, snapshot: Worl
     }
 }
 
-export function formatRegionGoalProgress(metric: WorldRegionGoalMetric, currentValue: number, target: number): string {
+function getRegionGoalBaselineValue(metric: WorldRegionGoalMetric, baseline?: WorldRegionGoalBaseline): number {
+    if (!baseline) return 0;
+
+    switch (metric) {
+        case 'total_money':
+            return baseline.totalMoney;
+        case 'total_earned_money':
+            return baseline.totalEarnedMoney;
+        case 'total_merge_count':
+            return baseline.totalMergeCount;
+        case 'spawn_level':
+            return baseline.spawnLevel;
+        case 'merge_bonus_level':
+            return baseline.mergeBonusLevel;
+        case 'income_multiplier_level':
+            return baseline.incomeMultiplierLevel;
+        case 'highest_discovered_level':
+            return baseline.highestDiscoveredLevel;
+        case 'discovered_level_count':
+            return baseline.discoveredLevelCount;
+        case 'gem_system_unlocked':
+            return baseline.gemSystemUnlocked ? 1 : 0;
+        case 'bitcoin_discovered':
+            return baseline.bitcoinDiscovered ? 1 : 0;
+        default:
+            return 0;
+    }
+}
+
+export function formatRegionGoalProgress(
+    metric: WorldRegionGoalMetric,
+    currentValue: number,
+    target: number,
+    trackingMode: WorldRegionGoalTrackingMode = 'absolute'
+): string {
+    const prefix = trackingMode === 'delta' ? '+' : '';
+
     switch (metric) {
         case 'total_money':
         case 'total_earned_money':
-            return `${formatMoney(Math.min(currentValue, target))} / ${formatMoney(target)}원`;
+            return `${prefix}${formatMoney(Math.min(currentValue, target))} / ${prefix}${formatMoney(target)}원`;
         case 'total_merge_count':
-            return `${Math.min(currentValue, target)} / ${target}회`;
+            return `${prefix}${Math.min(currentValue, target)} / ${prefix}${target}회`;
         case 'spawn_level':
         case 'merge_bonus_level':
         case 'income_multiplier_level':
         case 'highest_discovered_level':
         case 'discovered_level_count':
-            return `${Math.min(currentValue, target)} / ${target}`;
+            return `${prefix}${Math.min(currentValue, target)} / ${prefix}${target}`;
         case 'gem_system_unlocked':
             return currentValue >= target ? '해금 완료' : '잠금 상태';
         case 'bitcoin_discovered':
@@ -347,12 +430,16 @@ export function formatRegionGoalProgress(metric: WorldRegionGoalMetric, currentV
 export function getRegionGoalStatuses(
     regionId: WorldRegionId,
     snapshot: WorldRegionProgressSnapshot,
-    claimedGoalIds: string[] = []
+    claimedGoalIds: string[] = [],
+    baseline?: WorldRegionGoalBaseline
 ): WorldRegionGoalStatus[] {
     const region = getRegionById(regionId);
 
     return region.progressionGoals.map((goal) => {
-        const currentValue = getRegionGoalCurrentValue(goal.metric, snapshot);
+        const trackingMode = getRegionGoalTrackingMode(goal);
+        const rawCurrentValue = getRegionGoalRawCurrentValue(goal.metric, snapshot);
+        const baselineValue = trackingMode === 'delta' ? getRegionGoalBaselineValue(goal.metric, baseline) : 0;
+        const currentValue = Math.max(0, rawCurrentValue - baselineValue);
         const normalizedTarget = Math.max(1, goal.target);
         const progress = Math.max(0, Math.min(1, currentValue / normalizedTarget));
         const isComplete = currentValue >= goal.target;
@@ -364,7 +451,7 @@ export function getRegionGoalStatuses(
             progress,
             isComplete,
             isClaimed,
-            progressLabel: formatRegionGoalProgress(goal.metric, currentValue, goal.target),
+            progressLabel: formatRegionGoalProgress(goal.metric, currentValue, goal.target, trackingMode),
         };
     });
 }
@@ -372,9 +459,10 @@ export function getRegionGoalStatuses(
 export function getRegionProgressSummary(
     regionId: WorldRegionId,
     snapshot: WorldRegionProgressSnapshot,
-    claimedGoalIds: string[] = []
+    claimedGoalIds: string[] = [],
+    baseline?: WorldRegionGoalBaseline
 ): WorldRegionProgressSummary {
-    const goalStatuses = getRegionGoalStatuses(regionId, snapshot, claimedGoalIds);
+    const goalStatuses = getRegionGoalStatuses(regionId, snapshot, claimedGoalIds, baseline);
     const totalGoals = goalStatuses.length;
     const completedGoals = goalStatuses.filter((goal) => goal.isComplete).length;
     const claimedGoals = goalStatuses.filter((goal) => goal.isClaimed).length;

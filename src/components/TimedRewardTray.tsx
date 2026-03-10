@@ -20,44 +20,45 @@ export function TimedRewardTray({
 
     if (pendingCount === 0) return null;
 
-    const summaryTitle = pendingReturnReward && pendingOfflineReward
-        ? '복귀 보상과 오프라인 정산이 함께 도착했습니다.'
-        : pendingReturnReward
-            ? '복귀 보상이 준비됐습니다.'
-            : '비운 동안 쌓인 수익을 정산할 수 있습니다.';
-
     return (
         <section className="timed-reward-tray" aria-label="보류 중인 보상">
-            <div className="timed-reward-tray-summary">
-                <div className="timed-reward-tray-summary-copy">
-                    <p className="timed-reward-tray-eyebrow">보류 보상</p>
-                    <p className="timed-reward-tray-title">{summaryTitle}</p>
-                    <p className="timed-reward-tray-meta">합계 +{formatMoney(totalPendingAmount)}원 · 탭해서 바로 수령</p>
-                </div>
-                <span className="timed-reward-tray-count">{pendingCount}건</span>
-            </div>
-
             <div className={`timed-reward-tray-actions${pendingCount > 1 ? ' has-multiple' : ''}`}>
+                <span
+                    className="timed-reward-tray-count"
+                    title={`보류 보상 합계 +${formatMoney(totalPendingAmount)}`}
+                    aria-label={`보류 보상 합계 +${formatMoney(totalPendingAmount)}`}
+                >
+                    +{formatMoney(totalPendingAmount)}
+                </span>
+
                 {pendingReturnReward && (
-                    <button type="button" className="timed-reward-pill" onClick={onOpenReturnReward}>
+                    <button
+                        type="button"
+                        className="timed-reward-pill"
+                        onClick={onOpenReturnReward}
+                        title={`복귀 보상 +${formatMoney(pendingReturnReward.amount)}`}
+                    >
                         <span className="timed-reward-pill-icon return-reward">
                             <FaGift />
                         </span>
                         <span className="timed-reward-pill-content">
-                            <span className="timed-reward-pill-title">복귀 보상</span>
-                            <span className="timed-reward-pill-value">+{formatMoney(pendingReturnReward.amount)}원</span>
+                            <span className="timed-reward-pill-value">+{formatMoney(pendingReturnReward.amount)}</span>
                         </span>
                     </button>
                 )}
 
                 {pendingOfflineReward && (
-                    <button type="button" className="timed-reward-pill" onClick={onOpenOfflineReward}>
+                    <button
+                        type="button"
+                        className="timed-reward-pill"
+                        onClick={onOpenOfflineReward}
+                        title={`오프라인 보상 +${formatMoney(pendingOfflineReward.amount)}`}
+                    >
                         <span className="timed-reward-pill-icon offline-reward">
                             <FaMoon />
                         </span>
                         <span className="timed-reward-pill-content">
-                            <span className="timed-reward-pill-title">오프라인 정산</span>
-                            <span className="timed-reward-pill-value">+{formatMoney(pendingOfflineReward.amount)}원</span>
+                            <span className="timed-reward-pill-value">+{formatMoney(pendingOfflineReward.amount)}</span>
                         </span>
                     </button>
                 )}

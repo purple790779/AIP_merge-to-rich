@@ -63,7 +63,7 @@ export function Coin({ id, level, gridIndex, boardRef, onDrag, onDragEnd }: Coin
     const clearLastMergedId = useGameStore((state) => state.clearLastMergedId);
     const constraintsRef = useRef<HTMLDivElement>(null);
 
-    const coinInfo = COIN_LEVELS[level] ?? { name: `Lv.${level}`, emoji: '🪙', value: 0 };
+    const coinInfo = COIN_LEVELS[level] ?? { name: `Lv.${level}`, emoji: '?', value: 0 };
     const isMerged = lastMergedId === id;
     const row = Math.floor(gridIndex / GRID_SIZE);
     const col = gridIndex % GRID_SIZE;
@@ -79,21 +79,22 @@ export function Coin({ id, level, gridIndex, boardRef, onDrag, onDragEnd }: Coin
     return (
         <motion.div
             ref={constraintsRef}
-            layoutId={id}
+            layout="position"
             drag
             dragConstraints={boardRef}
-            dragElastic={0.1}
+            dragElastic={0.03}
             dragSnapToOrigin
             dragMomentum={false}
+            dragTransition={{ bounceStiffness: 1100, bounceDamping: 44 }}
             onDrag={handleDrag}
             onDragEnd={handleDragEnd}
             initial={isMerged ? { scale: 0, rotate: -180 } : { scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1, rotate: 0, x: 0, y: 0 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
             exit={{ scale: 0, opacity: 0 }}
-            whileDrag={{ scale: 1.15, zIndex: 100, boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}
+            whileDrag={{ scale: 1.08, zIndex: 100, boxShadow: '0 16px 28px rgba(0,0,0,0.34)' }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25, mass: 0.8, opacity: { duration: 0.2 } }}
+            transition={{ type: 'spring', stiffness: 560, damping: 38, mass: 0.42, opacity: { duration: 0.18 } }}
             onAnimationComplete={() => {
                 if (isMerged) clearLastMergedId();
             }}

@@ -1,4 +1,4 @@
-import type { WorldRegionId } from '../game/worlds';
+import type { WorldRegionGoalBaselineMap, WorldRegionId } from '../game/worlds';
 
 export interface Coin {
     id: string;
@@ -102,6 +102,7 @@ export interface GameState {
     unlockedRegionIds: WorldRegionId[];
     currentRegionId: WorldRegionId;
     claimedRegionGoalIds: string[];
+    regionGoalBaselines: WorldRegionGoalBaselineMap;
     dailyRewardLastClaimAt: number | null;
     dailyRewardLastClaimDayKey: string | null;
     dailyRewardStreak: number;

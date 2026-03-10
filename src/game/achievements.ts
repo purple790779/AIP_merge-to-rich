@@ -32,6 +32,27 @@ interface AchievementCategoryMeta {
     accent: 'amber' | 'violet' | 'emerald' | 'cyan' | 'rose' | 'indigo' | 'gold';
 }
 
+export type AchievementMetricState = Pick<
+    GameState,
+    | 'coins'
+    | 'totalMoney'
+    | 'totalMergeCount'
+    | 'totalEarnedMoney'
+    | 'discoveredLevels'
+    | 'dailyRewardTotalClaimed'
+    | 'dailyRewardStreak'
+    | 'returnRewardTotalClaimed'
+    | 'offlineRewardTotalClaimed'
+    | 'spawnLevel'
+    | 'spawnCooldown'
+    | 'incomeInterval'
+    | 'mergeBonusLevel'
+    | 'gemSystemUnlocked'
+    | 'incomeMultiplierLevel'
+    | 'autoMergeInterval'
+    | 'totalMissionRewardsClaimed'
+>;
+
 export const ACHIEVEMENT_RANKS: RankDefinition[] = [
     { id: 'rookie', name: '신입 투자자', minScore: 0, badge: '🌱' },
     { id: 'planner', name: '성장 설계자', minScore: 220, badge: '📈' },
@@ -104,7 +125,7 @@ export const ACHIEVEMENT_CATEGORY_META: Record<AchievementCategory, AchievementC
     },
 };
 
-function getAchievementMetricValue(state: GameState, metricType: AchievementMetricType): number {
+function getAchievementMetricValue(state: AchievementMetricState, metricType: AchievementMetricType): number {
     switch (metricType) {
         case 'total_merge_count':
             return state.totalMergeCount;
@@ -331,12 +352,13 @@ export function getAchievementRewardTotal(achievementIds: string[]): number {
     }, 0);
 }
 
-export function getAchievementProgress(state: GameState, achievement: Achievement): { current: number; target: number | null; percent: number } {
+export function getAchievementProgress(state: AchievementMetricState, achievement: Achievement): { current: number; target: number | null; percent: number } {
     if (!achievement.metricType || achievement.target === undefined) {
+        const fullState = state as GameState;
         return {
-            current: achievement.condition(state) ? 1 : 0,
+            current: achievement.condition(fullState) ? 1 : 0,
             target: 1,
-            percent: achievement.condition(state) ? 100 : 0,
+            percent: achievement.condition(fullState) ? 100 : 0,
         };
     }
 

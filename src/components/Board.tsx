@@ -158,9 +158,8 @@ export function Board() {
     return (
         <div ref={boardRef} className={`board-container theme-${currentRegion.theme}`}>
             <div className="board-region-overlay" aria-hidden="true">
-                <span className="board-region-overlay-kicker">MERGE HOTSPOT</span>
-                <strong>{boardProfile.hotspotLabel}</strong>
-                <span>이 구역 합병 +{boardProfile.mergeHotspotBonusPercent}%</span>
+                <strong>핫존</strong>
+                <span>{boardProfile.hotspotLabel} · 합병 +{boardProfile.mergeHotspotBonusPercent}%</span>
             </div>
 
             <div className="board-grid">

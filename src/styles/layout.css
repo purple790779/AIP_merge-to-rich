@@ -38,9 +38,14 @@
 }
 
 .board-stage {
-  width: 100%;
+  width: min(100%, var(--content-width), max(270px, calc(100dvh - var(--board-shell-offset) - env(safe-area-inset-top) - env(safe-area-inset-bottom))));
   display: flex;
   justify-content: center;
+}
+
+.shell-support-stack {
+  width: min(100%, var(--content-width), max(270px, calc(100dvh - var(--board-shell-offset) - env(safe-area-inset-top) - env(safe-area-inset-bottom))));
+  max-width: 100%;
 }
 
 .title-row {
@@ -1111,4 +1116,671 @@
 .menu-icon.region,
 .modal-icon.region {
   background: linear-gradient(135deg, #8b5cf6, #4f46e5);
+}
+
+/* Compact mobile shell overrides */
+.game-container {
+  gap: 8px;
+}
+
+.shell-top,
+.shell-support-stack,
+.play-surface {
+  gap: 8px;
+}
+
+.header-card {
+  border-radius: 18px;
+  padding: 12px 12px 10px;
+}
+
+.header-value {
+  font-size: 24px;
+}
+
+.header-income-pill {
+  min-width: 96px;
+  padding: 8px 9px;
+  border-radius: 14px;
+}
+
+.header-income-pill-value {
+  font-size: 13px;
+}
+
+.header-meta-row {
+  display: none;
+}
+
+.income-progress-bar {
+  margin-top: 8px;
+}
+
+.utility-shortcuts {
+  gap: 6px;
+}
+
+.utility-shortcut {
+  min-height: 46px;
+  padding: 8px 6px;
+  border-radius: 14px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.utility-shortcut-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.utility-shortcut-main {
+  gap: 1px;
+  align-items: center;
+}
+
+.utility-shortcut-label {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.utility-shortcut-meta {
+  display: none;
+}
+
+.timed-reward-tray {
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.timed-reward-tray-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.timed-reward-tray-count {
+  min-width: 0;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+}
+
+.timed-reward-pill {
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 12px;
+}
+
+.timed-reward-pill-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.timed-reward-pill-content {
+  gap: 0;
+}
+
+.timed-reward-pill-title {
+  display: none;
+}
+
+.timed-reward-pill-value {
+  font-size: 10px;
+}
+
+.board-container {
+  border-radius: 20px;
+}
+
+.board-region-overlay {
+  top: 12px;
+  left: 12px;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.board-region-overlay-kicker {
+  font-size: 8px;
+}
+
+.board-region-overlay strong {
+  font-size: 10px;
+}
+
+.board-region-overlay span:last-child {
+  display: none;
+}
+
+.boost-row {
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.boost-status {
+  gap: 6px;
+  min-height: 0;
+}
+
+.boost-icon-button {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+}
+
+.boost-icon-button.is-open {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.boost-icon-button.auto-merge .boost-chip-icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.boost-icon-button.double-income .boost-chip-icon {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.boost-icon-button.auto-spawn .boost-chip-icon {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.boost-icon-button .boost-chip-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 9px;
+}
+
+.boost-tooltip {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 5;
+  white-space: nowrap;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+}
+
+.ad-floating-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  font-size: 18px;
+}
+
+.ad-floating-label {
+  display: none;
+}
+
+.ad-floating-pulse {
+  border-radius: 14px;
+}
+
+.controls-container {
+  gap: 8px;
+}
+
+.controls-meta,
+.controls-guidance {
+  display: none;
+}
+
+.controls-rescue-card {
+  padding: 10px 12px;
+  border-radius: 14px;
+  gap: 10px;
+}
+
+.controls-rescue-copy strong {
+  font-size: 12px;
+}
+
+.controls-rescue-copy p,
+.controls-rescue-meta,
+.controls-rescue-eyebrow {
+  font-size: 10px;
+}
+
+.controls-rescue-button {
+  min-width: 84px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+.spawn-button {
+  padding: 10px 12px;
+  min-height: 52px;
+  border-radius: 14px;
+}
+
+.spawn-button-icon-wrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+}
+
+.spawn-button-icon {
+  font-size: 18px;
+}
+
+.spawn-button-title,
+.menu-button-title {
+  font-size: 12px;
+}
+
+.spawn-button-subtitle,
+.menu-button-meta {
+  font-size: 9px;
+}
+
+.menu-buttons {
+  gap: 6px;
+}
+
+.menu-button {
+  padding: 10px 12px;
+  border-radius: 12px;
+  gap: 8px;
+}
+
+.menu-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.menu-button-meta {
+  display: none;
+}
+
+.shell-quickbar {
+  width: 100%;
+  max-width: var(--content-width);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.shell-support-stack > .utility-shortcuts,
+.shell-support-stack > .boost-row {
+  display: none;
+}
+
+.controls-primary-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.controls-primary-row .menu-buttons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.controls-primary-row .menu-button {
+  width: 52px;
+  min-width: 52px;
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+}
+
+.controls-primary-row .menu-button-copy {
+  display: none;
+}
+
+.controls-primary-row .menu-icon {
+  width: 26px;
+  height: 26px;
+}
+
+.game-title span {
+  font-size: clamp(16px, 4vw, 20px);
+}
+
+.region-status-pill {
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 14px;
+}
+
+.region-status-pill-copy,
+.region-status-pill-status {
+  display: none;
+}
+
+.region-status-pill-kicker {
+  font-size: 9px;
+}
+
+.region-status-pill-title strong {
+  font-size: 12px;
+}
+
+.region-status-pill-progress {
+  min-width: 42px;
+  height: 22px;
+  padding: 0 10px;
+  font-size: 10px;
+}
+
+.region-status-pill-count {
+  font-size: 10px;
+}
+
+.region-status-pill-insights {
+  gap: 6px;
+}
+
+.region-status-pill-chip {
+  min-height: 20px;
+  padding: 0 8px;
+  font-size: 9px;
+}
+
+.region-status-pill-meter {
+  height: 4px;
+}
+
+/* UI compact pass v1.5.11 */
+.title-row {
+  align-items: center;
+}
+
+.game-title {
+  gap: 6px;
+}
+
+.game-title-icon {
+  font-size: 24px;
+}
+
+.game-title span {
+  font-size: clamp(15px, 4vw, 19px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.title-actions {
+  gap: 6px;
+}
+
+.title-icon-btn,
+.title-actions .ad-floating-button.is-compact {
+  width: 30px;
+  height: 30px;
+  border-radius: 12px;
+}
+
+.title-actions .ad-floating-button.is-compact {
+  font-size: 16px;
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.9), rgba(225, 29, 72, 0.88));
+  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.26);
+}
+
+.shell-quickbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.shell-action-rail {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.shell-action-button {
+  position: relative;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  color: rgba(255, 255, 255, 0.92);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  backdrop-filter: blur(16px);
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.shell-action-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+}
+
+.shell-action-button.daily {
+  color: #fbbf24;
+}
+
+.shell-action-button.mission {
+  color: #4ade80;
+}
+
+.shell-action-button.achievement {
+  color: #c084fc;
+}
+
+.shell-action-button.store {
+  color: #60a5fa;
+}
+
+.shell-action-button.collection {
+  color: #34d399;
+}
+
+.shell-action-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #ef4444;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.95);
+}
+
+.boost-status {
+  justify-content: flex-end;
+  gap: 6px;
+  min-height: 0;
+}
+
+.boost-icon-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 12px;
+}
+
+.boost-icon-button .boost-chip-icon {
+  width: 17px;
+  height: 17px;
+  font-size: 8px;
+}
+
+.boost-tooltip {
+  bottom: calc(100% + 4px);
+  padding: 5px 6px;
+  border-radius: 8px;
+  font-size: 9px;
+}
+
+.header-card {
+  padding: 12px 12px 10px;
+}
+
+.header-main-row {
+  align-items: center;
+}
+
+.header-value {
+  font-size: 23px;
+}
+
+.header-income-pill {
+  min-width: 102px;
+  padding: 8px 10px;
+}
+
+.header-income-pill-label {
+  font-size: 9px;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.header-income-pill-value {
+  font-size: 13px;
+}
+
+.board-region-overlay {
+  top: 10px;
+  left: 10px;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 999px;
+}
+
+.board-region-overlay strong {
+  font-size: 10px;
+}
+
+.board-region-overlay span {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.controls-container {
+  gap: 6px;
+}
+
+.spawn-button {
+  min-height: 50px;
+  padding: 10px 12px;
+}
+
+.spawn-button-icon-wrap {
+  width: 32px;
+  height: 32px;
+}
+
+.spawn-button-icon {
+  font-size: 18px;
+}
+
+.spawn-button-title {
+  font-size: 12px;
+}
+
+.spawn-button-subtitle {
+  font-size: 9px;
+}
+
+.region-status-pill,
+.region-status-pill-compact {
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 14px;
+}
+
+.region-status-pill-top {
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.region-status-pill-bottom {
+  gap: 8px;
+}
+
+.region-status-pill-title {
+  gap: 8px;
+}
+
+.region-status-pill-kicker {
+  font-size: 9px;
+}
+
+.region-status-pill-title strong {
+  font-size: 12px;
+}
+
+.region-status-pill-meta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.region-status-pill-status {
+  display: block;
+  min-width: 0;
+  font-size: 10px;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.74);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.region-status-pill-copy,
+.region-status-pill-insights {
+  display: none;
+}
+
+.region-status-pill-progress {
+  min-width: 42px;
+  height: 22px;
+  padding: 0 10px;
+  font-size: 10px;
+}
+
+.region-status-pill-count {
+  font-size: 10px;
+}
+
+.region-status-pill-chip {
+  min-height: 20px;
+  padding: 0 8px;
+  font-size: 9px;
 }

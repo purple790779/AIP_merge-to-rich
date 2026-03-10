@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaChartLine, FaMapMarkedAlt } from 'react-icons/fa';
 import { getBoostMultiplier, getIncomeMultiplier } from '../game/economy';
-import { getNextLockedRegion, getRegionBoardProfile, getRegionById } from '../game/worlds';
 import { formatMoney } from '../utils/formatMoney';
 import { useGameStore } from '../store/useGameStore';
 
@@ -13,8 +11,6 @@ export function Header() {
     const incomeMultiplierLevel = useGameStore((state) => state.incomeMultiplierLevel) ?? 0;
     const activeBoosts = useGameStore((state) => state.activeBoosts);
     const grantMoney = useGameStore((state) => state.grantMoney);
-    const currentRegionId = useGameStore((state) => state.currentRegionId);
-    const unlockedRegionIds = useGameStore((state) => state.unlockedRegionIds);
 
     const prevMoneyRef = useRef(totalMoney);
     const incomePerTickRef = useRef(incomePerTick);
@@ -25,12 +21,7 @@ export function Header() {
     const boostMultiplier = getBoostMultiplier(activeBoosts);
     const incomeMultiplier = getIncomeMultiplier(incomeMultiplierLevel);
     const effectiveIncome = Math.floor(incomePerTick * incomeMultiplier * boostMultiplier);
-    const currentRegion = getRegionById(currentRegionId);
-    const currentBoardProfile = getRegionBoardProfile(currentRegionId);
-    const nextLockedRegion = getNextLockedRegion(unlockedRegionIds);
-    const worldChipText = nextLockedRegion
-        ? `${currentRegion.shortName} 권역 운영 중 · ${currentBoardProfile.hotspotLabel} 합병 +${currentBoardProfile.mergeHotspotBonusPercent}% · 다음 ${nextLockedRegion.shortName}`
-        : `${currentRegion.shortName} 권역 완성 · ${currentBoardProfile.hotspotLabel} 합병 +${currentBoardProfile.mergeHotspotBonusPercent}%`;
+    const incomeCycleLabel = `${incomeInterval / 1000}초마다 자동 수익`;
 
     useEffect(() => {
         setIsIncreasing(totalMoney > prevMoneyRef.current);
@@ -72,7 +63,7 @@ export function Header() {
                                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                                 className="header-value"
                             >
-                                {formatMoney(totalMoney)}원
+                                {formatMoney(totalMoney)}
                             </motion.div>
                         </AnimatePresence>
                     </div>
@@ -83,20 +74,9 @@ export function Header() {
                         animate={{ scale: 1, opacity: 1 }}
                         className="header-income-pill"
                     >
-                        <span className="header-income-pill-label">자동 수익</span>
-                        <span className="header-income-pill-value">+{formatMoney(effectiveIncome)}원</span>
+                        <span className="header-income-pill-label">{incomeCycleLabel}</span>
+                        <span className="header-income-pill-value">+{formatMoney(effectiveIncome)}</span>
                     </motion.div>
-                </div>
-
-                <div className="header-meta-row">
-                    <span className="header-meta-chip">
-                        <FaChartLine className="header-meta-icon" />
-                        {incomeInterval / 1000}초마다 자동 정산
-                    </span>
-                    <span className="header-meta-chip">
-                        <FaMapMarkedAlt className="header-meta-icon" />
-                        {worldChipText}
-                    </span>
                 </div>
 
                 <div className="income-progress-bar">

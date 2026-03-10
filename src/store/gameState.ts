@@ -1,10 +1,25 @@
 import type { GameStoreState } from './types';
 import { getKstDayKey } from '../utils/dailyReward';
-import { STARTING_REGION_ID } from '../game/worlds';
+import { createRegionGoalBaseline, STARTING_REGION_ID } from '../game/worlds';
 
 export const STORE_KEY = 'merge-money-tycoon-v6';
 
 export function createInitialGameState(now: number = Date.now()): GameStoreState {
+    const startingRegionBaseline = createRegionGoalBaseline(
+        {
+            totalMoney: 50,
+            totalEarnedMoney: 0,
+            totalMergeCount: 0,
+            spawnLevel: 1,
+            mergeBonusLevel: 0,
+            incomeMultiplierLevel: 0,
+            discoveredLevels: [1],
+            gemSystemUnlocked: false,
+            bitcoinDiscovered: false,
+        },
+        now
+    );
+
     return {
         coins: [],
         totalMoney: 50,
@@ -26,6 +41,9 @@ export function createInitialGameState(now: number = Date.now()): GameStoreState
         unlockedRegionIds: [STARTING_REGION_ID],
         currentRegionId: STARTING_REGION_ID,
         claimedRegionGoalIds: [],
+        regionGoalBaselines: {
+            [STARTING_REGION_ID]: startingRegionBaseline,
+        },
         dailyRewardLastClaimAt: null,
         dailyRewardLastClaimDayKey: null,
         dailyRewardStreak: 0,

@@ -15,7 +15,14 @@ import {
     getSpawnLevelUpgradeCost,
     getSpawnSpeedUpgradeCost,
 } from '../game/economy';
-import { getNextLockedRegion, getRegionById, getRegionGoalById, getRegionGoalStatuses, isRegionHotspotCell } from '../game/worlds';
+import {
+    createRegionGoalBaseline,
+    getNextLockedRegion,
+    getRegionById,
+    getRegionGoalById,
+    getRegionGoalStatuses,
+    isRegionHotspotCell,
+} from '../game/worlds';
 import { finalizeRewardAmount, getOfflineRewardPreview, getReturnRewardPreview } from '../game/rewards';
 import { createInitialGameState, STORE_KEY } from './gameState';
 import { hydrateGameStoreState, partializeGameStore } from './persistence';
@@ -26,6 +33,33 @@ import {
     getKstWeekKey,
 } from '../utils/dailyReward';
 import { getMissionById, isMissionCompleted } from '../game/missions';
+
+function createRegionProgressSnapshot(
+    state: Pick<
+        GameStore,
+        | 'totalMoney'
+        | 'totalEarnedMoney'
+        | 'totalMergeCount'
+        | 'spawnLevel'
+        | 'mergeBonusLevel'
+        | 'incomeMultiplierLevel'
+        | 'discoveredLevels'
+        | 'gemSystemUnlocked'
+        | 'bitcoinDiscovered'
+    >
+) {
+    return {
+        totalMoney: state.totalMoney,
+        totalEarnedMoney: state.totalEarnedMoney,
+        totalMergeCount: state.totalMergeCount,
+        spawnLevel: state.spawnLevel,
+        mergeBonusLevel: state.mergeBonusLevel,
+        incomeMultiplierLevel: state.incomeMultiplierLevel ?? 0,
+        discoveredLevels: state.discoveredLevels,
+        gemSystemUnlocked: state.gemSystemUnlocked,
+        bitcoinDiscovered: state.bitcoinDiscovered,
+    };
+}
 
 export const useGameStore = create<GameStore>()(
     persist(
@@ -313,11 +347,23 @@ export const useGameStore = create<GameStore>()(
                 if (!nextRegion || nextRegion.id !== regionId) return false;
                 if (totalMoney < nextRegion.unlockCost) return false;
 
-                set((state) => ({
-                    unlockedRegionIds: [...state.unlockedRegionIds, regionId],
-                    currentRegionId: regionId,
-                    totalMoney: state.totalMoney - nextRegion.unlockCost,
-                }));
+                set((state) => {
+                    const nextTotalMoney = state.totalMoney - nextRegion.unlockCost;
+                    const nextSnapshot = createRegionProgressSnapshot({
+                        ...state,
+                        totalMoney: nextTotalMoney,
+                    });
+
+                    return {
+                        unlockedRegionIds: [...state.unlockedRegionIds, regionId],
+                        currentRegionId: regionId,
+                        totalMoney: nextTotalMoney,
+                        regionGoalBaselines: {
+                            ...state.regionGoalBaselines,
+                            [regionId]: createRegionGoalBaseline(nextSnapshot),
+                        },
+                    };
+                });
 
                 get().checkAchievements();
                 return true;
@@ -342,18 +388,9 @@ export const useGameStore = create<GameStore>()(
 
                 const goalStatus = getRegionGoalStatuses(
                     goalMeta.region.id,
-                    {
-                        totalMoney: state.totalMoney,
-                        totalEarnedMoney: state.totalEarnedMoney,
-                        totalMergeCount: state.totalMergeCount,
-                        spawnLevel: state.spawnLevel,
-                        mergeBonusLevel: state.mergeBonusLevel,
-                        incomeMultiplierLevel: state.incomeMultiplierLevel ?? 0,
-                        discoveredLevels: state.discoveredLevels,
-                        gemSystemUnlocked: state.gemSystemUnlocked,
-                        bitcoinDiscovered: state.bitcoinDiscovered,
-                    },
-                    state.claimedRegionGoalIds
+                    createRegionProgressSnapshot(state),
+                    state.claimedRegionGoalIds,
+                    state.regionGoalBaselines[goalMeta.region.id]
                 ).find((goal) => goal.id === goalId);
 
                 if (!goalStatus || !goalStatus.isComplete || goalStatus.isClaimed) return false;
@@ -441,7 +478,6 @@ export const useGameStore = create<GameStore>()(
                         coins: nextCoins,
                         incomePerTick: calculateIncomePerTick(nextCoins),
                         totalMoney: currentState.totalMoney + rescueStatus.emergencyCash,
-                        totalEarnedMoney: currentState.totalEarnedMoney + rescueStatus.emergencyCash,
                         boardRescueUsedDayKey: rescueStatus.todayKey,
                         boardRescueUsedCount: nextUsedCount,
                         boardRescueTotalUsed: currentState.boardRescueTotalUsed + 1,

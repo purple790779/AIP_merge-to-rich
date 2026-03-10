@@ -1,107 +1,83 @@
-# 개발 환경 구축 및 인수인계 가이드 (ONBOARDING)
+# 개발 환경 구성 및 인수인계 가이드 (ONBOARDING)
 
 상태: Current  
-기준일: 2026-03-08
+기준일: 2026-03-10
 
-본 문서는 새로운 개발자(또는 새로운 PC)가 이 프로젝트를 처음 체크아웃받고 개발 및 배포 환경을 세팅하기 위한 필수 가이드입니다.
+이 문서는 새 개발자나 다른 작업 환경(OpenClo, 로컬 Codex, 다른 PC)이 프로젝트를 처음 받아서 개발 및 배포 환경을 빠르게 맞추기 위한 기준 문서입니다.
 
-## 1. 사전 요구사항 (Prerequisites)
-프로젝트를 실행하려면 다음 소프트웨어가 로컬 환경에 설치되어 있어야 합니다.
-- **Node.js**: `v22.x` 이상 (최소 v20 LTS 권장)
-- **npm**: `v11.x` 이상 (Node.js 설치 시 포함)
-- **Git**
+## 1. 사전 요구사항
+- Node.js: `22.x`
+- npm: `11+`
+- Git
+- Android Studio / JDK 21 (Android 릴리즈 작업 시)
 
 ## 2. 프로젝트 초기 세팅
-GitHub 저장소에서 프로젝트를 클론하고 의존성을 설치합니다.
 
 ```bash
-# 1. 저장소 클론
-git clone https://github.com/Master-Tak79/AIP_merge-to-rich.git
-
-# 2. 프로젝트 디렉토리 이동
+git clone https://github.com/purple790779/AIP_merge-to-rich.git
 cd AIP_merge-to-rich
-
-# 3. 패키지 설치
 npm install
 ```
 
 ## 3. 로컬 개발 서버 실행
-다음 명령어를 통해 개발용 로컬 웹 서버를 구동합니다.
 
 ```bash
 npm run dev
 ```
-브라우저에서 `http://localhost:5173` 접속 시 방치형 머지 게임이 실행됩니다. 코드를 수정하면 브라우저가 자동 새로고침(HMR) 됩니다.
 
-## 4. 🚨 중요: Android 빌드 및 Keystore (보안) 설정
+- 기본 접속 주소: `http://127.0.0.1:5173/AIP_merge-to-rich/`
+- Vite 기본 주소인 `http://localhost:5173`로 열어도 되지만, 현재 base 경로 검증은 `/AIP_merge-to-rich/` 기준으로 보는 편이 안전합니다.
 
-이 프로젝트(v1.4.0)부터 보안을 위해 **Android 릴리즈 키스토어(`release.keystore`)는 Git 저장소에 포함되지 않습니다.**
-프로덕션용 `.aab` 파일을 빌드하거나 GitHub Actions에서 자동 배포하려면 다음 설정이 "반드시" 필요합니다.
+## 4. Android 릴리즈 / keystore
 
-### 4.1. 로컬 빌드용 Keystore 세팅
-1. 인수인계 받은 (또는 백업해 둔) 원본 `release.keystore` 파일을 로컬 저장소의 `android/app/` 폴더 안으로 복사합니다.
-2. `android/keystore.properties.example` 파일을 복사하여 `android/keystore.properties`를 생성합니다.
-3. `android/keystore.properties`에 아래와 같이 비밀번호 및 정보를 기입합니다. (이 파일은 `.gitignore`에 등록되어 안전합니다.)
+중요:
+- 현재 Play Console 업로드 기준 signing secrets와 keystore는 `purple790779/AIP_merge-to-rich` 저장소 기준으로 관리합니다.
+- 새 저장소나 다른 계정으로 옮기면 repository secrets를 다시 넣어야 합니다.
+
+### 4.1. 로컬 릴리즈 빌드용 파일
+로컬에서 직접 release build를 만들려면:
+
+1. `upload.keystore` 파일을 준비
+2. `android/keystore.properties.example`을 복사해서 `android/keystore.properties` 생성
+3. 아래 값을 채움
 
 ```properties
-ANDROID_KEYSTORE_PATH=release.keystore
-ANDROID_KEY_ALIAS=저장된_키스토어_별칭(alias)
-ANDROID_KEYSTORE_PASSWORD=스토어비밀번호
-ANDROID_KEY_PASSWORD=별칭비밀번호
+ANDROID_KEYSTORE_PATH=upload.keystore
+ANDROID_KEY_ALIAS=your_alias
+ANDROID_KEYSTORE_PASSWORD=your_store_password
+ANDROID_KEY_PASSWORD=your_key_password
 ```
 
-### 4.2. GitHub Actions CI/CD 환경 세팅
-GitHub 서버에서 자동으로 앱 빌드를 생성하게 하려면, GitHub 리포지토리의 **[Settings -> Secrets and variables -> Actions]** 메뉴에서 다음 4개의 Secret을 모두 등록해야 합니다.
+## 5. GitHub Actions 릴리즈
 
-1. **`ANDROID_KEYSTORE_BASE64`**: 원본 `.keystore` 파일을 Base64 문자열로 인코딩한 값입니다. 공백이나 줄바꿈 없이 한 줄로 입력해야 합니다.
-   - *Windows Base64 인코딩 방법*:
-     ```powershell
-     [Convert]::ToBase64String([IO.File]::ReadAllBytes("release.keystore")) | Set-Clipboard
-     ```
-2. **`ANDROID_KEY_ALIAS`**: 예) `key0`
-3. **`ANDROID_KEY_PASSWORD`**: 키 비밀번호
-4. **`ANDROID_KEYSTORE_PASSWORD`**: 스토어 비밀번호
+GitHub Repository `Settings -> Secrets and variables -> Actions` 에 아래 4개가 있어야 합니다.
 
-위 4개가 모두 정상 등록되면, `main` 브랜치에 `git push`가 발생할 때마다 GitHub Actions가 자동으로 빌드를 실행하여 프로덕션용 `app-release.aab` 파일을 제공합니다.
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_PASSWORD`
 
-### 4.3. GitHub Actions에서 AAB 다운로드하기
-Secrets 등록이 완료되었다면, 코드를 `main` 브랜치에 Push하면 자동으로 빌드가 시작됩니다.
+workflow:
+- 이름: `Android AAB Build`
+- 파일: `.github/workflows/android-build.yml`
 
-1. GitHub 저장소 페이지 → 상단 **Actions** 탭 클릭
-2. 최신 **"Android Build"** 워크플로우 선택
-3. **Status**가 ✅ `Success`인지 확인
-4. 하단 **Artifacts** 섹션에서 **`app-release-aab`** 클릭 → ZIP으로 다운로드
-5. ZIP 압축 해제 → 내부의 `app-release.aab` 파일이 Google Play Console에 업로드할 서명된 App Bundle입니다
+결과물:
+- `app-release.aab`
+- `app-release.aab.sha256`
+- `build-metadata.txt`
 
-> ⚠️ 빌드 실패 시: Actions 로그 상단의 디버그 메시지에서 어떤 Secret이 **EMPTY**인지 확인하세요. 대부분은 Secret 미등록 또는 오타 문제입니다.
+## 6. 자주 쓰는 명령
+- `npm run dev`: 개발 서버 실행
+- `npm run lint`: 린트
+- `npm run build`: 타입체크 + 프로덕션 빌드
+- `VITE_BUILD_TARGET=capacitor npm run build`: Android WebView 기준 빌드
+- `npx cap sync android`: 웹 빌드 결과를 Android 프로젝트로 반영
 
-## 5. 자주 쓰는 명령어 도감
-- `npm run dev`: 웹 로컬 개발 서버 열기
-- `npm run build`: 정적 웹 파일 빌드 (웹앱/PWA 전용)
-- `VITE_BUILD_TARGET=capacitor npm run build`: Android Capacitor 전용 빌드
-- `npx cap sync android`: 수정한 웹 빌드 결과물을 Android 프로젝트로 복사동기화
-
-## 6. 릴리즈 배포 워크플로우 (전체 흐름)
-코드 수정부터 구글 플레이 배포까지의 전체 과정입니다.
-
-```text
-1. 코드 수정 (WebStorm, VS Code 등)
-   ↓
-2. 로컬 테스트: npm run dev → 브라우저에서 동작 확인
-   ↓
-3. 버전 범프:
-   - package.json 의 "version" 필드
-   - android/app/build.gradle 의 versionCode (+1) 및 versionName
-   - docs/CHANGELOG.md 에 변경 이력 추가
-   ↓
-4. 커밋 & 푸시:
-   git add .
-   git commit -m "release: v1.X.X - 변경사항 요약"
-   git push
-   ↓
-5. GitHub Actions 자동 빌드 (약 3~5분 소요)
-   ↓
-6. Actions → Artifacts → app-release-aab 다운로드
-   ↓
-7. Google Play Console → 프로덕션 → 새 버전 만들기 → aab 업로드 → 검토 제출
-```
+## 7. 릴리즈 기본 순서
+1. 코드 수정
+2. 로컬 확인
+3. 버전 업데이트
+4. `README`, `CHANGELOG`, 필요 시 `handoff` 문서 업데이트
+5. `main` push
+6. GitHub Actions artifact 다운로드
+7. Google Play Console 업로드

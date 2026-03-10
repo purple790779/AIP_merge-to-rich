@@ -3,109 +3,119 @@
 상태: Current  
 기준일: 2026-03-10
 
+## [1.5.14] - 2026-03-10
+
+### 저장소 기준 복귀
+- 기준 저장소를 `purple790779/AIP_merge-to-rich`로 다시 맞춤
+- 로컬 git remote origin을 `https://github.com/purple790779/AIP_merge-to-rich.git`로 정리
+- `package.json` homepage를 `https://purple790779.github.io/AIP_merge-to-rich`로 변경
+
+### 문서 / 배포 안내 정리
+- `README`를 현재 운영 저장소 기준으로 전면 정리
+- `ONBOARDING`, `PRIVACY_POLICY`, `ANDROID_RELEASE_WORKFLOW`, `NEXT_SESSION_HANDOFF`를 현재 저장소 기준으로 갱신
+- GitHub Pages / AAB 배포 안내를 `purple790779` 저장소 기준으로 통일
+
+### 버전 / 메타데이터
+- `package.json`, `package-lock.json`, `android/app/build.gradle`을 `v1.5.14` 기준으로 갱신
+- Android `versionCode`를 `19`로 상향
+- `capacitor.config.ts` 앱 이름을 `머지 머니 타이쿤`으로 정리
+
+## [1.5.13] - 2026-03-10
+
+### Android 릴리즈 레일 정리
+- `.github/workflows/android-build.yml`을 signed release AAB 기준으로 재정리
+- build artifact에 `app-release.aab`, `sha256`, `build-metadata.txt`를 함께 업로드하도록 보강
+- Gradle / npm 캐시, metadata 추출, keystore secret 검증 단계를 추가
+- `capacitor.config.ts`의 Android 앱 이름을 `머지 머니 타이쿤` 기준으로 정리
+- `docs/ANDROID_RELEASE_WORKFLOW.md` 추가
+
+### 버전 / 문서
+- `package.json`, `package-lock.json`, `android/app/build.gradle`을 `v1.5.13` 기준으로 갱신
+- `README`, `CHANGELOG`, `NEXT_SESSION_HANDOFF_2026-03-10` 최신화
+
+## [1.5.12] - 2026-03-10
+
+### 화면 통일감 보정
+- 보드 아래 `생산 CTA`와 `WORLD JOURNEY` 카드 폭을 보드와 같은 기준으로 맞춤
+- 상단 quick action 알림 점과 기존 보상 배지 색상을 빨간색 기준으로 통일
+- 보드 좌상단 안내를 `핫존` 중심 문구로 단순화하고 `중앙 창구` 표현을 `중앙 핫존`으로 정리
+- 코인 드래그/드롭 배치 모션의 과한 오버슈트를 줄이고 더 단단한 스프링 감각으로 조정
+
+### 버전 / 문서
+- `package.json`, `package-lock.json`, `android/app/build.gradle`을 `v1.5.12` 기준으로 갱신
+- `README`, `CHANGELOG`, `NEXT_SESSION_HANDOFF_2026-03-10` 최신화
+
+## [1.5.11] - 2026-03-10
+
+### 메인 화면 3차 정리
+- 상단 액션을 `일일 보상 / 성장 목표 / 업적 / 상점 / 도감` 아이콘 레일로 재배치
+- 부스트 진입 버튼을 타이틀 우측 상단으로 이동하고, 활성 부스트는 작은 아이콘 + 툴팁으로 축소
+- 하단 `상점 / 도감` 세로 스택을 제거하고 생산 CTA만 메인 플레이 비중으로 유지
+- `WORLD JOURNEY` 카드를 요약형으로 축소해 세로 길이를 줄임
+- 보드 핫존 배지를 작은 보너스 칩으로 축소
+
+### 문자 / UI 정리
+- `App`, `Header`, `Controls`, `BoostStatus`, `TimedRewardTray`, `Board` 기준 주요 노출 문자열을 정리
+- 메인 shell에서 중복되던 quick action / boost DOM을 제거하고 상단 기준으로 통일
+
+### 버전 / 문서
+- `package.json`, `package-lock.json`, `android/app/build.gradle`을 `v1.5.11` 기준으로 갱신
+- `README`, `CHANGELOG`, `NEXT_SESSION_HANDOFF_2026-03-10` 최신화
+
+## [1.5.10] - 2026-03-10
+
+### 메인 화면 2차 재배치
+- 일일 보상 / 성장 목표 / 업적 / 부스트를 보드 아래가 아니라 타이틀 아래 상단으로 이동
+- 게임 타이틀 크기를 줄여 작은 화면에서 상단 높이를 절약
+- 상점 / 도감을 생산 버튼 옆의 아이콘 버튼으로 이동
+- 중복 utility / boost 영역을 줄이고 `상단 허브 -> 보드 -> 생산 CTA -> 지역 카드` 구조로 정리
+
+## [1.5.9] - 2026-03-10
+
+### 메인 화면 compact pass
+- 메인 화면에서 CTA와 하단 메뉴가 잘리던 문제를 줄이기 위해 여백과 패딩을 축소
+- 부스트 상태를 아이콘 버튼 + 툴팁 기반으로 변경
+- 보류 보상 트레이를 compact pill strip 형태로 변경
+- 하단 보조 카드와 중복 메타를 줄여 메인 플레이 루프 비중을 높임
+
+## [1.5.8] - 2026-03-10
+
+### 웹 실행 경로 복구
+- GitHub Pages가 비어 있어 `404`가 나던 상태를 확인
+- `.github/workflows/pages-deploy.yml` 추가
+- `main` push 또는 수동 Actions 실행으로 Pages 배포가 가능하도록 복구
+
+## [1.5.7] - 2026-03-10
+
+### 진행도 / 구조 정합성
+- 지역 목표를 `해금 시점 baseline 이후 진행` 기준으로 계산하도록 수정
+- deadlock rescue 지원금을 `totalEarnedMoney`에 합산하지 않도록 수정
+- `AchievementModal`이 전체 store를 구독하지 않고 필요한 상태만 selector로 구독하도록 경량화
+- handoff 문서 기준일을 `2026-03-10` 기준으로 갱신
+
 ## [1.5.6] - 2026-03-10
 
-### 지역 확장 UI
-- 현재 지역 배너를 메인 화면에 추가
-- 지역 선택 / 해금 모달 1차 구현
-- 해금된 지역 선택과 다음 지역 순차 해금을 store 액션으로 연결
-- 지역별 전용 보드가 아직 미구현임을 UI에 명시
-- same-day pass로 권역별 핫존 셀 / 핫존 합병 추가 보너스 / 권역 운영 목표 보상 구조를 연결
-- `RegionModal`을 현재 핫존 규칙, 운영 목표 진행도, 보상 수령, 다음 해금 진행을 함께 보여주는 운영 화면으로 확장
-- 메인 셸과 헤더에 현재 권역 핫존/운영 목표 정보를 반영
-
-### 경제 / 리텐션 명확화
-- 미션 현금 보상을 `small / medium / large` 구간형 multiplier로 재조정해 daily/weekly/초중반 milestone 보상은 약간 살리고, 대형 장기 milestone 보상은 과도하게 부풀지 않도록 정리
-- 일일 보상 상태 계산을 utility 단일 경로로 통합해 claim 가능 여부, 다음 리셋 시각, streak cap 정보를 같은 규칙으로 계산
-- 일일 보상 모달에 `다음 KST 리셋`, `7일차 보너스 cap`, `기기 시간 rollback 잠금` 안내를 추가해 보상 문구 해석을 쉽게 정리
-- gem lock / 최고 레벨 cap 때문에 실제로 합칠 수 없는 쌍을 자동 병합이 잡지 않도록 보정하고, 막힌 보드에서는 `KST 하루 1회 무료 긴급 정리`로 빈 칸 1개와 1회 생산 자금을 제공하도록 1차 rescue를 추가
-
-### 문서 / QA / 검증
-- `v1.5.6` morning snapshot을 실제 코드(`App`, `RegionModal`, `StoreModal`, `worlds`, `useGameStore`, `persistence`) 기준으로 재감사
-- 현재 지역 해금/선택의 실제 진입점이 `RegionModal`이고, `StoreModal`은 `다음 지역 목표`와 장기 해금 힌트 노출 역할이라는 점을 문서 전반에 명확히 반영
-- `AchievementModal`의 상세 필터 초기화를 effect 밖의 네비게이션 핸들러로 이동해 현재 ESLint(`react-hooks/set-state-in-effect`) 규칙과 충돌하지 않도록 정리
-- fresh worktree 기준 `npm install`, `npm run lint`, `npm run build` 검증 통과
-- `npm audit` 기준 의존성 트리에 취약점 8건(중간 1, 높음 7)이 보고되지만 이번 docs/QA pass에서는 미조치
-
-### 문서 / 버전
-- `package.json`, `package-lock.json`, `android/app/build.gradle`을 `v1.5.6` 기준으로 유지
-- 아키텍처, 로드맵, 작업표, 월드 확장 계획, handoff, progress 문서를 `2026-03-10` QA 기준으로 갱신
+### 지역 확장 UI 1차
+- 메인 화면에서 현재 지역 진입 배너와 지역 선택/해금 모달을 연결
+- 지역 진행도, 운영 목표, 다음 해금 조건을 `RegionModal`에서 확인 가능하도록 정리
 
 ## [1.5.5] - 2026-03-09
 
-### 경제 / 상점
-- 수익 주기 업그레이드를 `250ms` 단위 체감형으로 재조정
-- 머지 보너스 기대값과 비용 곡선을 1차 리밸런싱
-- 시작 레벨 업그레이드가 기존 보드를 삭제 / 환급하지 않도록 수정
-- 미션 / 업적 현금 보상 비중을 축소해 메인 경제 압박을 회복
-- 상점을 `핵심 성장 / 부스트 튜닝 / 장기 해금` 구조로 재정렬
-- 부스트 전용 자동화 튜닝이 영구 성장축처럼 읽히지 않도록 문구와 칩을 수정
-
-### UX / 문구
-- 상점 카드에 다음 투자 효율과 다음 지역 목표를 표시
-- 코인 레벨명과 상점 관련 사용자 노출 문구를 정리
-
-### 문서 / 버전
-- `package.json`, `package-lock.json`, `android/app/build.gradle`을 `v1.5.5` 기준으로 동기화
-- README, 아키텍처, 로드맵, 작업표, 템플릿 가이드를 최신 구조로 갱신
+### 경제 / 상점 1차 리밸런싱
+- 수익 주기 업그레이드와 머지 보너스 기대값 곡선을 재조정
+- 시작 레벨 업그레이드가 기존 보드를 삭제/환급하지 않도록 수정
+- 상점 구조를 `핵심 성장 / 부스트 튜닝 / 장기 해금` 기준으로 재정리
 
 ## [1.5.4] - 2026-03-09
 
-### 월드 확장 준비
-- `world/region` 메타데이터 스캐폴딩 추가 (`src/game/worlds.ts`)
-- `GameState`에 `unlockedRegionIds`, `currentRegionId` 추가
-- 단일 보드 구조에서 지역 확장형 구조로 넘어가기 위한 문서 기준 정리
-
-### 문서
-- `WORLD_EXPANSION_PLAN.md` 추가
-- ROADMAP / PHASE1_TASKS / TEMPLATE_GUIDE를 지역 확장 기준으로 갱신
+### 월드 확장 스캐폴딩
+- `world/region` 메타 구조 추가
+- `unlockedRegionIds`, `currentRegionId` 상태 추가
+- `WORLD_EXPANSION_PLAN.md` 작성
 
 ## [1.5.3] - 2026-03-09
 
-### 안정성 / 정합성
-- 미션 cadence를 실제 동작과 맞게 보정
-  - daily: KST day reset
-  - weekly: KST week reset
-  - milestone: 영구 1회 클리어
-- 미션 누적 수령 횟수 `totalMissionRewardsClaimed`를 분리해 cadence reset과 업적 조건이 충돌하지 않도록 수정
-- 엔딩 후 초기화 시 `completionist_max_money` 업적 보존이 실제로 동작하도록 수정
-- 설정 모달의 초기화 경로도 같은 업적 보존 규칙을 사용하도록 정리
-
-### UI / UX
-- 업적 메뉴가 열릴 때 `checkAchievements()`로 store를 변경하지 않도록 정리
-- 잠금 업적 카드의 전체 opacity를 제거해 상세 목록 가독성 회복
-- 미션 모달이 현재 day/week 기준의 실제 수령 상태를 반영하도록 수정
-
-### 문서 / 버전
-- `package.json`, `package-lock.json`, `android/app/build.gradle`을 `v1.5.3` 기준으로 동기화
-- README, 아키텍처, 미션/업적 시스템 문서를 현재 구조 기준으로 갱신
-
-## [1.5.2] - 2026-03-08
-
-### 라이브 운영 안정화
-- 보류 중인 복귀 보상 / 오프라인 보상을 persist 대상에 포함해 앱 재시작 후에도 다시 받을 수 있도록 수정
-- hydration 시 유효한 pending reward만 복원하도록 보정
-- 일일 보상 가능 상태가 KST 자정 경계에서 자동 갱신되도록 `App.tsx`에 분 단위 시계 갱신 추가
-
-### UI / UX
-- 좁은 화면에서 상단 게임 타이틀이 버튼 영역과 겹치지 않도록 레이아웃 조정
-- 메인 화면, 헤더, 일일 보상, timed reward 모달 / tray 주요 문구 정리
-
-## [1.5.1] - 2026-03-08
-
-### timed reward UX 보완
-- timed reward 모달을 닫아도 pending reward를 유지하도록 수정
-- 복귀 보상 / 오프라인 보상을 메인 화면 tray에서 다시 열 수 있도록 추가
-- timed reward 모달의 `나중에 받기 / 버리기 / 받기` 동작을 분리
-
-## [1.5.0] - 2026-03-08
-
-### 구조 리팩토링
-- `useGameStore.ts`를 orchestration 중심으로 정리하고 게임 로직을 `game/*` 모듈로 분리
-- 초기 상태와 persist 처리를 `store/*` 계층으로 분리
-- 스타일 구조를 `styles/*` 파일로 정리
-
-### 기능
-- 복귀 보상 구현
-- 오프라인 보상 최소형 구현
-- reward source 구조 정리
+### 미션 cadence / 업적 보존
+- daily / weekly / milestone 미션 reset 구조 정리
+- 엔딩 후 `completionist_max_money` 업적이 보존되도록 수정
+- 업적 메뉴를 `view-first` 구조로 조정

@@ -1,4 +1,5 @@
 import { calculateIncomePerTick } from '../game/coins';
+import { createRegionGoalBaseline } from '../game/worlds';
 import { getMissionById } from '../game/missions';
 import { getKstDayKey } from '../utils/dailyReward';
 import type { GameStore, GameStoreState } from './types';
@@ -23,6 +24,7 @@ export function partializeGameStore(state: GameStore) {
         unlockedRegionIds: state.unlockedRegionIds,
         currentRegionId: state.currentRegionId,
         claimedRegionGoalIds: state.claimedRegionGoalIds,
+        regionGoalBaselines: state.regionGoalBaselines,
         dailyRewardLastClaimAt: state.dailyRewardLastClaimAt,
         dailyRewardLastClaimDayKey: state.dailyRewardLastClaimDayKey,
         dailyRewardStreak: state.dailyRewardStreak,
@@ -60,6 +62,23 @@ export function hydrateGameStoreState(state: GameStoreState): void {
     state.unlockedRegionIds = state.unlockedRegionIds?.length ? state.unlockedRegionIds : ['city_bank'];
     state.currentRegionId = state.currentRegionId ?? state.unlockedRegionIds[0] ?? 'city_bank';
     state.claimedRegionGoalIds = state.claimedRegionGoalIds ?? [];
+    const baselineSnapshot = {
+        totalMoney: state.totalMoney,
+        totalEarnedMoney: state.totalEarnedMoney ?? 0,
+        totalMergeCount: state.totalMergeCount,
+        spawnLevel: state.spawnLevel,
+        mergeBonusLevel: state.mergeBonusLevel,
+        incomeMultiplierLevel: state.incomeMultiplierLevel ?? 0,
+        discoveredLevels: state.discoveredLevels,
+        gemSystemUnlocked: state.gemSystemUnlocked,
+        bitcoinDiscovered: state.bitcoinDiscovered,
+    };
+    const persistedBaselines = state.regionGoalBaselines ?? {};
+    state.regionGoalBaselines = state.unlockedRegionIds.reduce((accumulator, regionId) => {
+        accumulator[regionId] =
+            persistedBaselines[regionId] ?? createRegionGoalBaseline(baselineSnapshot, state.lastSeenAt ?? now);
+        return accumulator;
+    }, {} as NonNullable<GameStoreState['regionGoalBaselines']>);
     state.totalEarnedMoney = state.totalEarnedMoney ?? 0;
     state.dailyRewardLastClaimAt = state.dailyRewardLastClaimAt ?? null;
     state.dailyRewardLastClaimDayKey = state.dailyRewardLastClaimDayKey ?? null;
