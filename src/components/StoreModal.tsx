@@ -62,8 +62,37 @@ interface StoreUpgradeCard {
     isSpecial?: boolean;
 }
 
+type StoreSection = StoreUpgradeCard['section'];
+
 function clampPercent(value: number): number {
     return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function getSectionSummary(cardList: StoreUpgradeCard[]) {
+    const readyCount = cardList.filter((card) => !card.isMax && card.canAfford).length;
+    const remainingCount = cardList.filter((card) => !card.isMax).length;
+
+    if (readyCount > 0) {
+        return {
+            tone: 'ready' as const,
+            badge: `구매 가능 ${readyCount}`,
+            helper: '지금 바로 투자 가능',
+        };
+    }
+
+    if (remainingCount > 0) {
+        return {
+            tone: 'pending' as const,
+            badge: `남은 투자 ${remainingCount}`,
+            helper: '다음 자산 목표를 준비하세요',
+        };
+    }
+
+    return {
+        tone: 'maxed' as const,
+        badge: '섹션 완료',
+        helper: '이 구간은 모두 달성했습니다',
+    };
 }
 
 export function StoreModal({ onClose }: StoreModalProps) {
@@ -134,8 +163,8 @@ export function StoreModal({ onClose }: StoreModalProps) {
             icon: <span>{COIN_LEVELS[spawnLevel]?.emoji ?? '🪙'}</span>,
             tone: 'blue',
             levelLabel: `Lv.${spawnLevel}`,
-            headlineMetric: `현재 ${COIN_LEVELS[spawnLevel]?.name ?? '기본 코인'}`,
-            detailMetric: `다음 ${COIN_LEVELS[spawnLevel + 1]?.name ?? '최종 단계'}`,
+            headlineMetric: `${COIN_LEVELS[spawnLevel]?.name ?? '기본 코인'}에서 시작`,
+            detailMetric: `다음 ${COIN_LEVELS[spawnLevel + 1]?.name ?? '최종 단계'}까지 진입`,
             roleLabel: '핵심',
             progressPercent: clampPercent(((spawnLevel - 1) / Math.max(1, ECONOMY_LIMITS.maxSpawnLevel - 1)) * 100),
             cost: levelCost,
@@ -174,7 +203,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
             levelLabel: `Lv.${incomeLevel}`,
             headlineMetric: `현재 ${Math.max(1, incomeInterval / 1000).toFixed(1)}초`,
             detailMetric: isMaxIncome
-                ? `최소 ${(ECONOMY_LIMITS.minIncomeInterval / 1000).toFixed(1)}초`
+                ? `최소 ${(ECONOMY_LIMITS.minIncomeInterval / 1000).toFixed(1)}초 도달`
                 : `다음 투자 효율 +${getNextIncomeSpeedGainPercent(incomeInterval).toFixed(1)}%`,
             roleLabel: '핵심',
             progressPercent: clampPercent((incomeLevel / maxIncomeSpeedLevel) * 100),
@@ -214,7 +243,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
             levelLabel: `Lv.${speedLevel}`,
             headlineMetric: `현재 ${Math.max(0.2, spawnCooldown / 1000).toFixed(1)}초`,
             detailMetric: isMaxSpeed
-                ? `최소 ${(ECONOMY_LIMITS.minSpawnCooldown / 1000).toFixed(1)}초`
+                ? `최소 ${(ECONOMY_LIMITS.minSpawnCooldown / 1000).toFixed(1)}초 도달`
                 : `부스트 중 생산량 +${getNextSpawnSpeedGainPercent(spawnCooldown).toFixed(1)}%`,
             roleLabel: '보조',
             progressPercent: clampPercent((speedLevel / maxSpawnSpeedLevel) * 100),
@@ -235,7 +264,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
             levelLabel: `Lv.${autoMergeLevel}`,
             headlineMetric: `현재 ${Math.max(0.2, autoMergeInterval / 1000).toFixed(1)}초`,
             detailMetric: isMaxAutoMerge
-                ? `최소 ${(ECONOMY_LIMITS.minAutoMergeInterval / 1000).toFixed(1)}초`
+                ? `최소 ${(ECONOMY_LIMITS.minAutoMergeInterval / 1000).toFixed(1)}초 도달`
                 : `부스트 중 처리량 +${getNextAutoMergeSpeedGainPercent(autoMergeInterval).toFixed(1)}%`,
             roleLabel: '보조',
             progressPercent: clampPercent((autoMergeLevel / maxAutoMergeLevel) * 100),
@@ -277,56 +306,100 @@ export function StoreModal({ onClose }: StoreModalProps) {
             return scoreA - scoreB;
         });
     };
-    const coreCards = sortCardsByActionability(cards.filter((card) => card.section === 'core'));
-    const automationCards = sortCardsByActionability(cards.filter((card) => card.section === 'automation'));
-    const specialCards = sortCardsByActionability(cards.filter((card) => card.section === 'special'));
+
+    const sectionCards: Record<StoreSection, StoreUpgradeCard[]> = {
+        core: sortCardsByActionability(cards.filter((card) => card.section === 'core')),
+        automation: sortCardsByActionability(cards.filter((card) => card.section === 'automation')),
+        special: sortCardsByActionability(cards.filter((card) => card.section === 'special')),
+    };
 
     const affordableCount = cards.filter((card) => !card.isMax && card.canAfford).length;
     const maxedCount = cards.filter((card) => card.isMax).length;
 
+    const sectionMeta: Record<StoreSection, { title: string; description: string }> = {
+        core: {
+            title: '핵심 성장',
+            description: '현금 흐름과 시작 레벨을 직접 올리는 핵심 투자',
+        },
+        automation: {
+            title: '부스트 튜닝',
+            description: '광고형 무료 부스트를 쓸 때만 적용되는 보조 튜닝 라인',
+        },
+        special: {
+            title: '장기 해금',
+            description: '다음 구간과 다음 자산 축을 여는 고가 투자',
+        },
+    };
+
     const renderCard = (card: StoreUpgradeCard) => {
+        const shortfall = Math.max(0, Math.ceil(card.cost - totalMoney));
         const ctaLabel = card.isMax ? card.maxLabel : card.canAfford ? card.ctaLabel : '자산 부족';
+        const statusLabel = card.isMax ? '완료' : card.canAfford ? '구매 가능' : '준비 중';
+        const statusClass = card.isMax ? 'maxed' : card.canAfford ? 'ready' : 'pending';
+        const insightLabel = card.isMax
+            ? '이 투자 라인은 마무리되었습니다.'
+            : card.canAfford
+                ? '보유 자산으로 지금 바로 구매할 수 있습니다.'
+                : `${formatMoney(shortfall)}원 더 모으면 구매할 수 있습니다.`;
 
         return (
             <article
                 key={card.id}
                 className={`store-upgrade-card tone-${card.tone} ${card.isSpecial ? 'special' : ''} ${card.canAfford && !card.isMax ? 'ready' : ''} ${card.isMax ? 'maxed' : ''}`}
             >
-            <div className="store-upgrade-head">
-                <div className="store-upgrade-title-row">
-                    <div className={`store-upgrade-icon tone-${card.tone}`}>
-                        {card.icon}
+                <div className="store-upgrade-head">
+                    <div className="store-upgrade-title-row">
+                        <div className={`store-upgrade-icon tone-${card.tone}`}>
+                            {card.icon}
+                        </div>
+                        <div className="store-upgrade-copy">
+                            <h3>{card.title}</h3>
+                            <p>{card.description}</p>
+                        </div>
                     </div>
-                    <div className="store-upgrade-copy">
-                        <h3>{card.title}</h3>
-                        <p>{card.description}</p>
+
+                    <div className="store-upgrade-side">
+                        <span className={`store-card-status ${statusClass}`}>{statusLabel}</span>
+                        <div className="store-upgrade-level-group">
+                            <div className="store-upgrade-role">{card.roleLabel}</div>
+                            <div className="store-upgrade-level">{card.levelLabel}</div>
+                        </div>
                     </div>
                 </div>
-                <div className="store-upgrade-level-group">
-                    <div className="store-upgrade-role">{card.roleLabel}</div>
-                    <div className="store-upgrade-level">{card.levelLabel}</div>
+
+                <div className="store-metric-grid">
+                    <div className="store-metric-chip">
+                        <span>현재</span>
+                        <strong>{card.headlineMetric}</strong>
+                    </div>
+                    <div className="store-metric-chip emphasis">
+                        <span>{card.isMax ? '완료 기준' : '다음 변화'}</span>
+                        <strong>{card.detailMetric}</strong>
+                    </div>
                 </div>
-            </div>
 
-            <div className="store-metric-block">
-                <strong>{card.headlineMetric}</strong>
-                <span>{card.detailMetric}</span>
-            </div>
+                <div className="store-upgrade-progress-row">
+                    <span>성장도 {card.progressPercent}%</span>
+                    <span>{card.isMax ? '완료' : `비용 ${formatMoney(Math.floor(card.cost))}원`}</span>
+                </div>
+                <div className="store-upgrade-progress">
+                    <div className="store-upgrade-progress-fill" style={{ width: `${card.progressPercent}%` }} />
+                </div>
 
-            <div className="store-upgrade-progress">
-                <div className="store-upgrade-progress-fill" style={{ width: `${card.progressPercent}%` }} />
-            </div>
+                <div className={`store-card-insight ${statusClass}`}>
+                    {insightLabel}
+                </div>
 
-            <button
-                onClick={handleUpgrade(card.onUpgrade, card.isSpecial)}
-                disabled={!card.canAfford || card.isMax}
-                className={`store-cta ${card.canAfford && !card.isMax ? 'ready' : 'disabled'} ${card.isSpecial ? 'special' : ''}`}
-                type="button"
-            >
-                <span>{ctaLabel}</span>
-                {!card.isMax && <strong>{formatMoney(Math.floor(card.cost))}원</strong>}
-            </button>
-        </article>
+                <button
+                    onClick={handleUpgrade(card.onUpgrade, card.isSpecial)}
+                    disabled={!card.canAfford || card.isMax}
+                    className={`store-cta ${card.canAfford && !card.isMax ? 'ready' : 'disabled'} ${card.isSpecial ? 'special' : ''}`}
+                    type="button"
+                >
+                    <span>{ctaLabel}</span>
+                    {!card.isMax && <strong>{formatMoney(Math.floor(card.cost))}원</strong>}
+                </button>
+            </article>
         );
     };
 
@@ -360,45 +433,42 @@ export function StoreModal({ onClose }: StoreModalProps) {
                         <span className="store-status-chip"><FaCoins />구매 가능 {affordableCount}개</span>
                         <span className="store-status-chip"><FaMagic />최대 달성 {maxedCount}개</span>
                     </div>
+                    <p className="store-balance-tip">구매 가능한 카드가 각 섹션 상단으로 정렬되어 바로 비교할 수 있습니다.</p>
                 </div>
 
                 {nextRegion && (
-                    <div className="store-footer-note" style={{ marginTop: '14px' }}>
+                    <div className="store-goal-card">
                         <FaGem />
-                        <span>다음 지역 목표: {nextRegion.name} · 해금 기준 {formatMoney(nextRegion.unlockCost)}원</span>
+                        <div className="store-goal-copy">
+                            <strong>다음 지역 목표 · {nextRegion.name}</strong>
+                            <span>해금 기준 {formatMoney(nextRegion.unlockCost)}원</span>
+                        </div>
                     </div>
                 )}
 
                 <div className="modal-content scrollable store-content">
-                    <section className="store-section">
-                        <header className="store-section-header">
-                            <h3>핵심 성장</h3>
-                            <span>현금 흐름과 시작 레벨을 직접 올리는 핵심 투자</span>
-                        </header>
-                        <div className="store-card-grid">
-                            {coreCards.map(renderCard)}
-                        </div>
-                    </section>
+                    {(Object.keys(sectionCards) as StoreSection[]).map((sectionKey) => {
+                        const summary = getSectionSummary(sectionCards[sectionKey]);
+                        const meta = sectionMeta[sectionKey];
 
-                    <section className="store-section">
-                        <header className="store-section-header">
-                            <h3>부스트 튜닝</h3>
-                            <span>광고형 무료 부스트를 쓸 때만 적용되는 보조 튜닝 라인</span>
-                        </header>
-                        <div className="store-card-grid">
-                            {automationCards.map(renderCard)}
-                        </div>
-                    </section>
-
-                    <section className="store-section">
-                        <header className="store-section-header">
-                            <h3>장기 해금</h3>
-                            <span>다음 구간과 다음 자산 축을 여는 고가 투자</span>
-                        </header>
-                        <div className="store-card-grid">
-                            {specialCards.map(renderCard)}
-                        </div>
-                    </section>
+                        return (
+                            <section key={sectionKey} className="store-section">
+                                <header className="store-section-header polished">
+                                    <div className="store-section-copy">
+                                        <h3>{meta.title}</h3>
+                                        <span>{meta.description}</span>
+                                    </div>
+                                    <div className={`store-section-badge ${summary.tone}`}>
+                                        <strong>{summary.badge}</strong>
+                                        <span>{summary.helper}</span>
+                                    </div>
+                                </header>
+                                <div className="store-card-grid">
+                                    {sectionCards[sectionKey].map(renderCard)}
+                                </div>
+                            </section>
+                        );
+                    })}
 
                     <div className="store-footer-note">
                         <FaArrowUp />
