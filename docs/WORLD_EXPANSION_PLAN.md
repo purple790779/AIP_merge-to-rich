@@ -75,6 +75,7 @@
 
 ## 8. 경제 설계 원칙
 - 메인 경제가 미션/업적 현금 보상에 잠식되지 않게 조정
+- 미션 보상은 초중반 성장 체인을 끊지 않도록 약간 front-load할 수 있지만, 대형 milestone 보상은 region unlock 목표를 무너뜨리지 않게 보수적으로 유지
 - 업그레이드 ROI가 플레이어 체감과 맞아야 함
 - 지역 해금은 명확한 목표여야 하지만, 벽처럼 느껴지면 안 됨
 - region unlock 비용은 실제 플레이타임 계측 후 다시 다듬어야 함
@@ -84,6 +85,7 @@
 - 지역 전환 후에도 timed reward / mission / achievement 계산이 깨지지 않는지 smoke test
 - 지역별 테마 변화가 단순 문구가 아니라 보드/생산/리워드 체감 차이로 이어지는지 검토
 - 문서(`ARCHITECTURE`, `ROADMAP`, `PHASE1_TASKS`, handoff`)를 same-day로 동기화
+- reward tuning pass에서는 daily reward reset/cap 규칙과 mission reward band 설명도 함께 동기화
 
 ## 10. 이번 배치 결과
 - `src/game/worlds.ts` 추가

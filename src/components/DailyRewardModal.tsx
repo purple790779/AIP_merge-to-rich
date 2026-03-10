@@ -1,11 +1,13 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaGift } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import { useGameStore } from '../store/useGameStore';
 import {
+    DAILY_REWARD_BONUS_CAP_DAYS,
     getDailyRewardAmount,
+    getDailyRewardStatus,
     getKstDayKey,
-    getNextDailyRewardStreak,
 } from '../utils/dailyReward';
 import { formatMoney } from '../utils/formatMoney';
 
@@ -16,18 +18,39 @@ interface DailyRewardModalProps {
 export function DailyRewardModal({ onClose }: DailyRewardModalProps) {
     const dailyRewardLastClaimDayKey = useGameStore((state) => state.dailyRewardLastClaimDayKey);
     const dailyRewardLastClaimAt = useGameStore((state) => state.dailyRewardLastClaimAt);
-    const lastSeenAt = useGameStore((state) => state.lastSeenAt);
     const dailyRewardStreak = useGameStore((state) => state.dailyRewardStreak);
     const dailyRewardTotalClaimed = useGameStore((state) => state.dailyRewardTotalClaimed);
     const dailyRewardLastAmount = useGameStore((state) => state.dailyRewardLastAmount);
     const claimDailyReward = useGameStore((state) => state.claimDailyReward);
-    const canClaimDailyReward = useGameStore((state) => state.canClaimDailyReward);
+    const [clockMs, setClockMs] = useState(() => Date.now());
 
-    const canClaim = canClaimDailyReward();
-    const clockRollbackBlocked = dailyRewardLastClaimAt !== null && lastSeenAt < dailyRewardLastClaimAt;
-    const nextStreak = getNextDailyRewardStreak(dailyRewardLastClaimDayKey, dailyRewardStreak);
-    const todayReward = getDailyRewardAmount(nextStreak);
-    const tomorrowReward = getDailyRewardAmount(dailyRewardStreak + 1);
+    useEffect(() => {
+        const timerId = window.setInterval(() => {
+            setClockMs(Date.now());
+        }, 60_000);
+
+        return () => window.clearInterval(timerId);
+    }, []);
+
+    const rewardStatus = getDailyRewardStatus(
+        dailyRewardLastClaimDayKey,
+        dailyRewardLastClaimAt,
+        dailyRewardStreak,
+        clockMs
+    );
+    const canClaim = rewardStatus.canClaim;
+    const clockRollbackBlocked = rewardStatus.isClockRollbackBlocked;
+    const todayReward = rewardStatus.claimRewardAmount;
+    const tomorrowReward = rewardStatus.nextCycleRewardAmount;
+    const maxStreakReward = getDailyRewardAmount(DAILY_REWARD_BONUS_CAP_DAYS);
+    const nextResetLabel = new Intl.DateTimeFormat('ko-KR', {
+        timeZone: 'Asia/Seoul',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    }).format(new Date(rewardStatus.nextResetAt));
 
     const handleClaim = () => {
         const claimed = claimDailyReward();
@@ -60,7 +83,7 @@ export function DailyRewardModal({ onClose }: DailyRewardModalProps) {
                         <div className="daily-reward-row">
                             <span className="daily-reward-label">오늘 상태</span>
                             <span className={`daily-reward-status ${canClaim ? 'ready' : 'claimed'}`}>
-                                {canClaim ? '수령 가능' : '오늘 수령 완료'}
+                                {canClaim ? '수령 가능' : clockRollbackBlocked ? '기기 시간 확인 필요' : '오늘 수령 완료'}
                             </span>
                         </div>
                         <div className="daily-reward-row">
@@ -83,7 +106,17 @@ export function DailyRewardModal({ onClose }: DailyRewardModalProps) {
                     <div className="daily-reward-note">
                         보상은 매일 한국 시간(KST) 자정에 초기화됩니다.
                         <br />
-                        오늘 기준일: {getKstDayKey()}
+                        오늘 기준일: {getKstDayKey(clockMs)}
+                        <br />
+                        다음 리셋: {nextResetLabel} KST
+                        <br />
+                        연속 보너스는 {DAILY_REWARD_BONUS_CAP_DAYS}일차까지 증가하며 최대 +{formatMoney(maxStreakReward)}원입니다.
+                        {rewardStatus.streakBonusCapReached && (
+                            <>
+                                <br />
+                                현재 최대 연속 보상 구간을 유지 중입니다.
+                            </>
+                        )}
                         {clockRollbackBlocked && (
                             <>
                                 <br />
@@ -95,7 +128,11 @@ export function DailyRewardModal({ onClose }: DailyRewardModalProps) {
 
                 <div className="modal-footer">
                     <button className={`toss-button ${canClaim ? 'gold' : 'disabled'}`} disabled={!canClaim} onClick={handleClaim}>
-                        {canClaim ? `지금 수령 (+${formatMoney(todayReward)}원)` : '오늘은 이미 수령했습니다'}
+                        {canClaim
+                            ? `지금 수령 (+${formatMoney(todayReward)}원)`
+                            : clockRollbackBlocked
+                                ? '기기 시간을 확인해 주세요'
+                                : '오늘은 이미 수령했습니다'}
                     </button>
                 </div>
             </motion.div>

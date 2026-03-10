@@ -20,11 +20,9 @@ import { createInitialGameState, STORE_KEY } from './gameState';
 import { hydrateGameStoreState, partializeGameStore } from './persistence';
 import type { GameStore } from './types';
 import {
-    getDailyRewardAmount,
+    getDailyRewardStatus,
     getKstDayKey,
     getKstWeekKey,
-    getNextDailyRewardStreak,
-    isDailyRewardClaimAvailable,
 } from '../utils/dailyReward';
 import { getMissionById, isMissionCompleted } from '../game/missions';
 
@@ -346,20 +344,23 @@ export const useGameStore = create<GameStore>()(
 
             claimDailyReward: () => {
                 const { dailyRewardLastClaimDayKey, dailyRewardLastClaimAt, dailyRewardStreak } = get();
-                if (!isDailyRewardClaimAvailable(dailyRewardLastClaimDayKey, dailyRewardLastClaimAt)) return false;
-
                 const now = Date.now();
-                const nextStreak = getNextDailyRewardStreak(dailyRewardLastClaimDayKey, dailyRewardStreak, now);
-                const rewardAmount = getDailyRewardAmount(nextStreak);
+                const rewardStatus = getDailyRewardStatus(
+                    dailyRewardLastClaimDayKey,
+                    dailyRewardLastClaimAt,
+                    dailyRewardStreak,
+                    now
+                );
+                if (!rewardStatus.canClaim) return false;
 
                 set((state) => ({
-                    totalMoney: state.totalMoney + rewardAmount,
-                    totalEarnedMoney: state.totalEarnedMoney + rewardAmount,
+                    totalMoney: state.totalMoney + rewardStatus.claimRewardAmount,
+                    totalEarnedMoney: state.totalEarnedMoney + rewardStatus.claimRewardAmount,
                     dailyRewardLastClaimAt: now,
-                    dailyRewardLastClaimDayKey: getKstDayKey(now),
-                    dailyRewardStreak: nextStreak,
+                    dailyRewardLastClaimDayKey: rewardStatus.todayKey,
+                    dailyRewardStreak: rewardStatus.nextClaimStreak,
                     dailyRewardTotalClaimed: state.dailyRewardTotalClaimed + 1,
-                    dailyRewardLastAmount: rewardAmount,
+                    dailyRewardLastAmount: rewardStatus.claimRewardAmount,
                 }));
 
                 get().checkAchievements();
@@ -367,8 +368,12 @@ export const useGameStore = create<GameStore>()(
             },
 
             canClaimDailyReward: () => {
-                const { dailyRewardLastClaimDayKey, dailyRewardLastClaimAt } = get();
-                return isDailyRewardClaimAvailable(dailyRewardLastClaimDayKey, dailyRewardLastClaimAt);
+                const { dailyRewardLastClaimDayKey, dailyRewardLastClaimAt, dailyRewardStreak } = get();
+                return getDailyRewardStatus(
+                    dailyRewardLastClaimDayKey,
+                    dailyRewardLastClaimAt,
+                    dailyRewardStreak
+                ).canClaim;
             },
 
             claimMissionReward: (missionId) => {

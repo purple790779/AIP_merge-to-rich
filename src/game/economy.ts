@@ -14,7 +14,11 @@ export const ECONOMY_LIMITS = {
     mergeBonusChance: 0.2,
     mergeBonusPercentPerLevel: 0.8,
     incomeMultiplierStep: 0.1,
-    missionRewardCashMultiplier: 0.6,
+    missionRewardSmallAmountCap: 250_000,
+    missionRewardMediumAmountCap: 5_000_000,
+    missionRewardSmallMultiplier: 0.72,
+    missionRewardMediumMultiplier: 0.65,
+    missionRewardLargeMultiplier: 0.58,
     achievementRewardCashMultiplier: 0.5,
 } as const;
 
@@ -78,6 +82,18 @@ function roundProgressionReward(amount: number): number {
     return Math.round(amount / 10_000) * 10_000;
 }
 
+export function getMissionRewardCashMultiplier(amount: number): number {
+    if (amount <= ECONOMY_LIMITS.missionRewardSmallAmountCap) {
+        return ECONOMY_LIMITS.missionRewardSmallMultiplier;
+    }
+
+    if (amount <= ECONOMY_LIMITS.missionRewardMediumAmountCap) {
+        return ECONOMY_LIMITS.missionRewardMediumMultiplier;
+    }
+
+    return ECONOMY_LIMITS.missionRewardLargeMultiplier;
+}
+
 export function getNextSpawnSpeedGainPercent(cooldown: number): number {
     return getNextStepGainPercent(cooldown, ECONOMY_LIMITS.minSpawnCooldown, ECONOMY_LIMITS.spawnCooldownStep);
 }
@@ -99,7 +115,7 @@ export function getMergeBonusAverageStepPercent(level: number): number {
 }
 
 export function scaleMissionReward(amount: number): number {
-    return roundProgressionReward(amount * ECONOMY_LIMITS.missionRewardCashMultiplier);
+    return roundProgressionReward(amount * getMissionRewardCashMultiplier(amount));
 }
 
 export function scaleAchievementReward(amount: number): number {

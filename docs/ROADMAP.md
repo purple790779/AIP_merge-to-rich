@@ -10,6 +10,8 @@
 - timed reward 보류 / 재오픈 UX 반영
 - 현재 지역 배너 + 지역 선택 / 해금 UI 1차 반영
 - 지역 해금 / 선택의 실제 진입점은 `RegionModal`, 상점은 `다음 지역 목표` 안내 중심
+- 일일 보상은 `다음 KST 리셋 / streak cap / clock rollback 잠금` 안내까지 반영된 상태
+- 미션 현금 보상은 초중반 pacing을 살리고 late milestone 급팽창을 막는 구간형 scaling 기준으로 정리됨
 - `2026-03-10` morning QA pass 기준 fresh install 후 `npm run lint`, `npm run build` 통과
 - 광고 SDK / IAP는 아직 미연동
 
@@ -32,6 +34,7 @@
   - 복귀 / 오프라인 보상 수치 재조정
   - 지역 해금 비용과 메인 경제 곡선 연결
   - 지역별 보드 분리 이후 초반/중반/후반 성장 시간을 다시 계측
+  - 이번 배치에서 정리한 `일일 보상 status snapshot`과 `mission reward band` 기준이 실제 플레이타임과 맞는지 계측
 - 현금 보상 일부를 `해금 토큰 / 부스트 티켓 / 광고 배수` 같은 보상으로 치환 검토
 
 ### 3순위: 리텐션 고도화
@@ -56,10 +59,11 @@
 1. deadlock rescue 시스템 초안 + region board 분리 경계 정의
 2. 복귀 / 오프라인 보상 수치 재조정
 3. 지역별 생산 계열 설계
-4. 문자열 / 좁은 화면 / timed reward smoke QA
+4. 문자열 / 좁은 화면 / timed reward / daily reward smoke QA
 
 ## 4. 다음 버전 전 검증 게이트
 - Node `22.x` fresh install 기준 `npm run lint`, `npm run build`
 - 지역 해금/선택 smoke test
 - timed reward pending 복원/재오픈/폐기 흐름
+- daily reward 자정 reset / clock rollback guard / 7일 cap 문구 점검
 - 좁은 화면에서 헤더/배너/하단 메뉴 겹침 여부

@@ -16,6 +16,7 @@
 ### `src/store/useGameStore.ts`
 - 게임 액션 오케스트레이션
 - timed reward preview 생성 / 수령 / 폐기
+- 일일 보상 claim을 status snapshot 기준 단일 경로로 처리
 - 미션 보상 수령 액션 `claimMissionReward`
 - 지역 해금 / 선택 액션 `unlockRegion`, `selectRegion`
 
@@ -39,6 +40,7 @@
 ### `src/game/economy.ts`
 - 업그레이드 비용 곡선
 - 미션 / 업적 현금 보상 스케일링
+- 미션 보상을 `small / medium / large` 금액대별로 나눠 초중반 보상 체감과 장기 밸런스를 함께 조정
 - 다음 투자 효율 미리보기 계산
 - `핵심 성장`과 `부스트 튜닝`을 구분하는 기준점
 
@@ -46,6 +48,11 @@
 - 미션 정의 데이터
 - cadence(`daily`, `weekly`, `milestone`) 규칙
 - claim 상태 계산 / claimable count 계산
+
+### `src/utils/dailyReward.ts`
+- KST day / week key 계산
+- 일일 보상 claim 가능 여부와 clock rollback guard 계산
+- 다음 리셋 시각, 다음 claim streak, streak cap 정보를 하나의 status snapshot으로 제공
 
 ### `src/game/achievements.ts`
 - 업적 정의 데이터
@@ -82,6 +89,12 @@
 - pending reward는 persist 대상입니다.
 - 앱 재시작 후에도 pending reward가 복원됩니다.
 - 이미 pending 상태인 reward는 refresh 시 새 계산값으로 덮어쓰지 않습니다.
+
+## 일일 보상 원칙
+- 일일 보상 reset 기준은 한국 시간(KST) 자정입니다.
+- claim 가능 여부와 streak 계산은 `dailyReward.ts`의 status snapshot 경로를 공통으로 사용합니다.
+- 기기 시간이 마지막 수령 시점보다 과거로 이동하면 claim을 막아 중복 수령을 방지합니다.
+- streak 보너스는 7일차까지 증가하고 이후에는 최대 보상 구간을 유지합니다.
 
 ## 미션 원칙
 - 미션 정의는 데이터 중심으로 관리하고 UI는 렌더링에 집중합니다.

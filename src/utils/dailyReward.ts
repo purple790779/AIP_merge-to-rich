@@ -4,6 +4,18 @@ export const DAILY_REWARD_BONUS_CAP_DAYS = 7;
 
 const KST_TIME_ZONE = 'Asia/Seoul';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const KST_UTC_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+export interface DailyRewardStatus {
+    todayKey: string;
+    canClaim: boolean;
+    isClockRollbackBlocked: boolean;
+    nextClaimStreak: number;
+    claimRewardAmount: number;
+    nextCycleRewardAmount: number;
+    nextResetAt: number;
+    streakBonusCapReached: boolean;
+}
 
 function getKstDateParts(timeMs: number): { year: number; month: number; day: number } {
     const formatter = new Intl.DateTimeFormat('en-CA', {
@@ -40,6 +52,11 @@ export function getKstWeekKey(timeMs: number = Date.now()): string {
     return `${weekYear}-W${String(weekNumber).padStart(2, '0')}`;
 }
 
+export function getNextKstMidnightMs(timeMs: number = Date.now()): number {
+    const { year, month, day } = getKstDateParts(timeMs);
+    return Date.UTC(year, month - 1, day + 1) - KST_UTC_OFFSET_MS;
+}
+
 export function isDailyRewardClaimAvailable(
     lastClaimDayKey: string | null,
     lastClaimAt: number | null = null,
@@ -67,4 +84,27 @@ export function getDailyRewardAmount(streak: number): number {
     const normalizedStreak = Math.max(1, streak);
     const bonusDays = Math.min(normalizedStreak, DAILY_REWARD_BONUS_CAP_DAYS) - 1;
     return DAILY_REWARD_BASE + bonusDays * DAILY_REWARD_STREAK_BONUS;
+}
+
+export function getDailyRewardStatus(
+    lastClaimDayKey: string | null,
+    lastClaimAt: number | null,
+    currentStreak: number,
+    timeMs: number = Date.now()
+): DailyRewardStatus {
+    const todayKey = getKstDayKey(timeMs);
+    const canClaim = isDailyRewardClaimAvailable(lastClaimDayKey, lastClaimAt, timeMs);
+    const nextClaimStreak = getNextDailyRewardStreak(lastClaimDayKey, currentStreak, timeMs);
+    const clampedCurrentStreak = Math.max(0, currentStreak);
+
+    return {
+        todayKey,
+        canClaim,
+        isClockRollbackBlocked: lastClaimAt !== null && timeMs < lastClaimAt,
+        nextClaimStreak,
+        claimRewardAmount: getDailyRewardAmount(nextClaimStreak),
+        nextCycleRewardAmount: getDailyRewardAmount(clampedCurrentStreak + 1),
+        nextResetAt: getNextKstMidnightMs(timeMs),
+        streakBonusCapReached: clampedCurrentStreak >= DAILY_REWARD_BONUS_CAP_DAYS,
+    };
 }
