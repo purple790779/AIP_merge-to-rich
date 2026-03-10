@@ -28,8 +28,19 @@
 - 검증: `npm ci` 완료. `npm run build` 통과.
 - 검증: 초기 셸 작업 시점에는 `npm run lint`가 기존 `src/components/AchievementModal.tsx:56`의 `react-hooks/set-state-in-effect` 에러로 실패했지만, 이후 Rook 패스에서 해당 lint blocker가 정리되었습니다.
 
-## 2026-03-10 12:27-12:43 KST — Atlas shell/world progression pass
-- 변경: 상단 셸을 타이틀/자산 헤더 중심으로 더 가볍게 정리하고, 진행 숏컷/보류 보상/부스트/컨트롤/지역 카드를 보드 아래 지원 스택으로 재배치했습니다. 모바일에서 보드가 더 빨리 보이고 체감상 메인 플레이 surface가 앞서도록 `--board-shell-offset`도 함께 축소했습니다.
-- 변경: `Header`, `Controls`, `TimedRewardTray`를 장기 세션용 정보형 카피로 다듬었습니다. 현재 권역 메타를 헤더에 흡수하고, 생산 버튼 아래 행동 가이드를 추가했으며, 보류 보상 트레이는 합계 자산 중심 문구로 정리했습니다.
-- 변경: `src/game/worlds.ts`, `RegionModal`, 셸 지역 카드/토스트를 확장해 region flow를 더 실제 진행 목표처럼 보이게 만들었습니다. 지역별 tagline/flavor/hint를 추가했고, 현재 권역 hero, 월드 진행 트랙, 다음 해금 진행도, 지역 전환 토스트를 넣어 해금/이동 동선의 동기 부여를 강화했습니다.
-- 검증: `npm ci` 완료(이 worktree에 의존성 부재), `npm run lint` 통과, `npm run build` 통과.
+## 2026-03-10 12:27-12:43 KST — Atlas world journey shell polish
+- 변경: 상단은 더 가볍게, 보드는 더 크게 체감되도록 헤더/컨트롤/보류 보상 트레이를 다듬고 장기 세션용 정보 밀도를 보강했습니다. 헤더에는 현재 권역 메타를 흡수했고, 생산 버튼 아래에는 행동 가이드를 추가했습니다.
+- 변경: `worlds.ts`에 지역별 `tagline`, `flavor`, `unlockHint`를 추가하고 `RegionModal`을 월드 진행 화면처럼 확장했습니다. 현재 권역 hero, 월드 진행 트랙, 다음 지역 해금 진행도/남은 금액, 지역 이동·해금 토스트 흐름을 포함합니다.
+- 검증: `npm ci`, `npm run lint`, `npm run build` 모두 통과.
+
+## 2026-03-10 12:27-12:42 KST — Lyra progression focus cues
+- 변경: 업적/미션/상점 모달에 “지금 뭘 보면 좋은지” 신호를 강화했습니다. 업적은 spotlight 추천 카테고리, 근접/진행/완주 focus pill, 다음 추천 업적 요약을 추가했습니다.
+- 변경: 미션 모달은 즉시 수령/근접 목표 요약 카드, cadence별 focus pill, ready/near 중심 정렬과 남은 수치 표시를 추가했습니다.
+- 변경: 상점은 추천 투자/다음 후보, 즉시 구매 가능/자산 부족 인사이트를 더 강화했습니다.
+- 검증: `npm run lint`, `npm run build` 통과.
+
+## 2026-03-10 12:27-12:44 KST — Rook balance / daily reward clarity
+- 변경: `src/game/economy.ts`에서 미션 현금 보상을 단일 배율 대신 `small / medium / large` 구간형 multiplier로 조정해 초중반 보상은 살리고 대형 milestone의 과도한 팽창은 눌렀습니다.
+- 변경: `src/utils/dailyReward.ts`에 `getDailyRewardStatus()` / `getNextKstMidnightMs()`를 추가해 KST 기준 claim 가능 여부, 다음 리셋, 다음 streak 보상, 7일 cap, rollback 잠금을 단일 snapshot으로 계산하도록 통일했습니다.
+- 변경: `src/store/useGameStore.ts`, `src/components/DailyRewardModal.tsx`를 새 status snapshot 기준으로 정리하고, 다음 리셋 시각/7일 cap/clock rollback 안내를 사용자에게 명확히 노출했습니다.
+- 검증: `npm install`, `npm run lint`, `npm run build` 통과.

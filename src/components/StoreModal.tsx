@@ -95,6 +95,18 @@ function getSectionSummary(cardList: StoreUpgradeCard[]) {
     };
 }
 
+function getStorePriorityScore(card: StoreUpgradeCard, totalMoney: number): number {
+    if (card.isMax) return 99;
+
+    const affordabilityScore = card.canAfford ? 0 : 20;
+    const sectionScore = card.section === 'core' ? 0 : card.section === 'automation' ? 6 : 12;
+    const shortfall = Math.max(0, card.cost - totalMoney);
+    const shortfallScore = card.canAfford ? 0 : Math.min(16, shortfall / Math.max(1, totalMoney * 0.2));
+    const progressBias = (100 - card.progressPercent) / 40;
+
+    return affordabilityScore + sectionScore + shortfallScore + progressBias;
+}
+
 export function StoreModal({ onClose }: StoreModalProps) {
     const totalMoney = useGameStore((state) => state.totalMoney);
     const spawnLevel = useGameStore((state) => state.spawnLevel);
@@ -301,9 +313,12 @@ export function StoreModal({ onClose }: StoreModalProps) {
 
     const sortCardsByActionability = (cardList: StoreUpgradeCard[]) => {
         return [...cardList].sort((a, b) => {
-            const scoreA = a.isMax ? 2 : a.canAfford ? 0 : 1;
-            const scoreB = b.isMax ? 2 : b.canAfford ? 0 : 1;
-            return scoreA - scoreB;
+            const scoreA = getStorePriorityScore(a, totalMoney);
+            const scoreB = getStorePriorityScore(b, totalMoney);
+            if (scoreA !== scoreB) return scoreA - scoreB;
+            if (a.canAfford !== b.canAfford) return a.canAfford ? -1 : 1;
+            if (a.cost !== b.cost) return a.cost - b.cost;
+            return 0;
         });
     };
 
@@ -315,6 +330,12 @@ export function StoreModal({ onClose }: StoreModalProps) {
 
     const affordableCount = cards.filter((card) => !card.isMax && card.canAfford).length;
     const maxedCount = cards.filter((card) => card.isMax).length;
+    const recommendedCard = [...cards]
+        .filter((card) => !card.isMax)
+        .sort((a, b) => getStorePriorityScore(a, totalMoney) - getStorePriorityScore(b, totalMoney))[0] ?? null;
+    const nextAffordCandidate = [...cards]
+        .filter((card) => !card.isMax && !card.canAfford)
+        .sort((a, b) => (a.cost - totalMoney) - (b.cost - totalMoney))[0] ?? null;
 
     const sectionMeta: Record<StoreSection, { title: string; description: string }> = {
         core: {
@@ -333,11 +354,19 @@ export function StoreModal({ onClose }: StoreModalProps) {
 
     const renderCard = (card: StoreUpgradeCard) => {
         const shortfall = Math.max(0, Math.ceil(card.cost - totalMoney));
+        const isRecommended = recommendedCard?.id === card.id;
+        const isNextPick = !isRecommended && nextAffordCandidate?.id === card.id;
         const ctaLabel = card.isMax ? card.maxLabel : card.canAfford ? card.ctaLabel : '자산 부족';
         const statusLabel = card.isMax ? '완료' : card.canAfford ? '구매 가능' : '준비 중';
         const statusClass = card.isMax ? 'maxed' : card.canAfford ? 'ready' : 'pending';
         const insightLabel = card.isMax
             ? '이 투자 라인은 마무리되었습니다.'
+            : isRecommended && card.canAfford
+                ? '지금 투자하면 다음 세션 체감 성장으로 바로 연결됩니다.'
+                : isRecommended
+                    ? `다음 핵심 후보입니다. ${formatMoney(shortfall)}원만 더 모으면 바로 투자할 수 있습니다.`
+                    : isNextPick
+                        ? `다음 구매 대기열 1순위입니다. ${formatMoney(shortfall)}원 부족합니다.`
             : card.canAfford
                 ? '보유 자산으로 지금 바로 구매할 수 있습니다.'
                 : `${formatMoney(shortfall)}원 더 모으면 구매할 수 있습니다.`;
@@ -345,7 +374,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
         return (
             <article
                 key={card.id}
-                className={`store-upgrade-card tone-${card.tone} ${card.isSpecial ? 'special' : ''} ${card.canAfford && !card.isMax ? 'ready' : ''} ${card.isMax ? 'maxed' : ''}`}
+                className={`store-upgrade-card tone-${card.tone} ${card.isSpecial ? 'special' : ''} ${card.canAfford && !card.isMax ? 'ready' : ''} ${card.isMax ? 'maxed' : ''} ${isRecommended ? 'recommended' : ''} ${isNextPick ? 'next-pick' : ''}`}
             >
                 <div className="store-upgrade-head">
                     <div className="store-upgrade-title-row">
@@ -359,6 +388,8 @@ export function StoreModal({ onClose }: StoreModalProps) {
                     </div>
 
                     <div className="store-upgrade-side">
+                        {isRecommended && <span className="store-focus-badge recommended">추천 투자</span>}
+                        {isNextPick && <span className="store-focus-badge next">다음 후보</span>}
                         <span className={`store-card-status ${statusClass}`}>{statusLabel}</span>
                         <div className="store-upgrade-level-group">
                             <div className="store-upgrade-role">{card.roleLabel}</div>
@@ -433,7 +464,21 @@ export function StoreModal({ onClose }: StoreModalProps) {
                         <span className="store-status-chip"><FaCoins />구매 가능 {affordableCount}개</span>
                         <span className="store-status-chip"><FaMagic />최대 달성 {maxedCount}개</span>
                     </div>
-                    <p className="store-balance-tip">구매 가능한 카드가 각 섹션 상단으로 정렬되어 바로 비교할 수 있습니다.</p>
+                    {recommendedCard && (
+                        <div className="store-recommendation-card">
+                            <div className="store-recommendation-title">
+                                <strong>지금 집중 투자</strong>
+                                <span>{recommendedCard.section === 'core' ? '핵심 성장 우선' : recommendedCard.section === 'automation' ? '부스트 튜닝 우선' : '장기 해금 우선'}</span>
+                            </div>
+                            <div className="store-recommendation-body">
+                                <span>{recommendedCard.title}</span>
+                                {recommendedCard.canAfford
+                                    ? <strong>즉시 구매 가능 · {formatMoney(Math.floor(recommendedCard.cost))}원</strong>
+                                    : <strong>{formatMoney(Math.max(0, Math.floor(recommendedCard.cost - totalMoney)))}원 더 필요</strong>}
+                            </div>
+                        </div>
+                    )}
+                    <p className="store-balance-tip">추천 투자/다음 후보 배지로 장기 세션에서도 우선순위를 잃지 않게 정렬합니다.</p>
                 </div>
 
                 {nextRegion && (

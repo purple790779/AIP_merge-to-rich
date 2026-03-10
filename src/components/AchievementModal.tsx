@@ -25,12 +25,19 @@ type AchievementListItem = {
     achievement: (typeof ACHIEVEMENTS)[number];
     isUnlocked: boolean;
     isActive: boolean;
+    isNearComplete: boolean;
+    isRecommended: boolean;
     isNew: boolean;
+    remaining: number | null;
     progress: ReturnType<typeof getAchievementProgress>;
-    statusTone: 'done' | 'active' | 'locked';
+    statusTone: 'done' | 'active' | 'locked' | 'focus';
     statusLabel: string;
     sortPriority: number;
 };
+
+function formatProgressValue(value: number): string {
+    return value.toLocaleString('ko-KR');
+}
 
 const DETAIL_FILTER_COPY: Record<AchievementDetailFilter, { label: string; note: string; helper: string }> = {
     all: {
@@ -117,6 +124,34 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
     const selectedPercent = selectedSummary && selectedSummary.totalCount > 0
         ? Math.floor((selectedSummary.unlockedCount / selectedSummary.totalCount) * 100)
         : 0;
+    const selectedRecommendedId = useMemo(() => {
+        if (!selectedGroup) return null;
+
+        const candidates = selectedGroup.items
+            .filter((achievement) => !unlockedSet.has(achievement.id))
+            .map((achievement, index) => {
+                const progress = getAchievementProgress(gameState, achievement);
+                const remaining = progress.target !== null ? Math.max(0, progress.target - progress.current) : Number.MAX_SAFE_INTEGER;
+
+                return {
+                    achievementId: achievement.id,
+                    index,
+                    progress,
+                    remaining,
+                    nearBoost: progress.percent >= 70 ? 0 : 1,
+                    untouchedPenalty: progress.current > 0 ? 0 : 1,
+                };
+            })
+            .sort((a, b) => {
+                if (a.nearBoost !== b.nearBoost) return a.nearBoost - b.nearBoost;
+                if (a.untouchedPenalty !== b.untouchedPenalty) return a.untouchedPenalty - b.untouchedPenalty;
+                if (a.progress.percent !== b.progress.percent) return b.progress.percent - a.progress.percent;
+                if (a.remaining !== b.remaining) return a.remaining - b.remaining;
+                return a.index - b.index;
+            });
+
+        return candidates[0]?.achievementId ?? null;
+    }, [gameState, selectedGroup, unlockedSet]);
 
     const selectedAchievementItems = useMemo<AchievementListItem[]>(() => {
         if (!selectedGroup) return [];
@@ -125,28 +160,36 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
             const isUnlocked = unlockedSet.has(achievement.id);
             const progress = getAchievementProgress(gameState, achievement);
             const isActive = !isUnlocked && progress.target !== null && progress.current > 0;
+            const isNearComplete = !isUnlocked && progress.target !== null && progress.percent >= 70;
+            const isRecommended = !isUnlocked && achievement.id === selectedRecommendedId;
             const isNew = newlyUnlocked.includes(achievement.id);
+            const remaining = progress.target !== null ? Math.max(0, progress.target - progress.current) : null;
             const statusTone: AchievementListItem['statusTone'] = isUnlocked
                 ? 'done'
-                : isActive
+                : isRecommended
+                    ? 'focus'
+                    : isActive
                     ? 'active'
                     : 'locked';
-            const statusLabel = isUnlocked ? '완료' : isActive ? '진행 중' : '잠김';
-            const sortPriority = isNew ? 0 : isActive ? 1 : !isUnlocked ? 2 : 3;
+            const statusLabel = isUnlocked ? '완료' : isRecommended ? '추천' : isActive ? '진행 중' : '잠김';
+            const sortPriority = isNew ? 0 : isRecommended ? 1 : isNearComplete ? 2 : isActive ? 3 : !isUnlocked ? 4 : 5;
 
             return {
                 index,
                 achievement,
                 isUnlocked,
                 isActive,
+                isNearComplete,
+                isRecommended,
                 isNew,
+                remaining,
                 progress,
                 statusTone,
                 statusLabel,
                 sortPriority,
             };
         });
-    }, [gameState, newlyUnlocked, selectedGroup, unlockedSet]);
+    }, [gameState, newlyUnlocked, selectedGroup, selectedRecommendedId, unlockedSet]);
 
     const filteredAchievements = useMemo(() => {
         const sortedItems = [...selectedAchievementItems].sort((a, b) => {
@@ -162,8 +205,58 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
     }, [detailFilter, selectedAchievementItems]);
 
     const activeCount = selectedAchievementItems.filter((item) => item.isActive).length;
+    const nearCompleteCount = selectedAchievementItems.filter((item) => item.isNearComplete).length;
     const lockedCount = selectedAchievementItems.filter((item) => !item.isUnlocked && !item.isActive).length;
     const doneCount = selectedAchievementItems.filter((item) => item.isUnlocked).length;
+    const recommendedItem = selectedAchievementItems.find((item) => item.isRecommended) ?? null;
+
+    const categoryFocus = useMemo(() => {
+        return achievementGroups.map((group) => {
+            const summary = categorySummary.find((item) => item.category === group.category);
+            const items = group.items
+                .filter((achievement) => !unlockedSet.has(achievement.id))
+                .map((achievement, index) => {
+                    const progress = getAchievementProgress(gameState, achievement);
+                    const remaining = progress.target !== null ? Math.max(0, progress.target - progress.current) : Number.MAX_SAFE_INTEGER;
+
+                    return {
+                        id: achievement.id,
+                        title: achievement.title,
+                        index,
+                        progress,
+                        remaining,
+                        isNearComplete: progress.target !== null && progress.percent >= 70,
+                        isActive: progress.target !== null && progress.current > 0,
+                    };
+                });
+            const activeItems = items.filter((item) => item.isActive);
+            const nearItems = items.filter((item) => item.isNearComplete);
+            const recommended = [...items].sort((a, b) => {
+                if (a.isNearComplete !== b.isNearComplete) return a.isNearComplete ? -1 : 1;
+                if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
+                if (a.progress.percent !== b.progress.percent) return b.progress.percent - a.progress.percent;
+                if (a.remaining !== b.remaining) return a.remaining - b.remaining;
+                return a.index - b.index;
+            })[0] ?? null;
+            const score = (nearItems.length * 4) + (activeItems.length * 2) + (recommended ? 1 : 0);
+
+            return {
+                category: group.category,
+                score,
+                activeCount: activeItems.length,
+                nearCount: nearItems.length,
+                recommended,
+                isCompleted: summary ? summary.unlockedCount >= summary.totalCount : false,
+            };
+        });
+    }, [achievementGroups, categorySummary, gameState, unlockedSet]);
+
+    const spotlightCategories = useMemo(() => {
+        return [...categoryFocus]
+            .filter((item) => !item.isCompleted && item.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 2);
+    }, [categoryFocus]);
 
     const detailFilterCards: Array<{ key: AchievementDetailFilter; value: number }> = [
         { key: 'all', value: selectedAchievementItems.length },
@@ -233,12 +326,51 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                         {!selectedGroup ? (
                             <motion.div key="category-list" className="achievement-category-screen" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.2 }}>
                                 <p className="achievement-view-note">카테고리를 선택해 상세 업적과 진행도를 확인하세요.</p>
+                                {spotlightCategories.length > 0 && (
+                                    <div className="achievement-overview-focus">
+                                        <div className="achievement-overview-focus-head">
+                                            <strong>지금 신경 쓰면 좋은 카테고리</strong>
+                                            <span>완주 압박 없이, 곧 달성 가능한 목표 위주로 추천합니다.</span>
+                                        </div>
+                                        <div className="achievement-overview-focus-list">
+                                            {spotlightCategories.map((focusItem) => {
+                                                const meta = ACHIEVEMENT_CATEGORY_META[focusItem.category];
+
+                                                return (
+                                                    <button
+                                                        key={focusItem.category}
+                                                        type="button"
+                                                        className={`achievement-overview-focus-card ${meta.accent}`}
+                                                        onClick={() => {
+                                                            setDetailFilter('all');
+                                                            setSelectedCategory(focusItem.category);
+                                                        }}
+                                                    >
+                                                        <div className="achievement-overview-focus-row">
+                                                            <span>{meta.icon} {meta.title}</span>
+                                                            <strong>{focusItem.nearCount > 0 ? `근접 ${focusItem.nearCount}` : `진행 ${focusItem.activeCount}`}</strong>
+                                                        </div>
+                                                        <small>{focusItem.recommended ? focusItem.recommended.title : '다음 목표를 확인해보세요.'}</small>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="achievement-category-grid">
                                     {categorySummary.map((summary) => {
                                         const meta = ACHIEVEMENT_CATEGORY_META[summary.category];
+                                        const focus = categoryFocus.find((item) => item.category === summary.category);
                                         const percent = summary.totalCount > 0
                                             ? Math.floor((summary.unlockedCount / summary.totalCount) * 100)
                                             : 0;
+                                        const focusLabel = summary.unlockedCount === summary.totalCount
+                                            ? '완주'
+                                            : focus && focus.nearCount > 0
+                                                ? `근접 ${focus.nearCount}`
+                                                : focus && focus.activeCount > 0
+                                                    ? `진행 ${focus.activeCount}`
+                                                    : '다음 목표';
 
                                         return (
                                             <button
@@ -257,6 +389,7 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                                                         <strong>{meta.title}</strong>
                                                         <span>{meta.subtitle}</span>
                                                     </div>
+                                                    <span className="achievement-category-focus-pill">{focusLabel}</span>
                                                     <span className="achievement-category-percent">{percent}%</span>
                                                 </div>
                                                 <p>{meta.flavor}</p>
@@ -305,6 +438,23 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                                             </div>
                                         </div>
                                     )}
+                                    {recommendedItem && !recommendedItem.isUnlocked && (
+                                        <div className="achievement-next-focus">
+                                            <div className="achievement-next-focus-head">
+                                                <span>다음 추천 업적</span>
+                                                <strong>{recommendedItem.achievement.title}</strong>
+                                            </div>
+                                            <div className="achievement-next-focus-meta">
+                                                <span>{recommendedItem.progress.percent}% 진행</span>
+                                                <span>
+                                                    {recommendedItem.remaining !== null
+                                                        ? `${formatProgressValue(recommendedItem.remaining)} 남음`
+                                                        : '조건 달성 시 해금'}
+                                                </span>
+                                            </div>
+                                            <p>근접 업적 {nearCompleteCount}개가 있어 짧은 세션에서도 체감 성장을 만들기 좋습니다.</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="achievement-list">
@@ -325,10 +475,10 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
 
                                     <p className="achievement-filter-note">{DETAIL_FILTER_COPY[detailFilter].note}</p>
 
-                                    {filteredAchievements.map(({ achievement, isUnlocked, isActive, isNew, progress, statusLabel, statusTone }) => (
+                                    {filteredAchievements.map(({ achievement, isUnlocked, isActive, isNearComplete, isRecommended, isNew, remaining, progress, statusLabel, statusTone }) => (
                                         <motion.div
                                             key={achievement.id}
-                                            className={`achievement-item ${isUnlocked ? 'unlocked' : isActive ? 'in-progress' : 'locked'} ${isNew ? 'new' : ''}`}
+                                            className={`achievement-item ${isUnlocked ? 'unlocked' : isActive ? 'in-progress' : 'locked'} ${isNew ? 'new' : ''} ${isNearComplete ? 'near-complete' : ''} ${isRecommended ? 'recommended' : ''}`}
                                             initial={isNew ? { scale: 1.05 } : {}}
                                             animate={isNew ? { scale: [1.05, 1] } : {}}
                                             transition={{ duration: 0.3 }}
@@ -353,6 +503,7 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                                                         <div className="achievement-card-meta">
                                                             {achievement.tier && <span className="achievement-tier">T{achievement.tier}</span>}
                                                             <span className={`achievement-status-pill ${statusTone}`}>{statusLabel}</span>
+                                                            {isNearComplete && <span className="achievement-status-pill near">근접</span>}
                                                             {isNew && <span className="achievement-status-pill new">NEW</span>}
                                                         </div>
                                                     </div>
@@ -369,12 +520,19 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                                                 {!isUnlocked && progress.target !== null ? (
                                                     <>
                                                         <div className="achievement-progress-row">
-                                                            <span>{formatMoney(progress.current)} / {formatMoney(progress.target)}</span>
+                                                            <span>{formatProgressValue(progress.current)} / {formatProgressValue(progress.target)}</span>
                                                             <span>{progress.percent}%</span>
                                                         </div>
                                                         <div className="mission-progress-bar">
                                                             <div className="mission-progress-fill" style={{ width: `${progress.percent}%` }} />
                                                         </div>
+                                                        {remaining !== null && (
+                                                            <div className="achievement-subnote">
+                                                                {remaining === 0
+                                                                    ? '조건 달성 완료. 잠시 후 자동 해금됩니다.'
+                                                                    : `${formatProgressValue(remaining)}만 더 채우면 다음 달성입니다.`}
+                                                            </div>
+                                                        )}
                                                     </>
                                                 ) : (
                                                     <div className="achievement-subnote">
