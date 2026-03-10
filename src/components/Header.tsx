@@ -51,35 +51,36 @@ export function Header() {
     return (
         <div className="header-container">
             <div className="header-card">
-                <div className="header-label">총 자산</div>
-                <AnimatePresence mode="popLayout">
-                    <motion.div
-                        key={totalMoney}
-                        initial={{ y: isIncreasing ? 10 : -10, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: isIncreasing ? -10 : 10, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                        className="header-value"
-                    >
-                        {formatMoney(totalMoney)}원
-                    </motion.div>
-                </AnimatePresence>
-            </div>
-
-            <div className="pps-card">
-                <div className="pps-info">
-                    <span className="pps-label">
-                        <FaChartLine style={{ display: 'inline', marginRight: 6 }} />
-                        {incomeInterval / 1000}초마다 수익
-                    </span>
-                    <motion.span
-                        key={`${incomePerTick}-${incomeMultiplierLevel}-${boostMultiplier}`}
-                        initial={{ scale: 1.2 }}
-                        animate={{ scale: 1 }}
-                        className="pps-value"
-                    >
-                        +{formatMoney(effectiveIncome)}원
-                    </motion.span>
+                <div className="header-main-row">
+                    <div className="header-main-stat">
+                        <div className="header-label">총 자산</div>
+                        <AnimatePresence mode="popLayout">
+                            <motion.div
+                                key={totalMoney}
+                                initial={{ y: isIncreasing ? 10 : -10, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: isIncreasing ? -10 : 10, opacity: 0 }}
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                className="header-value"
+                            >
+                                {formatMoney(totalMoney)}원
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                    <div className="header-side-stat">
+                        <span className="pps-label">
+                            <FaChartLine style={{ display: 'inline', marginRight: 6 }} />
+                            {incomeInterval / 1000}초 주기
+                        </span>
+                        <motion.span
+                            key={`${incomePerTick}-${incomeMultiplierLevel}-${boostMultiplier}`}
+                            initial={{ scale: 1.2 }}
+                            animate={{ scale: 1 }}
+                            className="pps-value"
+                        >
+                            +{formatMoney(effectiveIncome)}원
+                        </motion.span>
+                    </div>
                 </div>
                 <div className="income-progress-bar">
                     <div

@@ -1,7 +1,12 @@
 import { motion } from 'framer-motion';
 import { FaBullseye } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
-import { MISSIONS, getMissionMetricValueFromMetrics, type MissionCadence } from '../game/missions';
+import {
+    MISSIONS,
+    getActiveMissionClaimedIds,
+    getMissionMetricValueFromMetrics,
+    type MissionCadence,
+} from '../game/missions';
 import { useGameStore } from '../store/useGameStore';
 import { formatMoney } from '../utils/formatMoney';
 
@@ -29,6 +34,10 @@ const CADENCE_ORDER: MissionCadence[] = ['daily', 'weekly', 'milestone'];
 export function MissionModal({ onClose }: MissionModalProps) {
     const claimMissionReward = useGameStore((state) => state.claimMissionReward);
     const missionClaimedIds = useGameStore((state) => state.missionClaimedIds);
+    const dailyMissionClaimedIds = useGameStore((state) => state.dailyMissionClaimedIds);
+    const dailyMissionClaimedDayKey = useGameStore((state) => state.dailyMissionClaimedDayKey);
+    const weeklyMissionClaimedIds = useGameStore((state) => state.weeklyMissionClaimedIds);
+    const weeklyMissionClaimedWeekKey = useGameStore((state) => state.weeklyMissionClaimedWeekKey);
     const totalMergeCount = useGameStore((state) => state.totalMergeCount);
     const totalEarnedMoney = useGameStore((state) => state.totalEarnedMoney);
     const discoveredLevels = useGameStore((state) => state.discoveredLevels);
@@ -46,10 +55,19 @@ export function MissionModal({ onClose }: MissionModalProps) {
         returnRewardTotalClaimed,
         offlineRewardTotalClaimed,
     };
+    const activeMissionClaimedIds = new Set(
+        getActiveMissionClaimedIds({
+            dailyMissionClaimedIds,
+            dailyMissionClaimedDayKey,
+            weeklyMissionClaimedIds,
+            weeklyMissionClaimedWeekKey,
+            missionClaimedIds,
+        })
+    );
 
     const groupedMissions = CADENCE_ORDER.map((cadence) => {
         const missions = MISSIONS.filter((mission) => mission.cadence === cadence);
-        const completedCount = missions.filter((mission) => missionClaimedIds.includes(mission.id)).length;
+        const completedCount = missions.filter((mission) => activeMissionClaimedIds.has(mission.id)).length;
 
         return {
             cadence,
@@ -98,7 +116,7 @@ export function MissionModal({ onClose }: MissionModalProps) {
                             <p className="mission-track-subtitle">{CADENCE_META[cadence].subtitle}</p>
                             <div className="mission-list">
                                 {missions.map((mission) => {
-                                    const isClaimed = missionClaimedIds.includes(mission.id);
+                                    const isClaimed = activeMissionClaimedIds.has(mission.id);
                                     const progress = Math.max(
                                         0,
                                         Math.min(getMissionMetricValueFromMetrics(missionStateSnapshot, mission.conditionType), mission.target)

@@ -16,3 +16,4 @@ export * from './MissionModal';
 export * from './ReturnRewardModal';
 export * from './OfflineRewardModal';
 export * from './TimedRewardTray';
+export * from './RegionModal';

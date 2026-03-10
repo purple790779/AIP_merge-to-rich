@@ -14,6 +14,7 @@ import {
     getSpawnLevelUpgradeCost,
     getSpawnSpeedUpgradeCost,
 } from '../game/economy';
+import { getNextLockedRegion, getRegionById } from '../game/worlds';
 import { finalizeRewardAmount, getOfflineRewardPreview, getReturnRewardPreview } from '../game/rewards';
 import { createInitialGameState, STORE_KEY } from './gameState';
 import { hydrateGameStoreState, partializeGameStore } from './persistence';
@@ -21,6 +22,7 @@ import type { GameStore } from './types';
 import {
     getDailyRewardAmount,
     getKstDayKey,
+    getKstWeekKey,
     getNextDailyRewardStreak,
     isDailyRewardClaimAvailable,
 } from '../utils/dailyReward';
@@ -185,21 +187,13 @@ export const useGameStore = create<GameStore>()(
             },
 
             upgradeSpawnLevel: () => {
-                const { spawnLevel, totalMoney, coins } = get();
+                const { spawnLevel, totalMoney } = get();
                 const cost = getSpawnLevelUpgradeCost(spawnLevel);
                 if (totalMoney < cost || spawnLevel >= ECONOMY_LIMITS.maxSpawnLevel) return false;
 
-                const nextSpawnLevel = spawnLevel + 1;
-                const remainingCoins = coins.filter((coin) => coin.level >= nextSpawnLevel);
-                const refundedMoney = coins
-                    .filter((coin) => coin.level < nextSpawnLevel)
-                    .reduce((sum, coin) => sum + (COIN_LEVELS[coin.level]?.value ?? 0), 0);
-
                 set((state) => ({
-                    spawnLevel: nextSpawnLevel,
-                    coins: remainingCoins,
-                    totalMoney: state.totalMoney - cost + refundedMoney,
-                    incomePerTick: calculateIncomePerTick(remainingCoins),
+                    spawnLevel: state.spawnLevel + 1,
+                    totalMoney: state.totalMoney - cost,
                 }));
 
                 get().checkAchievements();
@@ -308,6 +302,33 @@ export const useGameStore = create<GameStore>()(
                 return true;
             },
 
+            unlockRegion: (regionId) => {
+                const { unlockedRegionIds, totalMoney } = get();
+                if (unlockedRegionIds.includes(regionId)) return false;
+
+                const nextRegion = getNextLockedRegion(unlockedRegionIds);
+                if (!nextRegion || nextRegion.id !== regionId) return false;
+                if (totalMoney < nextRegion.unlockCost) return false;
+
+                set((state) => ({
+                    unlockedRegionIds: [...state.unlockedRegionIds, regionId],
+                    currentRegionId: regionId,
+                    totalMoney: state.totalMoney - nextRegion.unlockCost,
+                }));
+
+                get().checkAchievements();
+                return true;
+            },
+
+            selectRegion: (regionId) => {
+                const { unlockedRegionIds, currentRegionId } = get();
+                if (!unlockedRegionIds.includes(regionId) || currentRegionId === regionId) return false;
+                if (!getRegionById(regionId)) return false;
+
+                set({ currentRegionId: regionId });
+                return true;
+            },
+
             checkAchievements: () => {
                 const state = get();
                 const newlyUnlocked = getNewlyUnlockedAchievementIds(state);
@@ -352,13 +373,57 @@ export const useGameStore = create<GameStore>()(
 
             claimMissionReward: (missionId) => {
                 const state = get();
-                if (state.missionClaimedIds.includes(missionId)) return false;
-
                 const mission = getMissionById(missionId);
                 if (!mission || !isMissionCompleted(state, mission)) return false;
 
+                const now = Date.now();
+                const currentDayKey = getKstDayKey(now);
+                const currentWeekKey = getKstWeekKey(now);
+
+                if (mission.cadence === 'daily') {
+                    const claimedIds =
+                        state.dailyMissionClaimedDayKey === currentDayKey ? state.dailyMissionClaimedIds : [];
+                    if (claimedIds.includes(missionId)) return false;
+                }
+
+                if (mission.cadence === 'weekly') {
+                    const claimedIds =
+                        state.weeklyMissionClaimedWeekKey === currentWeekKey ? state.weeklyMissionClaimedIds : [];
+                    if (claimedIds.includes(missionId)) return false;
+                }
+
+                if (mission.cadence === 'milestone' && state.missionClaimedIds.includes(missionId)) {
+                    return false;
+                }
+
                 set((currentState) => ({
-                    missionClaimedIds: [...currentState.missionClaimedIds, missionId],
+                    dailyMissionClaimedDayKey:
+                        mission.cadence === 'daily' ? currentDayKey : currentState.dailyMissionClaimedDayKey,
+                    dailyMissionClaimedIds:
+                        mission.cadence === 'daily'
+                            ? [
+                                ...(currentState.dailyMissionClaimedDayKey === currentDayKey
+                                    ? currentState.dailyMissionClaimedIds
+                                    : []),
+                                missionId,
+                            ]
+                            : currentState.dailyMissionClaimedIds,
+                    weeklyMissionClaimedWeekKey:
+                        mission.cadence === 'weekly' ? currentWeekKey : currentState.weeklyMissionClaimedWeekKey,
+                    weeklyMissionClaimedIds:
+                        mission.cadence === 'weekly'
+                            ? [
+                                ...(currentState.weeklyMissionClaimedWeekKey === currentWeekKey
+                                    ? currentState.weeklyMissionClaimedIds
+                                    : []),
+                                missionId,
+                            ]
+                            : currentState.weeklyMissionClaimedIds,
+                    missionClaimedIds:
+                        mission.cadence === 'milestone'
+                            ? [...currentState.missionClaimedIds, missionId]
+                            : currentState.missionClaimedIds,
+                    totalMissionRewardsClaimed: currentState.totalMissionRewardsClaimed + 1,
                     totalMoney: currentState.totalMoney + mission.reward,
                     totalEarnedMoney: currentState.totalEarnedMoney + mission.reward,
                 }));

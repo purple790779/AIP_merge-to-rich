@@ -1,7 +1,7 @@
 {
   "name": "merge-money-tycoon",
   "private": true,
-  "version": "1.5.2",
+  "version": "1.5.6",
   "homepage": "https://master-tak79.github.io/AIP_merge-to-rich",
   "engines": {
     "node": "22.x"

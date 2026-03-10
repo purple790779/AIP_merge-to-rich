@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaBullseye, FaCoins, FaGift, FaQuestion, FaTrophy } from 'react-icons/fa';
+import { FaBullseye, FaCoins, FaGift, FaMapMarkedAlt, FaQuestion, FaTrophy } from 'react-icons/fa';
 import { IoSettingsSharp } from 'react-icons/io5';
 import './index.css';
 import {
@@ -16,12 +16,14 @@ import {
     HelpModal,
     MissionModal,
     OfflineRewardModal,
+    RegionModal,
     ReturnRewardModal,
     SettingsModal,
     StoreModal,
     TimedRewardTray,
 } from './components';
 import { ACHIEVEMENTS } from './game/achievements';
+import { getRegionById, WORLD_REGIONS, getNextLockedRegion } from './game/worlds';
 import { useGameStore } from './store/useGameStore';
 import { getClaimableMissionCountByMetrics } from './game/missions';
 import { COIN_LEVELS, MAX_MONEY } from './types/game';
@@ -37,6 +39,7 @@ type ModalType =
     | 'mission'
     | 'returnReward'
     | 'offlineReward'
+    | 'region'
     | 'ending'
     | null;
 
@@ -55,6 +58,10 @@ function App() {
     const totalMoney = useGameStore((state) => state.totalMoney);
     const canClaimDailyRewardFromStore = useGameStore((state) => state.canClaimDailyReward);
     const missionClaimedIds = useGameStore((state) => state.missionClaimedIds);
+    const dailyMissionClaimedIds = useGameStore((state) => state.dailyMissionClaimedIds);
+    const dailyMissionClaimedDayKey = useGameStore((state) => state.dailyMissionClaimedDayKey);
+    const weeklyMissionClaimedIds = useGameStore((state) => state.weeklyMissionClaimedIds);
+    const weeklyMissionClaimedWeekKey = useGameStore((state) => state.weeklyMissionClaimedWeekKey);
     const totalMergeCount = useGameStore((state) => state.totalMergeCount);
     const totalEarnedMoney = useGameStore((state) => state.totalEarnedMoney);
     const discoveredLevels = useGameStore((state) => state.discoveredLevels);
@@ -67,6 +74,12 @@ function App() {
     const pendingOfflineReward = useGameStore((state) => state.pendingOfflineReward);
     const refreshTimedRewards = useGameStore((state) => state.refreshTimedRewards);
     const dismissTimedReward = useGameStore((state) => state.dismissTimedReward);
+    const currentRegionId = useGameStore((state) => state.currentRegionId);
+    const unlockedRegionIds = useGameStore((state) => state.unlockedRegionIds);
+    const nextLockedRegion = getNextLockedRegion(unlockedRegionIds);
+    const currentRegion = getRegionById(currentRegionId);
+    const showRegionStatus =
+        unlockedRegionIds.length > 1 || (nextLockedRegion ? totalMoney >= nextLockedRegion.unlockCost * 0.35 : false);
 
     const hasSeenEndingRef = useRef(false);
     const prevUnlockedAchievementsRef = useRef<string[]>(unlockedAchievements);
@@ -84,7 +97,13 @@ function App() {
             returnRewardTotalClaimed,
             offlineRewardTotalClaimed,
         },
-        missionClaimedIds
+        {
+            dailyMissionClaimedIds,
+            dailyMissionClaimedDayKey,
+            weeklyMissionClaimedIds,
+            weeklyMissionClaimedWeekKey,
+            missionClaimedIds,
+        }
     );
     const effectiveSuppressedTimedRewardModal =
         suppressedTimedRewardModal === 'returnReward' && !pendingReturnReward
@@ -229,15 +248,15 @@ function App() {
         }
 
         const store = useGameStore.getState();
-        const hasMaxMoneyAchievement = store.unlockedAchievements.includes('max_money');
+        const hasMaxMoneyAchievement = store.unlockedAchievements.includes('completionist_max_money');
 
         resetGame();
 
         if (hasMaxMoneyAchievement) {
             useGameStore.setState((state) => ({
-                unlockedAchievements: state.unlockedAchievements.includes('max_money')
+                unlockedAchievements: state.unlockedAchievements.includes('completionist_max_money')
                     ? state.unlockedAchievements
-                    : [...state.unlockedAchievements, 'max_money'],
+                    : [...state.unlockedAchievements, 'completionist_max_money'],
             }));
         }
 
@@ -330,6 +349,13 @@ function App() {
                         )}
                     </button>
                     <button
+                        className="title-icon-btn"
+                        onClick={() => setActiveModal('region')}
+                        aria-label="지역"
+                    >
+                        <FaMapMarkedAlt />
+                    </button>
+                    <button
                         className="title-icon-btn achievement-btn"
                         onClick={handleOpenAchievement}
                         aria-label="업적"
@@ -354,6 +380,23 @@ function App() {
             </div>
 
             <Header />
+
+            {showRegionStatus && (
+                <button
+                    type="button"
+                    className="region-status-pill"
+                    onClick={() => setActiveModal('region')}
+                >
+                    <span className="region-status-pill-title">
+                        <FaMapMarkedAlt />
+                        <strong>{currentRegion.name}</strong>
+                    </span>
+                    <span className="region-status-pill-copy">
+                        {unlockedRegionIds.length}/{WORLD_REGIONS.length} 해금
+                        {nextLockedRegion ? ` · 다음 ${nextLockedRegion.name}` : ' · 전체 완료'}
+                    </span>
+                </button>
+            )}
 
             <TimedRewardTray
                 pendingReturnReward={pendingReturnReward}
@@ -383,6 +426,7 @@ function App() {
                 {activeModal === 'achievement' && <AchievementModal onClose={() => setActiveModal(null)} />}
                 {activeModal === 'dailyReward' && <DailyRewardModal onClose={() => setActiveModal(null)} />}
                 {activeModal === 'mission' && <MissionModal onClose={() => setActiveModal(null)} />}
+                {activeModal === 'region' && <RegionModal onClose={() => setActiveModal(null)} />}
                 {activeModal === 'returnReward' && (
                     <ReturnRewardModal
                         onClose={() => closeTimedRewardModal('returnReward')}

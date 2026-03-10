@@ -1,4 +1,5 @@
 import type { BoostType, GameState, RewardSource } from '../types/game';
+import type { WorldRegionId } from '../game/worlds';
 
 export interface GameStoreState extends GameState {
     lastDiscoveredLevel: number | null;
@@ -19,6 +20,8 @@ export interface GameStoreActions {
     unlockGemSystem: () => boolean;
     upgradeIncomeMultiplier: () => boolean;
     upgradeAutoMergeSpeed: () => boolean;
+    unlockRegion: (regionId: WorldRegionId) => boolean;
+    selectRegion: (regionId: WorldRegionId) => boolean;
     checkAchievements: () => string[];
     claimDailyReward: () => boolean;
     canClaimDailyReward: () => boolean;

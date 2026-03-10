@@ -18,28 +18,42 @@ interface AchievementModalProps {
     onClose: () => void;
 }
 
+type AchievementDetailFilter = 'all' | 'active' | 'locked' | 'done';
+
 export function AchievementModal({ onClose }: AchievementModalProps) {
-    const checkAchievements = useGameStore((state) => state.checkAchievements);
     const gameState = useGameStore((state) => state);
     const [newlyUnlocked, setNewlyUnlocked] = useState<string[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<AchievementCategory | null>(null);
+    const [detailFilter, setDetailFilter] = useState<AchievementDetailFilter>('all');
     const contentRef = useRef<HTMLDivElement | null>(null);
+    const previousUnlockedAchievementsRef = useRef<string[]>(gameState.unlockedAchievements);
 
     useEffect(() => {
-        const newAchievements = checkAchievements();
+        const previousUnlocked = previousUnlockedAchievementsRef.current;
+        const newAchievements = gameState.unlockedAchievements.filter((id) => !previousUnlocked.includes(id));
+        previousUnlockedAchievementsRef.current = gameState.unlockedAchievements;
+
         if (newAchievements.length === 0) return;
 
+        setNewlyUnlocked(newAchievements);
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100]);
+
         const timerId = window.setTimeout(() => {
-            setNewlyUnlocked(newAchievements);
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100]);
-        }, 0);
+            setNewlyUnlocked((current) =>
+                current.filter((achievementId) => !newAchievements.includes(achievementId))
+            );
+        }, 3000);
 
         return () => window.clearTimeout(timerId);
-    }, [checkAchievements]);
+    }, [gameState.unlockedAchievements]);
 
     useEffect(() => {
         if (!contentRef.current) return;
         contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [selectedCategory]);
+
+    useEffect(() => {
+        setDetailFilter('all');
     }, [selectedCategory]);
 
     const unlockedCount = gameState.unlockedAchievements.length;
@@ -71,6 +85,32 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
     const selectedPercent = selectedSummary && selectedSummary.totalCount > 0
         ? Math.floor((selectedSummary.unlockedCount / selectedSummary.totalCount) * 100)
         : 0;
+    const selectedAchievementItems = useMemo(() => {
+        if (!selectedGroup) return [];
+
+        return selectedGroup.items.map((achievement) => {
+            const isUnlocked = unlockedSet.has(achievement.id);
+            const progress = getAchievementProgress(gameState, achievement);
+            const isActive = !isUnlocked && progress.target !== null && progress.current > 0;
+
+            return {
+                achievement,
+                isUnlocked,
+                isActive,
+                progress,
+                isNew: newlyUnlocked.includes(achievement.id),
+            };
+        });
+    }, [gameState, newlyUnlocked, selectedGroup, unlockedSet]);
+    const filteredAchievements = useMemo(() => {
+        if (detailFilter === 'all') return selectedAchievementItems;
+        if (detailFilter === 'active') return selectedAchievementItems.filter((item) => item.isActive);
+        if (detailFilter === 'locked') return selectedAchievementItems.filter((item) => !item.isUnlocked && !item.isActive);
+        return selectedAchievementItems.filter((item) => item.isUnlocked);
+    }, [detailFilter, selectedAchievementItems]);
+    const activeCount = selectedAchievementItems.filter((item) => item.isActive).length;
+    const lockedCount = selectedAchievementItems.filter((item) => !item.isUnlocked && !item.isActive).length;
+    const doneCount = selectedAchievementItems.filter((item) => item.isUnlocked).length;
 
     return (
         <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
@@ -206,10 +246,48 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                                 </div>
 
                                 <div className="achievement-list">
-                                    {selectedGroup.items.map((achievement) => {
-                                        const isUnlocked = unlockedSet.has(achievement.id);
-                                        const isNew = newlyUnlocked.includes(achievement.id);
-                                        const progress = getAchievementProgress(gameState, achievement);
+                                    <div className="achievement-detail-filters">
+                                        <button
+                                            type="button"
+                                            className={`achievement-filter-pill ${detailFilter === 'all' ? 'active' : ''}`}
+                                            onClick={() => setDetailFilter('all')}
+                                        >
+                                            전체 {selectedAchievementItems.length}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`achievement-filter-pill ${detailFilter === 'active' ? 'active' : ''}`}
+                                            onClick={() => setDetailFilter('active')}
+                                        >
+                                            진행 중 {activeCount}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`achievement-filter-pill ${detailFilter === 'done' ? 'active' : ''}`}
+                                            onClick={() => setDetailFilter('done')}
+                                        >
+                                            완료 {doneCount}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`achievement-filter-pill ${detailFilter === 'locked' ? 'active' : ''}`}
+                                            onClick={() => setDetailFilter('locked')}
+                                        >
+                                            미진행 {lockedCount}
+                                        </button>
+                                    </div>
+
+                                    <p className="achievement-filter-note">
+                                        {detailFilter === 'all'
+                                            ? '전체 목록을 보고 있습니다.'
+                                            : detailFilter === 'active'
+                                                ? '현재 진행도가 있는 업적만 표시합니다.'
+                                                : detailFilter === 'done'
+                                                    ? '완료한 업적만 표시합니다.'
+                                                    : '아직 시작하지 않은 업적만 표시합니다.'}
+                                    </p>
+
+                                    {filteredAchievements.map(({ achievement, isUnlocked, isNew, progress }) => {
 
                                         return (
                                             <motion.div
@@ -257,6 +335,11 @@ export function AchievementModal({ onClose }: AchievementModalProps) {
                                             </motion.div>
                                         );
                                     })}
+                                    {filteredAchievements.length === 0 && (
+                                        <div className="achievement-empty-state">
+                                            선택한 필터에 표시할 업적이 없습니다.
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         )}

@@ -1,3 +1,5 @@
+import type { WorldRegionId } from '../game/worlds';
+
 export interface Coin {
     id: string;
     level: number;
@@ -97,6 +99,8 @@ export interface GameState {
     discoveredLevels: number[];
     incomeMultiplierLevel: number;
     autoMergeInterval: number;
+    unlockedRegionIds: WorldRegionId[];
+    currentRegionId: WorldRegionId;
     dailyRewardLastClaimAt: number | null;
     dailyRewardLastClaimDayKey: string | null;
     dailyRewardStreak: number;
@@ -111,7 +115,12 @@ export interface GameState {
     offlineRewardLastClaimAt: number | null;
     offlineRewardTotalClaimed: number;
     pendingOfflineReward: TimedRewardPreview | null;
+    dailyMissionClaimedIds: string[];
+    dailyMissionClaimedDayKey: string | null;
+    weeklyMissionClaimedIds: string[];
+    weeklyMissionClaimedWeekKey: string | null;
     missionClaimedIds: string[];
+    totalMissionRewardsClaimed: number;
 }
 
 export interface Achievement {

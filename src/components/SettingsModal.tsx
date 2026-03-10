@@ -14,14 +14,14 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
     const handleReset = () => {
         const store = useGameStore.getState();
-        const hasMaxMoneyAchievement = store.unlockedAchievements.includes('max_money');
+        const hasMaxMoneyAchievement = store.unlockedAchievements.includes('completionist_max_money');
         resetGame();
 
         if (hasMaxMoneyAchievement) {
             useGameStore.setState((state) => ({
-                unlockedAchievements: state.unlockedAchievements.includes('max_money')
+                unlockedAchievements: state.unlockedAchievements.includes('completionist_max_money')
                     ? state.unlockedAchievements
-                    : [...state.unlockedAchievements, 'max_money'],
+                    : [...state.unlockedAchievements, 'completionist_max_money'],
             }));
         }
 

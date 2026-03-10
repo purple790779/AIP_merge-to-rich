@@ -11,16 +11,20 @@
   }
 
   .header-card {
-    padding: 10px 16px;
+    padding: 10px 12px 8px;
   }
 
   .header-value {
     font-size: 24px;
   }
 
-  .pps-card {
-    padding: 12px 16px;
-    gap: 8px;
+  .region-status-pill {
+    padding: 7px 10px;
+    min-height: 36px;
+  }
+
+  .region-status-pill-copy {
+    font-size: 10px;
   }
 
   .board-container {
@@ -63,12 +67,20 @@
   }
 
   .header-value {
-    font-size: 22px;
+    font-size: 21px;
   }
 
   .pps-label,
   .pps-value {
-    font-size: 13px;
+    font-size: 12px;
+  }
+
+  .timed-reward-tray {
+    padding: 9px 10px;
+  }
+
+  .timed-reward-pill {
+    padding: 8px 9px;
   }
 
   .boost-row {
@@ -119,5 +131,25 @@
   .game-title span {
     font-size: 19px;
     line-height: 1.02;
+  }
+
+  .region-status-pill {
+    padding: 7px 9px;
+  }
+
+  .region-status-pill-copy,
+  .menu-button {
+    font-size: 11px;
+  }
+
+  .menu-button {
+    padding: 9px 10px;
+    gap: 6px;
+  }
+
+  .menu-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
   }
 }

@@ -1,4 +1,5 @@
 import { MAX_MONEY, TOTAL_CELLS, type Achievement, type AchievementCategory, type AchievementMetricType, type AchievementTier, type GameState } from '../types/game';
+import { scaleAchievementReward } from './economy';
 
 const TIER_POINTS: Record<AchievementTier, number> = {
     1: 10,
@@ -140,7 +141,7 @@ function getAchievementMetricValue(state: GameState, metricType: AchievementMetr
         case 'gem_system_unlocked':
             return state.gemSystemUnlocked ? 1 : 0;
         case 'mission_claimed_count':
-            return state.missionClaimedIds.length;
+            return state.totalMissionRewardsClaimed;
         case 'all_upgrades_maxed':
             return (
                 state.spawnLevel >= 11 &&
@@ -172,7 +173,7 @@ function createMetricAchievement(input: {
     return {
         ...input,
         points: TIER_POINTS[input.tier],
-        reward: input.reward + TIER_BONUS_REWARD[input.tier],
+        reward: scaleAchievementReward(input.reward + TIER_BONUS_REWARD[input.tier]),
         condition: (state) => getAchievementMetricValue(state, input.metricType) >= input.target,
     };
 }

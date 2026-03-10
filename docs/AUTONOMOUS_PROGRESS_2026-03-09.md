@@ -69,3 +69,15 @@
 - 변경: 업적 상세 화면의 레이어/스크롤 충돌을 줄이기 위해 `achievement-detail-header`의 sticky+blur 조합을 제거하고, 스크롤 컨테이너를 안정화했습니다. 상세 리스트 카드에 기본 테두리/배경을 명시하고 잠금 카드의 전체 opacity 처리 대신 텍스트 대비 유지 스타일로 교체해 고스트/반투명 배경처럼 보이던 현상을 완화했습니다.
 - 변경: 업적 리스트 카드의 터치 입력 안정화를 위해 카드 pointer/touch 동작을 명시해 리스트 전 구간에서 터치 반응 일관성을 개선했습니다.
 - 검증: `npm run lint` 통과, `npm run build` 통과.
+
+## 2026-03-09 23:11 KST
+- 변경: 상점/경제 1차 리밸런싱을 반영했습니다. `src/game/economy.ts`에서 수익 주기 단축을 `250ms` 체감형으로 조정하고, 머지 보너스 기대값/비용 곡선을 재조정했으며, 미션/업적 현금 보상 스케일링을 중앙화했습니다.
+- 변경: `upgradeSpawnLevel`이 기존 코인을 삭제/환급하지 않도록 바꿔 플레이타임 압축을 줄였습니다. `StoreModal`은 `핵심 성장 / 부스트 튜닝 / 장기 해금` 구조로 재정렬하고, 다음 투자 효율과 다음 지역 목표를 보여주도록 보강했습니다.
+- 문서: `README`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/PHASE1_TASKS.md`, `docs/TEMPLATE_GUIDE.md`, `docs/CHANGELOG.md`, `docs/NEXT_SESSION_HANDOFF_2026-03-08.md`를 `v1.5.5` 기준으로 동기화했습니다.
+- 검증: `eslint` 통과, `tsc -b` 통과, `vite build` 통과.
+
+## 2026-03-09 23:47 KST
+- 변경: 지역 선택 / 해금 UI 1차를 반영했습니다. 메인 화면에 현재 지역 배너를 추가하고, `RegionModal`에서 `시티 뱅크 -> 골드 익스체인지 -> 젬 마켓 -> 스페이스 볼트` 순서의 지역을 확인 / 해금 / 선택할 수 있게 했습니다.
+- 변경: store 액션에 `unlockRegion`, `selectRegion`을 추가했고, 하단 메뉴에 `지역` 버튼을 연결했습니다. 현재는 지역 메타/UI만 반영된 상태이며 실제 지역별 보드와 생산 라인은 아직 공용 구조입니다.
+- 문서: `README`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/PHASE1_TASKS.md`, `docs/WORLD_EXPANSION_PLAN.md`, `docs/CHANGELOG.md`, `docs/NEXT_SESSION_HANDOFF_2026-03-08.md`를 `v1.5.6` 기준으로 동기화했습니다.
+- 검증: `eslint` 통과, `tsc -b` 통과, `vite build` 통과.

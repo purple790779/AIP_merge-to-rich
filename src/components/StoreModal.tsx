@@ -24,13 +24,18 @@ import {
     getIncomeMultiplierUpgradeCost,
     getIncomeSpeedUpgradeCost,
     getIncomeSpeedUpgradeLevel,
+    getMergeBonusAverageStepPercent,
     getMergeBonusAveragePercent,
     getMergeBonusPercent,
     getMergeBonusUpgradeCost,
+    getNextAutoMergeSpeedGainPercent,
+    getNextIncomeSpeedGainPercent,
+    getNextSpawnSpeedGainPercent,
     getSpawnLevelUpgradeCost,
     getSpawnSpeedUpgradeCost,
     getSpawnSpeedUpgradeLevel,
 } from '../game/economy';
+import { getNextLockedRegion } from '../game/worlds';
 
 interface StoreModalProps {
     onClose: () => void;
@@ -44,8 +49,9 @@ interface StoreUpgradeCard {
     icon: ReactNode;
     tone: 'blue' | 'amber' | 'emerald' | 'violet' | 'cyan' | 'rose';
     levelLabel: string;
-    chipPrimary: string;
-    chipSecondary: string;
+    headlineMetric: string;
+    detailMetric: string;
+    roleLabel: string;
     progressPercent: number;
     cost: number;
     canAfford: boolean;
@@ -69,6 +75,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
     const gemSystemUnlocked = useGameStore((state) => state.gemSystemUnlocked);
     const incomeMultiplierLevel = useGameStore((state) => state.incomeMultiplierLevel) ?? 0;
     const autoMergeInterval = useGameStore((state) => state.autoMergeInterval) ?? 5000;
+    const unlockedRegionIds = useGameStore((state) => state.unlockedRegionIds);
 
     const upgradeSpawnLevel = useGameStore((state) => state.upgradeSpawnLevel);
     const upgradeSpeed = useGameStore((state) => state.upgradeSpeed);
@@ -91,6 +98,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
     const mergeBonusCost = getMergeBonusUpgradeCost(mergeBonusLevel);
     const mergeBonusPercent = getMergeBonusPercent(mergeBonusLevel);
     const mergeBonusAveragePercent = getMergeBonusAveragePercent(mergeBonusLevel);
+    const mergeBonusAverageStep = getMergeBonusAverageStepPercent(mergeBonusLevel);
     const isMaxMergeBonus = mergeBonusLevel >= ECONOMY_LIMITS.maxMergeBonusLevel;
 
     const gemCost = ECONOMY_LIMITS.gemUnlockCost;
@@ -106,6 +114,7 @@ export function StoreModal({ onClose }: StoreModalProps) {
     const maxSpawnSpeedLevel = getSpawnSpeedUpgradeLevel(ECONOMY_LIMITS.minSpawnCooldown);
     const maxIncomeSpeedLevel = getIncomeSpeedUpgradeLevel(ECONOMY_LIMITS.minIncomeInterval);
     const maxAutoMergeLevel = getAutoMergeUpgradeLevel(ECONOMY_LIMITS.minAutoMergeInterval);
+    const nextRegion = getNextLockedRegion(unlockedRegionIds);
 
     const handleUpgrade = (upgradeFn: () => boolean, isSpecial = false) => () => {
         if (upgradeFn()) {
@@ -121,12 +130,13 @@ export function StoreModal({ onClose }: StoreModalProps) {
             id: 'spawn-level',
             section: 'core',
             title: '시작 레벨',
-            description: '생성 코인의 시작 레벨을 높이고 하위 코인은 자동 환급됩니다.',
+            description: '새로 생성되는 코인의 시작 레벨을 높입니다.',
             icon: <span>{COIN_LEVELS[spawnLevel]?.emoji ?? '🪙'}</span>,
             tone: 'blue',
             levelLabel: `Lv.${spawnLevel}`,
-            chipPrimary: `현재 ${COIN_LEVELS[spawnLevel]?.emoji ?? '🪙'}`,
-            chipSecondary: `다음 ${COIN_LEVELS[spawnLevel + 1]?.emoji ?? '🏁'}`,
+            headlineMetric: `현재 ${COIN_LEVELS[spawnLevel]?.name ?? '기본 코인'}`,
+            detailMetric: `다음 ${COIN_LEVELS[spawnLevel + 1]?.name ?? '최종 단계'}`,
+            roleLabel: '핵심',
             progressPercent: clampPercent(((spawnLevel - 1) / Math.max(1, ECONOMY_LIMITS.maxSpawnLevel - 1)) * 100),
             cost: levelCost,
             canAfford: totalMoney >= levelCost,
@@ -139,12 +149,13 @@ export function StoreModal({ onClose }: StoreModalProps) {
             id: 'merge-bonus',
             section: 'core',
             title: '머지 보너스',
-            description: '10% 확률 보너스 크기를 키워 합병 기대 수익을 높입니다.',
+            description: '합병 시 추가 지급 기대값을 높입니다.',
             icon: <FaPercentage />,
             tone: 'amber',
             levelLabel: `Lv.${mergeBonusLevel}`,
-            chipPrimary: `보너스 ${mergeBonusPercent.toFixed(1)}%`,
-            chipSecondary: `기대값 +${mergeBonusAveragePercent.toFixed(1)}%`,
+            headlineMetric: `발동 20% · 보너스 ${mergeBonusPercent.toFixed(1)}%`,
+            detailMetric: `평균 +${mergeBonusAveragePercent.toFixed(1)}% → +${(mergeBonusAveragePercent + mergeBonusAverageStep).toFixed(1)}%`,
+            roleLabel: '핵심',
             progressPercent: clampPercent((mergeBonusLevel / ECONOMY_LIMITS.maxMergeBonusLevel) * 100),
             cost: mergeBonusCost,
             canAfford: totalMoney >= mergeBonusCost,
@@ -157,12 +168,15 @@ export function StoreModal({ onClose }: StoreModalProps) {
             id: 'income-speed',
             section: 'core',
             title: '수익 주기',
-            description: '수익 지급 간격을 줄여 분당 순수익을 안정적으로 높입니다.',
+            description: '수익 지급 간격을 줄여 현금 흐름을 높입니다.',
             icon: <FaChartLine />,
             tone: 'emerald',
             levelLabel: `Lv.${incomeLevel}`,
-            chipPrimary: `현재 ${Math.max(1, incomeInterval / 1000).toFixed(1)}초`,
-            chipSecondary: `최소 ${(ECONOMY_LIMITS.minIncomeInterval / 1000).toFixed(1)}초`,
+            headlineMetric: `현재 ${Math.max(1, incomeInterval / 1000).toFixed(1)}초`,
+            detailMetric: isMaxIncome
+                ? `최소 ${(ECONOMY_LIMITS.minIncomeInterval / 1000).toFixed(1)}초`
+                : `다음 투자 효율 +${getNextIncomeSpeedGainPercent(incomeInterval).toFixed(1)}%`,
+            roleLabel: '핵심',
             progressPercent: clampPercent((incomeLevel / maxIncomeSpeedLevel) * 100),
             cost: incomeCost,
             canAfford: totalMoney >= incomeCost,
@@ -175,12 +189,13 @@ export function StoreModal({ onClose }: StoreModalProps) {
             id: 'income-multiplier',
             section: 'automation',
             title: '수익 배율',
-            description: '영구 배율을 높여 모든 수익 소스에 적용되는 기본 효율을 강화합니다.',
+            description: '모든 기본 수익에 적용되는 영구 배율입니다.',
             icon: <FaTimes />,
             tone: 'violet',
             levelLabel: `Lv.${incomeMultiplierLevel}`,
-            chipPrimary: `현재 ${currentMultiplier.toFixed(1)}x`,
-            chipSecondary: `최대 ${getIncomeMultiplier(ECONOMY_LIMITS.maxIncomeMultiplierLevel).toFixed(1)}x`,
+            headlineMetric: `현재 ${currentMultiplier.toFixed(1)}x`,
+            detailMetric: `다음 ${getIncomeMultiplier(incomeMultiplierLevel + 1).toFixed(1)}x`,
+            roleLabel: '장기',
             progressPercent: clampPercent((incomeMultiplierLevel / ECONOMY_LIMITS.maxIncomeMultiplierLevel) * 100),
             cost: incomeMultiplierCost,
             canAfford: totalMoney >= incomeMultiplierCost,
@@ -192,13 +207,16 @@ export function StoreModal({ onClose }: StoreModalProps) {
         {
             id: 'spawn-speed',
             section: 'automation',
-            title: '자동 생산 속도',
-            description: '자동 생산 부스트 중 생성 간격을 줄여 보드 충전 속도를 끌어올립니다.',
+            title: '부스트 생산 속도',
+            description: '자동 생산 부스트 중 생산 속도를 높입니다.',
             icon: <FaBolt />,
             tone: 'cyan',
             levelLabel: `Lv.${speedLevel}`,
-            chipPrimary: `현재 ${Math.max(0.2, spawnCooldown / 1000).toFixed(1)}초`,
-            chipSecondary: `최소 ${(ECONOMY_LIMITS.minSpawnCooldown / 1000).toFixed(1)}초`,
+            headlineMetric: `현재 ${Math.max(0.2, spawnCooldown / 1000).toFixed(1)}초`,
+            detailMetric: isMaxSpeed
+                ? `최소 ${(ECONOMY_LIMITS.minSpawnCooldown / 1000).toFixed(1)}초`
+                : `부스트 중 생산량 +${getNextSpawnSpeedGainPercent(spawnCooldown).toFixed(1)}%`,
+            roleLabel: '보조',
             progressPercent: clampPercent((speedLevel / maxSpawnSpeedLevel) * 100),
             cost: speedCost,
             canAfford: totalMoney >= speedCost,
@@ -210,13 +228,16 @@ export function StoreModal({ onClose }: StoreModalProps) {
         {
             id: 'auto-merge-speed',
             section: 'automation',
-            title: '자동 병합 속도',
-            description: '자동 병합 부스트 중 병합 주기를 단축해 보드 정리 효율을 높입니다.',
+            title: '부스트 병합 속도',
+            description: '자동 병합 부스트 중 처리 속도를 높입니다.',
             icon: <FaRobot />,
             tone: 'amber',
             levelLabel: `Lv.${autoMergeLevel}`,
-            chipPrimary: `현재 ${Math.max(0.2, autoMergeInterval / 1000).toFixed(1)}초`,
-            chipSecondary: `최소 ${(ECONOMY_LIMITS.minAutoMergeInterval / 1000).toFixed(1)}초`,
+            headlineMetric: `현재 ${Math.max(0.2, autoMergeInterval / 1000).toFixed(1)}초`,
+            detailMetric: isMaxAutoMerge
+                ? `최소 ${(ECONOMY_LIMITS.minAutoMergeInterval / 1000).toFixed(1)}초`
+                : `부스트 중 처리량 +${getNextAutoMergeSpeedGainPercent(autoMergeInterval).toFixed(1)}%`,
+            roleLabel: '보조',
             progressPercent: clampPercent((autoMergeLevel / maxAutoMergeLevel) * 100),
             cost: autoMergeCost,
             canAfford: totalMoney >= autoMergeCost,
@@ -230,13 +251,14 @@ export function StoreModal({ onClose }: StoreModalProps) {
             section: 'special',
             title: '보석 시스템',
             description: gemSystemUnlocked
-                ? '해금 완료. 토스 빌딩 이후 보석 단계로 확장 가능합니다.'
-                : '토스 빌딩 이후 보석 단계로 성장 축을 확장합니다.',
+                ? '해금 완료. 보석 성장 라인이 열렸습니다.'
+                : '토스 빌딩 이후 보석 단계로 이어지는 장기 라인을 엽니다.',
             icon: <FaGem />,
             tone: 'rose',
             levelLabel: gemSystemUnlocked ? '해금 완료' : '특수 해금',
-            chipPrimary: gemSystemUnlocked ? '보석 라인 활성화' : '신규 라인 잠김',
-            chipSecondary: `요구 자산 ${formatMoney(gemCost)}원`,
+            headlineMetric: gemSystemUnlocked ? '보석 라인 활성화' : '신규 라인 잠김',
+            detailMetric: `요구 자산 ${formatMoney(gemCost)}원`,
+            roleLabel: '해금',
             progressPercent: gemSystemUnlocked ? 100 : 0,
             cost: gemCost,
             canAfford: totalMoney >= gemCost,
@@ -248,9 +270,16 @@ export function StoreModal({ onClose }: StoreModalProps) {
         },
     ];
 
-    const coreCards = cards.filter((card) => card.section === 'core');
-    const automationCards = cards.filter((card) => card.section === 'automation');
-    const specialCards = cards.filter((card) => card.section === 'special');
+    const sortCardsByActionability = (cardList: StoreUpgradeCard[]) => {
+        return [...cardList].sort((a, b) => {
+            const scoreA = a.isMax ? 2 : a.canAfford ? 0 : 1;
+            const scoreB = b.isMax ? 2 : b.canAfford ? 0 : 1;
+            return scoreA - scoreB;
+        });
+    };
+    const coreCards = sortCardsByActionability(cards.filter((card) => card.section === 'core'));
+    const automationCards = sortCardsByActionability(cards.filter((card) => card.section === 'automation'));
+    const specialCards = sortCardsByActionability(cards.filter((card) => card.section === 'special'));
 
     const affordableCount = cards.filter((card) => !card.isMax && card.canAfford).length;
     const maxedCount = cards.filter((card) => card.isMax).length;
@@ -273,12 +302,15 @@ export function StoreModal({ onClose }: StoreModalProps) {
                         <p>{card.description}</p>
                     </div>
                 </div>
-                <div className="store-upgrade-level">{card.levelLabel}</div>
+                <div className="store-upgrade-level-group">
+                    <div className="store-upgrade-role">{card.roleLabel}</div>
+                    <div className="store-upgrade-level">{card.levelLabel}</div>
+                </div>
             </div>
 
-            <div className="store-chip-row">
-                <span className="store-chip">{card.chipPrimary}</span>
-                <span className="store-chip">{card.chipSecondary}</span>
+            <div className="store-metric-block">
+                <strong>{card.headlineMetric}</strong>
+                <span>{card.detailMetric}</span>
             </div>
 
             <div className="store-upgrade-progress">
@@ -330,11 +362,18 @@ export function StoreModal({ onClose }: StoreModalProps) {
                     </div>
                 </div>
 
+                {nextRegion && (
+                    <div className="store-footer-note" style={{ marginTop: '14px' }}>
+                        <FaGem />
+                        <span>다음 지역 목표: {nextRegion.name} · 해금 기준 {formatMoney(nextRegion.unlockCost)}원</span>
+                    </div>
+                )}
+
                 <div className="modal-content scrollable store-content">
                     <section className="store-section">
                         <header className="store-section-header">
                             <h3>핵심 성장</h3>
-                            <span>경제 성장률을 직접 끌어올리는 필수 업그레이드</span>
+                            <span>현금 흐름과 시작 레벨을 직접 올리는 핵심 투자</span>
                         </header>
                         <div className="store-card-grid">
                             {coreCards.map(renderCard)}
@@ -343,8 +382,8 @@ export function StoreModal({ onClose }: StoreModalProps) {
 
                     <section className="store-section">
                         <header className="store-section-header">
-                            <h3>자동화 최적화</h3>
-                            <span>부스트 타이밍의 효율을 극대화하는 자동화 라인</span>
+                            <h3>부스트 튜닝</h3>
+                            <span>광고형 무료 부스트를 쓸 때만 적용되는 보조 튜닝 라인</span>
                         </header>
                         <div className="store-card-grid">
                             {automationCards.map(renderCard)}
@@ -353,8 +392,8 @@ export function StoreModal({ onClose }: StoreModalProps) {
 
                     <section className="store-section">
                         <header className="store-section-header">
-                            <h3>특수 해금</h3>
-                            <span>중후반 구간 확장을 여는 고가 투자</span>
+                            <h3>장기 해금</h3>
+                            <span>다음 구간과 다음 자산 축을 여는 고가 투자</span>
                         </header>
                         <div className="store-card-grid">
                             {specialCards.map(renderCard)}

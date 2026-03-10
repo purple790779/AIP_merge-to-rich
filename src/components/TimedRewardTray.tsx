@@ -24,7 +24,7 @@ export function TimedRewardTray({
             <div className="timed-reward-tray-header">
                 <div>
                     <p className="timed-reward-tray-eyebrow">보류 중인 보상</p>
-                    <h2 className="timed-reward-tray-title">나중에 받기로 닫은 보상을 여기서 다시 열 수 있습니다.</h2>
+                    <h2 className="timed-reward-tray-title">닫아둔 보상을 다시 받으세요.</h2>
                 </div>
                 <span className="timed-reward-tray-count">{pendingCount}개</span>
             </div>

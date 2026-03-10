@@ -1,4 +1,5 @@
 import { calculateIncomePerTick } from '../game/coins';
+import { getMissionById } from '../game/missions';
 import { getKstDayKey } from '../utils/dailyReward';
 import type { GameStore, GameStoreState } from './types';
 
@@ -19,6 +20,8 @@ export function partializeGameStore(state: GameStore) {
         discoveredLevels: state.discoveredLevels,
         incomeMultiplierLevel: state.incomeMultiplierLevel,
         autoMergeInterval: state.autoMergeInterval,
+        unlockedRegionIds: state.unlockedRegionIds,
+        currentRegionId: state.currentRegionId,
         dailyRewardLastClaimAt: state.dailyRewardLastClaimAt,
         dailyRewardLastClaimDayKey: state.dailyRewardLastClaimDayKey,
         dailyRewardStreak: state.dailyRewardStreak,
@@ -33,7 +36,12 @@ export function partializeGameStore(state: GameStore) {
         offlineRewardLastClaimAt: state.offlineRewardLastClaimAt,
         offlineRewardTotalClaimed: state.offlineRewardTotalClaimed,
         pendingOfflineReward: state.pendingOfflineReward,
+        dailyMissionClaimedIds: state.dailyMissionClaimedIds,
+        dailyMissionClaimedDayKey: state.dailyMissionClaimedDayKey,
+        weeklyMissionClaimedIds: state.weeklyMissionClaimedIds,
+        weeklyMissionClaimedWeekKey: state.weeklyMissionClaimedWeekKey,
         missionClaimedIds: state.missionClaimedIds,
+        totalMissionRewardsClaimed: state.totalMissionRewardsClaimed,
     };
 }
 
@@ -45,6 +53,8 @@ export function hydrateGameStoreState(state: GameStoreState): void {
     state.lastDiscoveredLevel = null;
     state.incomeMultiplierLevel = state.incomeMultiplierLevel ?? 0;
     state.autoMergeInterval = state.autoMergeInterval ?? 5000;
+    state.unlockedRegionIds = state.unlockedRegionIds?.length ? state.unlockedRegionIds : ['city_bank'];
+    state.currentRegionId = state.currentRegionId ?? state.unlockedRegionIds[0] ?? 'city_bank';
     state.totalEarnedMoney = state.totalEarnedMoney ?? 0;
     state.dailyRewardLastClaimAt = state.dailyRewardLastClaimAt ?? null;
     state.dailyRewardLastClaimDayKey = state.dailyRewardLastClaimDayKey ?? null;
@@ -62,5 +72,20 @@ export function hydrateGameStoreState(state: GameStoreState): void {
     state.offlineRewardTotalClaimed = state.offlineRewardTotalClaimed ?? 0;
     state.pendingOfflineReward =
         state.pendingOfflineReward && state.pendingOfflineReward.amount > 0 ? state.pendingOfflineReward : null;
+    const legacyMissionClaimedIds = state.missionClaimedIds ?? [];
+    const hasMissionCadenceBuckets =
+        Array.isArray(state.dailyMissionClaimedIds) || Array.isArray(state.weeklyMissionClaimedIds);
+
+    state.dailyMissionClaimedIds = state.dailyMissionClaimedIds ?? [];
+    state.dailyMissionClaimedDayKey = state.dailyMissionClaimedDayKey ?? null;
+    state.weeklyMissionClaimedIds = state.weeklyMissionClaimedIds ?? [];
+    state.weeklyMissionClaimedWeekKey = state.weeklyMissionClaimedWeekKey ?? null;
     state.missionClaimedIds = state.missionClaimedIds ?? [];
+    state.totalMissionRewardsClaimed = state.totalMissionRewardsClaimed ?? legacyMissionClaimedIds.length;
+
+    if (!hasMissionCadenceBuckets && legacyMissionClaimedIds.length > 0) {
+        state.missionClaimedIds = legacyMissionClaimedIds.filter(
+            (missionId) => getMissionById(missionId)?.cadence === 'milestone'
+        );
+    }
 }
