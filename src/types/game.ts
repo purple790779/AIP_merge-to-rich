@@ -101,6 +101,7 @@ export interface GameState {
     autoMergeInterval: number;
     unlockedRegionIds: WorldRegionId[];
     currentRegionId: WorldRegionId;
+    claimedRegionGoalIds: string[];
     dailyRewardLastClaimAt: number | null;
     dailyRewardLastClaimDayKey: string | null;
     dailyRewardStreak: number;

@@ -25,6 +25,7 @@ export function createInitialGameState(now: number = Date.now()): GameStoreState
         autoMergeInterval: 5000,
         unlockedRegionIds: [STARTING_REGION_ID],
         currentRegionId: STARTING_REGION_ID,
+        claimedRegionGoalIds: [],
         dailyRewardLastClaimAt: null,
         dailyRewardLastClaimDayKey: null,
         dailyRewardStreak: 0,

@@ -23,7 +23,7 @@ import {
     TimedRewardTray,
 } from './components';
 import { ACHIEVEMENTS } from './game/achievements';
-import { getRegionById, WORLD_REGIONS, getNextLockedRegion } from './game/worlds';
+import { getRegionBoardProfile, getRegionById, getRegionProgressSummary, WORLD_REGIONS, getNextLockedRegion } from './game/worlds';
 import { useGameStore } from './store/useGameStore';
 import { getClaimableMissionCountByMetrics } from './game/missions';
 import { COIN_LEVELS, MAX_MONEY } from './types/game';
@@ -68,6 +68,10 @@ function App() {
     const totalEarnedMoney = useGameStore((state) => state.totalEarnedMoney);
     const discoveredLevels = useGameStore((state) => state.discoveredLevels);
     const spawnLevel = useGameStore((state) => state.spawnLevel);
+    const mergeBonusLevel = useGameStore((state) => state.mergeBonusLevel);
+    const incomeMultiplierLevel = useGameStore((state) => state.incomeMultiplierLevel) ?? 0;
+    const gemSystemUnlocked = useGameStore((state) => state.gemSystemUnlocked);
+    const bitcoinDiscovered = useGameStore((state) => state.bitcoinDiscovered);
     const dailyRewardTotalClaimed = useGameStore((state) => state.dailyRewardTotalClaimed);
     const returnRewardTotalClaimed = useGameStore((state) => state.returnRewardTotalClaimed);
     const offlineRewardTotalClaimed = useGameStore((state) => state.offlineRewardTotalClaimed);
@@ -78,8 +82,25 @@ function App() {
     const dismissTimedReward = useGameStore((state) => state.dismissTimedReward);
     const currentRegionId = useGameStore((state) => state.currentRegionId);
     const unlockedRegionIds = useGameStore((state) => state.unlockedRegionIds);
+    const claimedRegionGoalIds = useGameStore((state) => state.claimedRegionGoalIds);
     const nextLockedRegion = getNextLockedRegion(unlockedRegionIds);
     const currentRegion = getRegionById(currentRegionId);
+    const currentRegionBoardProfile = getRegionBoardProfile(currentRegionId);
+    const currentRegionSummary = getRegionProgressSummary(
+        currentRegionId,
+        {
+            totalMoney,
+            totalEarnedMoney,
+            totalMergeCount,
+            spawnLevel,
+            mergeBonusLevel,
+            incomeMultiplierLevel,
+            discoveredLevels,
+            gemSystemUnlocked,
+            bitcoinDiscovered,
+        },
+        claimedRegionGoalIds
+    );
     const showRegionStatus = Boolean(currentRegion);
     const nextRegionUnlockProgress = nextLockedRegion ? Math.min(1, totalMoney / nextLockedRegion.unlockCost) : 1;
     const nextRegionRemaining = nextLockedRegion ? Math.max(0, nextLockedRegion.unlockCost - totalMoney) : 0;
@@ -213,9 +234,9 @@ function App() {
 
         let nextWorldTransitionText: string | null = null;
         if (unlockedRegionIds.length > previousUnlockedRegionCount) {
-            nextWorldTransitionText = `새 지역 해금 · ${currentRegion.name}`;
+            nextWorldTransitionText = `새 지역 해금 · ${currentRegion.name} · 핫존 합병 +${currentRegionBoardProfile.mergeHotspotBonusPercent}%`;
         } else if (currentRegionId !== previousRegionId) {
-            nextWorldTransitionText = `지역 이동 · ${currentRegion.name}`;
+            nextWorldTransitionText = `지역 이동 · ${currentRegion.name} · ${currentRegionBoardProfile.hotspotLabel}`;
         }
 
         prevRegionIdRef.current = currentRegionId;
@@ -233,7 +254,7 @@ function App() {
         }, 0);
 
         return () => window.clearTimeout(showTimerId);
-    }, [currentRegion.name, currentRegionId, unlockedRegionIds.length]);
+    }, [currentRegion.name, currentRegionBoardProfile.hotspotLabel, currentRegionBoardProfile.mergeHotspotBonusPercent, currentRegionId, unlockedRegionIds.length]);
 
     useEffect(() => {
         const previous = prevUnlockedAchievementsRef.current;
@@ -510,6 +531,15 @@ function App() {
                                 <span className="region-status-pill-status">{worldJourneySummary}</span>
                                 <span className="region-status-pill-count">
                                     {unlockedRegionIds.length}/{WORLD_REGIONS.length} 지역
+                                </span>
+                            </span>
+
+                            <span className="region-status-pill-insights">
+                                <span className="region-status-pill-chip">
+                                    {currentRegionBoardProfile.hotspotLabel} 합병 +{currentRegionBoardProfile.mergeHotspotBonusPercent}%
+                                </span>
+                                <span className="region-status-pill-chip">
+                                    운영 목표 {currentRegionSummary.claimedGoals}/{currentRegionSummary.totalGoals}
                                 </span>
                             </span>
 

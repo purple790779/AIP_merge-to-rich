@@ -44,3 +44,11 @@
 - 변경: `src/utils/dailyReward.ts`에 `getDailyRewardStatus()` / `getNextKstMidnightMs()`를 추가해 KST 기준 claim 가능 여부, 다음 리셋, 다음 streak 보상, 7일 cap, rollback 잠금을 단일 snapshot으로 계산하도록 통일했습니다.
 - 변경: `src/store/useGameStore.ts`, `src/components/DailyRewardModal.tsx`를 새 status snapshot 기준으로 정리하고, 다음 리셋 시각/7일 cap/clock rollback 안내를 사용자에게 명확히 노출했습니다.
 - 검증: `npm install`, `npm run lint`, `npm run build` 통과.
+
+## 2026-03-10 17:05-17:33 KST — Atlas region board / progression pass
+- 변경: `src/game/worlds.ts`를 권역 데이터 허브로 확장해 각 지역의 `boardProfile(핫존 셀/핫존 설명/합병 추가 보너스)`와 `progressionGoals(운영 목표/보상)`를 정의했습니다.
+- 변경: 저장 구조에 `claimedRegionGoalIds`를 추가하고 hydrate fallback을 넣어 기존 세이브와 호환되게 유지했습니다. `useGameStore`에는 `claimRegionGoalReward()`를 추가해 완료한 권역 운영 목표 보상을 실제로 수령할 수 있게 했습니다.
+- 변경: 보드에 권역 테마 오버레이와 핫존 셀 하이라이트를 추가했고, 핫존 셀에서의 합병은 해당 지역 보드 프로필에 맞는 추가 보너스를 실제로 지급하도록 연결했습니다.
+- 변경: `RegionModal`을 운영형 화면으로 재구성해 현재 권역 핫존 규칙, 권역별 운영 목표 진행도/보상 수령, 총 보상 규모, 다음 해금 진행을 한 화면에서 읽게 했습니다. 메인 셸과 헤더도 현재 핫존/운영 목표 정보를 더 직접적으로 노출합니다.
+- 검증: 처음에는 이 worktree에 `eslint` 실행 파일이 없어 `npm run lint`가 `eslint: not found`로 시작조차 되지 않았습니다. `npm install` 후 `npm run lint` 통과, `npm run build` 통과.
+- 메모: `npm install` 이후 `npm audit` 기준 취약점 8건(중간 1, 높음 7)은 그대로 보고됩니다. 이번 패스 범위에는 포함하지 않았습니다.

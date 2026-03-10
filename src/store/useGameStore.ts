@@ -14,7 +14,7 @@ import {
     getSpawnLevelUpgradeCost,
     getSpawnSpeedUpgradeCost,
 } from '../game/economy';
-import { getNextLockedRegion, getRegionById } from '../game/worlds';
+import { getNextLockedRegion, getRegionById, getRegionGoalById, getRegionGoalStatuses, isRegionHotspotCell } from '../game/worlds';
 import { finalizeRewardAmount, getOfflineRewardPreview, getReturnRewardPreview } from '../game/rewards';
 import { createInitialGameState, STORE_KEY } from './gameState';
 import { hydrateGameStoreState, partializeGameStore } from './persistence';
@@ -101,6 +101,9 @@ export const useGameStore = create<GameStore>()(
                 const mergeBonusBase = mergeBonusChance
                     ? Math.floor((COIN_LEVELS[nextLevel]?.value ?? 0) * (getMergeBonusPercent(state.mergeBonusLevel) / 100))
                     : 0;
+                const regionHotspotBonusBase = isRegionHotspotCell(state.currentRegionId, targetIndex)
+                    ? Math.floor((COIN_LEVELS[nextLevel]?.value ?? 0) * (getRegionById(state.currentRegionId).boardProfile.mergeHotspotBonusPercent / 100))
+                    : 0;
 
                 const nextCoins = state.coins
                     .filter((coin) => coin.id !== movingCoin.id && coin.id !== targetCoin.id)
@@ -109,7 +112,7 @@ export const useGameStore = create<GameStore>()(
                 const discoveredLevels = state.discoveredLevels?.length ? state.discoveredLevels : [1];
                 const isFirstDiscovery = nextLevel >= 2 && !discoveredLevels.includes(nextLevel);
                 const finalMergeBonus = finalizeRewardAmount(
-                    mergeBonusBase,
+                    mergeBonusBase + regionHotspotBonusBase,
                     'merge_bonus',
                     state.activeBoosts,
                     state.incomeMultiplierLevel ?? 0
@@ -324,6 +327,42 @@ export const useGameStore = create<GameStore>()(
                 if (!getRegionById(regionId)) return false;
 
                 set({ currentRegionId: regionId });
+                return true;
+            },
+
+            claimRegionGoalReward: (goalId) => {
+                const state = get();
+                if (state.claimedRegionGoalIds.includes(goalId)) return false;
+
+                const goalMeta = getRegionGoalById(goalId);
+                if (!goalMeta) return false;
+                if (!state.unlockedRegionIds.includes(goalMeta.region.id)) return false;
+
+                const goalStatus = getRegionGoalStatuses(
+                    goalMeta.region.id,
+                    {
+                        totalMoney: state.totalMoney,
+                        totalEarnedMoney: state.totalEarnedMoney,
+                        totalMergeCount: state.totalMergeCount,
+                        spawnLevel: state.spawnLevel,
+                        mergeBonusLevel: state.mergeBonusLevel,
+                        incomeMultiplierLevel: state.incomeMultiplierLevel ?? 0,
+                        discoveredLevels: state.discoveredLevels,
+                        gemSystemUnlocked: state.gemSystemUnlocked,
+                        bitcoinDiscovered: state.bitcoinDiscovered,
+                    },
+                    state.claimedRegionGoalIds
+                ).find((goal) => goal.id === goalId);
+
+                if (!goalStatus || !goalStatus.isComplete || goalStatus.isClaimed) return false;
+
+                set((currentState) => ({
+                    claimedRegionGoalIds: [...currentState.claimedRegionGoalIds, goalId],
+                    totalMoney: currentState.totalMoney + goalStatus.reward,
+                    totalEarnedMoney: currentState.totalEarnedMoney + goalStatus.reward,
+                }));
+
+                get().checkAchievements();
                 return true;
             },
 

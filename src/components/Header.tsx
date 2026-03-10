@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaChartLine, FaMapMarkedAlt } from 'react-icons/fa';
 import { getBoostMultiplier, getIncomeMultiplier } from '../game/economy';
-import { getNextLockedRegion, getRegionById } from '../game/worlds';
+import { getNextLockedRegion, getRegionBoardProfile, getRegionById } from '../game/worlds';
 import { formatMoney } from '../utils/formatMoney';
 import { useGameStore } from '../store/useGameStore';
 
@@ -26,10 +26,11 @@ export function Header() {
     const incomeMultiplier = getIncomeMultiplier(incomeMultiplierLevel);
     const effectiveIncome = Math.floor(incomePerTick * incomeMultiplier * boostMultiplier);
     const currentRegion = getRegionById(currentRegionId);
+    const currentBoardProfile = getRegionBoardProfile(currentRegionId);
     const nextLockedRegion = getNextLockedRegion(unlockedRegionIds);
     const worldChipText = nextLockedRegion
-        ? `${currentRegion.shortName} 권역 운영 중 · 다음 ${nextLockedRegion.shortName}`
-        : `${currentRegion.shortName} 권역 완성 · 자유 이동 가능`;
+        ? `${currentRegion.shortName} 권역 운영 중 · ${currentBoardProfile.hotspotLabel} 합병 +${currentBoardProfile.mergeHotspotBonusPercent}% · 다음 ${nextLockedRegion.shortName}`
+        : `${currentRegion.shortName} 권역 완성 · ${currentBoardProfile.hotspotLabel} 합병 +${currentBoardProfile.mergeHotspotBonusPercent}%`;
 
     useEffect(() => {
         setIsIncreasing(totalMoney > prevMoneyRef.current);

@@ -22,6 +22,7 @@ export interface GameStoreActions {
     upgradeAutoMergeSpeed: () => boolean;
     unlockRegion: (regionId: WorldRegionId) => boolean;
     selectRegion: (regionId: WorldRegionId) => boolean;
+    claimRegionGoalReward: (goalId: string) => boolean;
     checkAchievements: () => string[];
     claimDailyReward: () => boolean;
     canClaimDailyReward: () => boolean;

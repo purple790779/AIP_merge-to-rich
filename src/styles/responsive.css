@@ -42,6 +42,12 @@
     padding: 9px 11px;
   }
 
+  .board-region-overlay {
+    top: 14px;
+    left: 14px;
+    padding: 8px 10px;
+  }
+
   .board-container {
     border-radius: 22px;
   }
@@ -136,6 +142,14 @@
 
   .timed-reward-tray {
     gap: 7px;
+  }
+
+  .board-region-overlay strong {
+    font-size: 13px;
+  }
+
+  .board-region-overlay span:last-child {
+    font-size: 10px;
   }
 
   .timed-reward-pill-title {
@@ -236,6 +250,16 @@
     padding: 10px;
   }
 
+  .region-status-pill-insights {
+    gap: 6px;
+  }
+
+  .region-status-pill-chip {
+    min-height: 22px;
+    padding: 0 9px;
+    font-size: 10px;
+  }
+
   .region-status-pill-top,
   .region-status-pill-bottom {
     flex-direction: column;
@@ -250,6 +274,17 @@
   .region-status-pill-copy,
   .menu-button {
     font-size: 11px;
+  }
+
+  .region-highlight-grid.two-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .region-goals-card-top,
+  .region-goal-meta-row,
+  .region-goal-top {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .menu-button {

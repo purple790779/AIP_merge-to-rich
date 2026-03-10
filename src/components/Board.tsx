@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Coin } from './Coin';
 import { TOTAL_CELLS } from '../types/game';
 import { soundManager } from '../utils/soundManager';
+import { getRegionBoardProfile, getRegionById } from '../game/worlds';
 import { useGameStore } from '../store/useGameStore';
 
 export function Board() {
@@ -13,8 +14,12 @@ export function Board() {
     const activeBoosts = useGameStore((state) => state.activeBoosts);
     const autoMergeInterval = useGameStore((state) => state.autoMergeInterval) ?? 5000;
     const spawnCooldown = useGameStore((state) => state.spawnCooldown);
+    const currentRegionId = useGameStore((state) => state.currentRegionId);
     const moveCoin = useGameStore((state) => state.moveCoin);
     const tryMerge = useGameStore((state) => state.tryMerge);
+
+    const currentRegion = getRegionById(currentRegionId);
+    const boardProfile = getRegionBoardProfile(currentRegionId);
 
     useEffect(() => {
         let isCancelled = false;
@@ -145,19 +150,26 @@ export function Board() {
     const getCoinAtCell = (index: number) => coins.find((coin) => coin.gridIndex === index);
 
     return (
-        <div ref={boardRef} className="board-container">
+        <div ref={boardRef} className={`board-container theme-${currentRegion.theme}`}>
+            <div className="board-region-overlay" aria-hidden="true">
+                <span className="board-region-overlay-kicker">MERGE HOTSPOT</span>
+                <strong>{boardProfile.hotspotLabel}</strong>
+                <span>이 구역 합병 +{boardProfile.mergeHotspotBonusPercent}%</span>
+            </div>
+
             <div className="board-grid">
                 {Array.from({ length: TOTAL_CELLS }).map((_, index) => {
                     const isOccupied = coins.some((coin) => coin.gridIndex === index);
                     const isHovered = dragOverCell === index;
                     const coinAtCell = getCoinAtCell(index);
                     const canMerge = isHovered && coinAtCell;
+                    const isHotspot = boardProfile.hotspotCells.includes(index);
 
                     return (
                         <div
                             key={index}
                             data-index={index}
-                            className={`board-cell ${isOccupied ? 'occupied' : ''} ${isHovered ? 'hovered' : ''} ${canMerge ? 'can-merge' : ''}`}
+                            className={`board-cell ${isOccupied ? 'occupied' : ''} ${isHovered ? 'hovered' : ''} ${canMerge ? 'can-merge' : ''} ${isHotspot ? 'hotspot' : ''}`}
                         />
                     );
                 })}

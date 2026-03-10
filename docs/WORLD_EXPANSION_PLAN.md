@@ -1,6 +1,6 @@
 # 월드 확장 계획
 
-상태: Planned  
+상태: Active  
 기준일: 2026-03-10
 
 ## 1. 배경
@@ -37,11 +37,12 @@
 
 ## 4. 현재 구현 경계 (`v1.5.6`)
 - `world/region` 타입과 메타데이터는 `src/game/worlds.ts`에 정리되어 있다.
-- 저장 구조에는 `unlockedRegionIds`, `currentRegionId`가 이미 포함되어 있다.
+- 저장 구조에는 `unlockedRegionIds`, `currentRegionId`, `claimedRegionGoalIds`가 포함되어 있다.
 - 메인 화면에는 현재 지역 배너가 있다.
 - 실제 지역 해금 / 선택은 `RegionModal`이 담당한다.
 - `StoreModal`은 다음 지역 목표를 보조적으로 보여주지만 region unlock 메인 surface는 아니다.
-- 실제 지역별 보드 / 생산 계열 / 전용 경제는 아직 공용 구조를 사용한다.
+- 지역은 아직 단일 5x5 보드를 공유하지만, 권역별 `핫존 셀`과 `합병 추가 보너스`, `운영 목표 보상`이 실제 플레이에 연결되어 있다.
+- 지역별 생산 계열 완전 분리 / 전용 경제는 아직 다음 단계 범위다.
 
 ## 5. 구현 순서
 1. `world/region` 타입과 메타데이터 추가
@@ -49,8 +50,9 @@
 3. 메인 UI에 지역 선택 진입점 추가
 4. 지역 해금 비용과 해금 조건 추가
 5. 상점에서 다음 지역 목표와 장기 해금 축을 보여주기
-6. 지역별 보드 / 생산 계열 분리
-7. 지역 전용 미션 / 컬렉션 / 리텐션 보상 연결
+6. 지역별 보드 규칙을 셀 경계/핫존/위험 구역 단위에서 확대
+7. 지역별 생산 계열 분리
+8. 지역 전용 미션 / 컬렉션 / 리텐션 보상 연결
 
 ## 6. 상점 재구성 방향
 - 공통 강화
@@ -83,13 +85,15 @@
 ## 9. 다음 통합 게이트
 - region board 분리 시 저장 데이터 migration fallback 확인
 - 지역 전환 후에도 timed reward / mission / achievement 계산이 깨지지 않는지 smoke test
-- 지역별 테마 변화가 단순 문구가 아니라 보드/생산/리워드 체감 차이로 이어지는지 검토
+- 현재 핫존 보너스가 초중반/중반/엔드게임에서 과도한 인플레를 만들지 않는지 계측
+- 지역별 테마 변화가 핫존/운영 목표를 넘어 생산/리워드 체감 차이로 더 확장되는지 검토
 - 문서(`ARCHITECTURE`, `ROADMAP`, `PHASE1_TASKS`, handoff`)를 same-day로 동기화
 - reward tuning pass에서는 daily reward reset/cap 규칙과 mission reward band 설명도 함께 동기화
 
 ## 10. 이번 배치 결과
 - `src/game/worlds.ts` 추가
-- `GameState`에 `unlockedRegionIds`, `currentRegionId` 스캐폴딩 추가
+- `GameState`에 `unlockedRegionIds`, `currentRegionId`, `claimedRegionGoalIds` 스캐폴딩 추가
 - 문서 기준에서 지역 확장 방향을 공식화
 - `v1.5.6`에서 현재 지역 배너와 지역 선택 / 해금 UI 1차 반영
-- 실제 지역별 보드와 생산 계열 분리는 다음 단계
+- `v1.5.6` same-day pass에서 지역별 핫존 셀, 핫존 합병 추가 보너스, 권역 운영 목표/보상 UI를 연결
+- 실제 지역별 생산 계열 완전 분리와 전용 경제는 다음 단계

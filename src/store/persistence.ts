@@ -22,6 +22,7 @@ export function partializeGameStore(state: GameStore) {
         autoMergeInterval: state.autoMergeInterval,
         unlockedRegionIds: state.unlockedRegionIds,
         currentRegionId: state.currentRegionId,
+        claimedRegionGoalIds: state.claimedRegionGoalIds,
         dailyRewardLastClaimAt: state.dailyRewardLastClaimAt,
         dailyRewardLastClaimDayKey: state.dailyRewardLastClaimDayKey,
         dailyRewardStreak: state.dailyRewardStreak,
@@ -55,6 +56,7 @@ export function hydrateGameStoreState(state: GameStoreState): void {
     state.autoMergeInterval = state.autoMergeInterval ?? 5000;
     state.unlockedRegionIds = state.unlockedRegionIds?.length ? state.unlockedRegionIds : ['city_bank'];
     state.currentRegionId = state.currentRegionId ?? state.unlockedRegionIds[0] ?? 'city_bank';
+    state.claimedRegionGoalIds = state.claimedRegionGoalIds ?? [];
     state.totalEarnedMoney = state.totalEarnedMoney ?? 0;
     state.dailyRewardLastClaimAt = state.dailyRewardLastClaimAt ?? null;
     state.dailyRewardLastClaimDayKey = state.dailyRewardLastClaimDayKey ?? null;
