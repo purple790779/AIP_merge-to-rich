@@ -18,6 +18,7 @@
 - 미션 현금 보상을 `small / medium / large` 구간형 multiplier로 재조정해 daily/weekly/초중반 milestone 보상은 약간 살리고, 대형 장기 milestone 보상은 과도하게 부풀지 않도록 정리
 - 일일 보상 상태 계산을 utility 단일 경로로 통합해 claim 가능 여부, 다음 리셋 시각, streak cap 정보를 같은 규칙으로 계산
 - 일일 보상 모달에 `다음 KST 리셋`, `7일차 보너스 cap`, `기기 시간 rollback 잠금` 안내를 추가해 보상 문구 해석을 쉽게 정리
+- gem lock / 최고 레벨 cap 때문에 실제로 합칠 수 없는 쌍을 자동 병합이 잡지 않도록 보정하고, 막힌 보드에서는 `KST 하루 1회 무료 긴급 정리`로 빈 칸 1개와 1회 생산 자금을 제공하도록 1차 rescue를 추가
 
 ### 문서 / QA / 검증
 - `v1.5.6` morning snapshot을 실제 코드(`App`, `RegionModal`, `StoreModal`, `worlds`, `useGameStore`, `persistence`) 기준으로 재감사

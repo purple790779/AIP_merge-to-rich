@@ -51,4 +51,10 @@
 - 변경: 보드에 권역 테마 오버레이와 핫존 셀 하이라이트를 추가했고, 핫존 셀에서의 합병은 해당 지역 보드 프로필에 맞는 추가 보너스를 실제로 지급하도록 연결했습니다.
 - 변경: `RegionModal`을 운영형 화면으로 재구성해 현재 권역 핫존 규칙, 권역별 운영 목표 진행도/보상 수령, 총 보상 규모, 다음 해금 진행을 한 화면에서 읽게 했습니다. 메인 셸과 헤더도 현재 핫존/운영 목표 정보를 더 직접적으로 노출합니다.
 - 검증: 처음에는 이 worktree에 `eslint` 실행 파일이 없어 `npm run lint`가 `eslint: not found`로 시작조차 되지 않았습니다. `npm install` 후 `npm run lint` 통과, `npm run build` 통과.
-- 메모: `npm install` 이후 `npm audit` 기준 취약점 8건(중간 1, 높음 7)은 그대로 보고됩니다. 이번 패스 범위에는 포함하지 않았습니다.
+
+## 2026-03-10 17:05-17:20 KST — Rook deadlock rescue / recovery pass
+- 변경: `src/game/coins.ts`의 auto merge pair 탐색을 실제 merge 가능 조건(gem lock, 최고 레벨 cap) 기준으로 보정해, 막힌 쌍을 자동화가 계속 집는 문제를 막았습니다.
+- 변경: `src/game/rescue.ts`를 추가하고, `useGameStore`/persist/state에 `board rescue` 상태를 연결했습니다. full board + legal merge 부재일 때만 `KST 하루 1회 무료 긴급 정리`를 사용할 수 있으며, 최저 레벨 코인 1개 제거 + 현재 생산 비용 1회분 운영자금 지급으로 루프를 재기동합니다.
+- 변경: `src/components/Controls.tsx`, `src/styles/layout.css`에 rescue 안내 카드와 CTA를 추가해 stall reason / 지급 자금 / 다음 리셋 타이밍을 플레이어가 바로 이해하도록 정리했습니다.
+- 문서: `CHANGELOG`, `ROADMAP`, `PHASE1_TASKS`, `WORLD_EXPANSION_PLAN`, `NEXT_SESSION_HANDOFF_2026-03-08`를 실제 반영 범위 기준으로 동기화했습니다.
+- 검증: 의존성 미설치 워크트리여서 `npm install` 선행 후 `npm run lint`, `npm run build` 모두 통과.

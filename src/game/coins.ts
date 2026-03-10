@@ -21,7 +21,18 @@ export function calculateIncomePerTick(coins: Coin[]): number {
     return coins.reduce((sum, coin) => sum + (COIN_BASE_INCOME[coin.level] ?? 0), 0);
 }
 
-export function findAutoMergePair(coins: Coin[]): { coinId: string; targetIndex: number } | null {
+export function canPromoteCoinLevel(level: number, gemSystemUnlocked: boolean): boolean {
+    const nextLevel = level + 1;
+
+    if (nextLevel > 18) return false;
+    if (!gemSystemUnlocked && nextLevel > 12) return false;
+    return true;
+}
+
+export function findAutoMergePair(
+    coins: Coin[],
+    gemSystemUnlocked: boolean = true
+): { coinId: string; targetIndex: number } | null {
     const coinsByLevel: Record<number, Coin[]> = {};
 
     coins.forEach((coin) => {
@@ -35,7 +46,7 @@ export function findAutoMergePair(coins: Coin[]): { coinId: string; targetIndex:
 
     for (const level of levels) {
         const group = coinsByLevel[level];
-        if (group.length >= 2) {
+        if (group.length >= 2 && canPromoteCoinLevel(level, gemSystemUnlocked)) {
             return { coinId: group[0].id, targetIndex: group[1].gridIndex };
         }
     }

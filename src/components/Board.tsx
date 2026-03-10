@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Coin } from './Coin';
 import { TOTAL_CELLS } from '../types/game';
+import { canPromoteCoinLevel } from '../game/coins';
 import { soundManager } from '../utils/soundManager';
 import { getRegionBoardProfile, getRegionById } from '../game/worlds';
 import { useGameStore } from '../store/useGameStore';
@@ -17,6 +18,7 @@ export function Board() {
     const currentRegionId = useGameStore((state) => state.currentRegionId);
     const moveCoin = useGameStore((state) => state.moveCoin);
     const tryMerge = useGameStore((state) => state.tryMerge);
+    const gemSystemUnlocked = useGameStore((state) => state.gemSystemUnlocked);
 
     const currentRegion = getRegionById(currentRegionId);
     const boardProfile = getRegionBoardProfile(currentRegionId);
@@ -112,13 +114,17 @@ export function Board() {
             if (cellIndex === null || cellIndex === currentCoin.gridIndex) continue;
 
             const targetCoin = coins.find((coin) => coin.gridIndex === cellIndex && coin.id !== coinId);
-            if (targetCoin && targetCoin.level === currentCoin.level) {
+            if (
+                targetCoin &&
+                targetCoin.level === currentCoin.level &&
+                canPromoteCoinLevel(currentCoin.level, gemSystemUnlocked)
+            ) {
                 return cellIndex;
             }
         }
 
         return null;
-    }, [coins, getCellIndexFromPoint]);
+    }, [coins, gemSystemUnlocked, getCellIndexFromPoint]);
 
     const handleDragEnd = useCallback((coinId: string, info: { point: { x: number; y: number } }) => {
         setDragOverCell(null);

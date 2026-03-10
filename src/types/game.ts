@@ -107,6 +107,9 @@ export interface GameState {
     dailyRewardStreak: number;
     dailyRewardTotalClaimed: number;
     dailyRewardLastAmount: number;
+    boardRescueUsedDayKey: string | null;
+    boardRescueUsedCount: number;
+    boardRescueTotalUsed: number;
     lastSeenAt: number;
     lastSeenDayKey: string | null;
     returnRewardLastEligibleAt: number | null;

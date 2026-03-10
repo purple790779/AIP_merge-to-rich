@@ -4,6 +4,7 @@ import type { Coin } from '../types/game';
 import { COIN_LEVELS, TOTAL_CELLS } from '../types/game';
 import { getAchievementRewardTotal, getNewlyUnlockedAchievementIds } from '../game/achievements';
 import { calculateIncomePerTick, findAutoMergePair, findRandomEmptyCell, generateCoinId } from '../game/coins';
+import { getBoardRescueStatus } from '../game/rescue';
 import {
     ECONOMY_LIMITS,
     getAutoMergeUpgradeCost,
@@ -138,7 +139,8 @@ export const useGameStore = create<GameStore>()(
             },
 
             triggerAutoMerge: () => {
-                const pair = findAutoMergePair(get().coins);
+                const { coins, gemSystemUnlocked } = get();
+                const pair = findAutoMergePair(coins, gemSystemUnlocked);
                 if (!pair) return false;
                 return get().tryMerge(pair.coinId, pair.targetIndex);
             },
@@ -413,6 +415,41 @@ export const useGameStore = create<GameStore>()(
                     dailyRewardLastClaimAt,
                     dailyRewardStreak
                 ).canClaim;
+            },
+
+            useBoardRescue: () => {
+                const state = get();
+                const rescueStatus = getBoardRescueStatus({
+                    coins: state.coins,
+                    gemSystemUnlocked: state.gemSystemUnlocked,
+                    boardRescueUsedDayKey: state.boardRescueUsedDayKey,
+                    boardRescueUsedCount: state.boardRescueUsedCount,
+                    spawnLevel: state.spawnLevel,
+                });
+
+                if (!rescueStatus.canUse || !rescueStatus.rescueTarget) return false;
+
+                const rescueTargetId = rescueStatus.rescueTarget.id;
+
+                set((currentState) => {
+                    const nextCoins = currentState.coins.filter((coin) => coin.id !== rescueTargetId);
+                    const nextUsedCount = currentState.boardRescueUsedDayKey === rescueStatus.todayKey
+                        ? currentState.boardRescueUsedCount + 1
+                        : 1;
+
+                    return {
+                        coins: nextCoins,
+                        incomePerTick: calculateIncomePerTick(nextCoins),
+                        totalMoney: currentState.totalMoney + rescueStatus.emergencyCash,
+                        totalEarnedMoney: currentState.totalEarnedMoney + rescueStatus.emergencyCash,
+                        boardRescueUsedDayKey: rescueStatus.todayKey,
+                        boardRescueUsedCount: nextUsedCount,
+                        boardRescueTotalUsed: currentState.boardRescueTotalUsed + 1,
+                    };
+                });
+
+                get().checkAchievements();
+                return true;
             },
 
             claimMissionReward: (missionId) => {

@@ -26,6 +26,7 @@ export interface GameStoreActions {
     checkAchievements: () => string[];
     claimDailyReward: () => boolean;
     canClaimDailyReward: () => boolean;
+    useBoardRescue: () => boolean;
     claimMissionReward: (missionId: string) => boolean;
     refreshTimedRewards: (now?: number) => void;
     claimReturnReward: () => boolean;

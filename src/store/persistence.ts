@@ -28,6 +28,9 @@ export function partializeGameStore(state: GameStore) {
         dailyRewardStreak: state.dailyRewardStreak,
         dailyRewardTotalClaimed: state.dailyRewardTotalClaimed,
         dailyRewardLastAmount: state.dailyRewardLastAmount,
+        boardRescueUsedDayKey: state.boardRescueUsedDayKey,
+        boardRescueUsedCount: state.boardRescueUsedCount,
+        boardRescueTotalUsed: state.boardRescueTotalUsed,
         lastSeenAt: state.lastSeenAt,
         lastSeenDayKey: state.lastSeenDayKey,
         returnRewardLastEligibleAt: state.returnRewardLastEligibleAt,
@@ -63,6 +66,9 @@ export function hydrateGameStoreState(state: GameStoreState): void {
     state.dailyRewardStreak = state.dailyRewardStreak ?? 0;
     state.dailyRewardTotalClaimed = state.dailyRewardTotalClaimed ?? 0;
     state.dailyRewardLastAmount = state.dailyRewardLastAmount ?? 0;
+    state.boardRescueUsedDayKey = state.boardRescueUsedDayKey ?? null;
+    state.boardRescueUsedCount = state.boardRescueUsedCount ?? 0;
+    state.boardRescueTotalUsed = state.boardRescueTotalUsed ?? 0;
     state.lastSeenAt = state.lastSeenAt ?? now;
     state.lastSeenDayKey = state.lastSeenDayKey ?? getKstDayKey(state.lastSeenAt);
     state.returnRewardLastEligibleAt = state.returnRewardLastEligibleAt ?? null;

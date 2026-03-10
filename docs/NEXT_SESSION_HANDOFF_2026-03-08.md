@@ -26,6 +26,8 @@
 - 현재는 지역 메타/UI만 반영된 상태이며 실제 지역별 보드와 생산 라인은 아직 공용 구조다.
 - 일일 보상은 `dailyReward.ts` status snapshot 기준으로 claim 가능 여부 / 다음 리셋 / streak cap을 공통 계산한다.
 - 미션 보상은 금액대별 band(`small / medium / large`)로 scale해 초중반 리텐션 보상은 조금 살리고, 대형 milestone 보상은 보수적으로 유지한다.
+- deadlock rescue 1차가 반영되어, gem lock / 최고 레벨 cap으로 실질 merge가 불가능한 full board에서는 `KST 하루 1회 무료 긴급 정리`가 노출된다. 긴급 정리는 최저 레벨 코인 1개를 제거하고 현재 생산 비용 1회분 운영자금을 지급한다.
+- auto merge는 이제 실제로 합칠 수 있는 쌍만 탐색한다.
 - fresh worktree에서는 `node_modules`가 없으면 검증이 바로 되지 않으므로 `npm install` 후 검증해야 한다.
 - 현 시점 의존성 트리에는 `npm audit` 기준 취약점 8건(중간 1, 높음 7)이 있으며 아직 triage 전이다.
 
@@ -37,7 +39,7 @@
 - 프로젝트 요구 Node 버전: `22.x`
 
 ## 4. 다음 세션 우선순위
-1. deadlock rescue 시스템 초안 + region board 분리 경계 정의
+1. region board 분리 경계 정의 + rescue 2차(광고/강제 합성) 범위 정리
 2. 복귀 / 오프라인 보상 수치 재조정
 3. 지역별 생산 계열 설계
 4. 문자열 / 좁은 화면 / timed reward / daily reward smoke QA
