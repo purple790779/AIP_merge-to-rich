@@ -1,9 +1,9 @@
 # 변경 이력
 
 상태: Current  
-기준일: 2026-03-09
+기준일: 2026-03-10
 
-## [1.5.6] - 2026-03-09
+## [1.5.6] - 2026-03-10
 
 ### 지역 확장 UI
 - 현재 지역 배너를 메인 화면에 추가
@@ -11,9 +11,16 @@
 - 해금된 지역 선택과 다음 지역 순차 해금을 store 액션으로 연결
 - 지역별 전용 보드가 아직 미구현임을 UI에 명시
 
+### 문서 / QA / 검증
+- `v1.5.6` morning snapshot을 실제 코드(`App`, `RegionModal`, `StoreModal`, `worlds`, `useGameStore`, `persistence`) 기준으로 재감사
+- 현재 지역 해금/선택의 실제 진입점이 `RegionModal`이고, `StoreModal`은 `다음 지역 목표`와 장기 해금 힌트 노출 역할이라는 점을 문서 전반에 명확히 반영
+- `AchievementModal`의 상세 필터 초기화를 effect 밖의 네비게이션 핸들러로 이동해 현재 ESLint(`react-hooks/set-state-in-effect`) 규칙과 충돌하지 않도록 정리
+- fresh worktree 기준 `npm install`, `npm run lint`, `npm run build` 검증 통과
+- `npm audit` 기준 의존성 트리에 취약점 8건(중간 1, 높음 7)이 보고되지만 이번 docs/QA pass에서는 미조치
+
 ### 문서 / 버전
-- `package.json`, `package-lock.json`, `android/app/build.gradle`을 `v1.5.6` 기준으로 동기화
-- README, 아키텍처, 로드맵, 작업표, 월드 확장 계획, handoff 문서를 최신 상태로 갱신
+- `package.json`, `package-lock.json`, `android/app/build.gradle`을 `v1.5.6` 기준으로 유지
+- 아키텍처, 로드맵, 작업표, 월드 확장 계획, handoff, progress 문서를 `2026-03-10` QA 기준으로 갱신
 
 ## [1.5.5] - 2026-03-09
 
